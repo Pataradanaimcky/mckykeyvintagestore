@@ -32,10 +32,10 @@ export default async function CheckoutPage({ params }: PageProps<"/checkout/[slu
           <CheckoutForm productSlug={product.slug} paymentLabel={provider.label} />
         </section>
 
-        <aside className="flex min-w-0 flex-col gap-4 self-start rounded border border-line p-5">
+        <aside className="flex min-w-0 flex-col gap-4 self-start rounded-2xl border border-line p-5">
           <h2 className="font-semibold">สรุปคำสั่งซื้อ</h2>
           <div className="flex items-center gap-4">
-            <div className="w-24 shrink-0 overflow-hidden rounded">
+            <div className="w-24 shrink-0 overflow-hidden rounded-2xl">
               <PackCover product={product} />
             </div>
             <div className="min-w-0">
@@ -48,7 +48,7 @@ export default async function CheckoutPage({ params }: PageProps<"/checkout/[slu
               </p>
             </div>
           </div>
-          <dl className="flex justify-between border-t border-line pt-4 font-display text-lg font-semibold tabular-nums">
+          <dl className="flex justify-between border-t border-line pt-4 text-lg font-semibold tabular-nums">
             <dt>ยอดชำระ</dt>
             <dd>{formatTHB(product.priceSatang)}</dd>
           </dl>

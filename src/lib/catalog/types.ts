@@ -1,5 +1,5 @@
 export type CategoryId = "keys" | "pads" | "bass-brass" | "bundle";
-export type InstrumentId = "yamaha-modx-m" | "roland-d-50";
+export type InstrumentId = "yamaha-modx-m" | "roland-fantom-0";
 
 export interface Category {
   id: CategoryId;
@@ -15,6 +15,8 @@ export interface Instrument {
   model: string;
   /** Full list of models the files load on. */
   worksWith: string;
+  /** The store's own color for this product line. Not the maker's brand color. */
+  color: string;
   /** File type the buyer receives, e.g. ".Y2L". */
   fileFormat: string;
   /** What one sound is called on this instrument. */
@@ -46,8 +48,8 @@ export interface Product {
   engines: string;
   status: "available" | "coming_soon";
   badge?: string;
-  /** Short label and flat background color for the drawn cover. Text on it is white. */
-  cover: { label: string; color: string };
+  /** Short label drawn on the cover. The cover color comes from the instrument. */
+  cover: { label: string };
   /** Optional photo shown instead of the drawn cover, e.g. "/packs/thai-pop-keys-vol-1.jpg" (file in /public). */
   image?: string;
   patches: Patch[];

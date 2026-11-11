@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
-import "@fontsource/kanit/thai-500.css";
-import "@fontsource/kanit/thai-600.css";
-import "@fontsource/kanit/latin-500.css";
-import "@fontsource/kanit/latin-600.css";
-import "@fontsource/sarabun/thai-400.css";
-import "@fontsource/sarabun/thai-500.css";
-import "@fontsource/sarabun/thai-600.css";
-import "@fontsource/sarabun/latin-400.css";
-import "@fontsource/sarabun/latin-500.css";
-import "@fontsource/sarabun/latin-600.css";
+import "@fontsource/anuphan/thai-400.css";
+import "@fontsource/anuphan/thai-500.css";
+import "@fontsource/anuphan/thai-600.css";
+import "@fontsource/anuphan/thai-700.css";
+import "@fontsource/anuphan/latin-400.css";
+import "@fontsource/anuphan/latin-500.css";
+import "@fontsource/anuphan/latin-600.css";
+import "@fontsource/anuphan/latin-700.css";
 import "./globals.css";
+import { RevealObserver } from "@/components/motion/RevealObserver";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -24,6 +23,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="th" className="h-full antialiased">
       <body className="flex min-h-full flex-col">
+        <RevealObserver />
         <AnnouncementBar />
         <SiteHeader />
         <main className="flex-1">{children}</main>

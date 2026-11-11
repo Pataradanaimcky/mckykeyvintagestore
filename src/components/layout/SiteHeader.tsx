@@ -10,14 +10,14 @@ const links = [
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-20 border-b border-line bg-canvas/95 backdrop-blur">
-      <Container className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-3">
-        <Link href="/" className="font-display text-xl font-semibold text-brand">
+    <header className="sticky top-0 z-20 bg-canvas/80 backdrop-blur-md">
+      <Container className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-4">
+        <Link href="/" className="text-xl font-bold tracking-tight">
           {site.name}
         </Link>
-        <nav aria-label="เมนูหลัก" className="flex gap-5 text-sm text-muted">
+        <nav aria-label="เมนูหลัก" className="flex items-center gap-1 text-sm font-medium">
           {links.map((link) => (
-            <Link key={link.href} href={link.href} className="hover:text-ink">
+            <Link key={link.href} href={link.href} className="rounded-full px-3 py-2 transition-colors hover:bg-surface">
               {link.label}
             </Link>
           ))}
