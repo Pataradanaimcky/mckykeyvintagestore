@@ -1,15 +1,11 @@
 import type { CSSProperties } from "react";
 import type { Product } from "@/lib/catalog";
 
-/** Patch names shown like a synth's category-search screen, with a cursor stepping down the list. */
+/** Sample of the sounds in a pack, as a plain numbered list with a highlight stepping down it. */
 export function PatchList({ product }: { product: Product }) {
   const count = product.patches.length;
   return (
-    <div className="rounded-lg bg-ink p-4 font-mono text-sm text-white/85">
-      <div className="flex justify-between gap-3 border-b border-white/15 pb-2 text-xs tracking-wide text-led/80">
-        <span className="truncate">LIBRARY · {product.name.toUpperCase()}</span>
-        <span className="shrink-0">{product.soundCount} SOUNDS</span>
-      </div>
+    <div className="rounded border border-line text-sm">
       <div className="relative">
         <div
           aria-hidden="true"
@@ -20,17 +16,17 @@ export function PatchList({ product }: { product: Product }) {
           {product.patches.map((patch, index) => (
             <li
               key={patch.name}
-              className="grid h-10 grid-cols-[2.5rem_3rem_minmax(0,1fr)] items-center gap-2 border-b border-white/10 px-2 tabular-nums"
+              className="grid h-10 grid-cols-[2rem_3.5rem_minmax(0,1fr)] items-center gap-2 border-b border-line px-3 tabular-nums"
             >
-              <span className="text-white/45">{String(index + 1).padStart(3, "0")}</span>
-              <span className="text-led">{patch.tag}</span>
-              <span className="truncate">{patch.name}</span>
+              <span className="text-muted">{index + 1}</span>
+              <span className="text-muted">{patch.tag}</span>
+              <span className="truncate font-medium">{patch.name}</span>
             </li>
           ))}
         </ul>
       </div>
-      <p className="pt-2 text-xs text-white/45">
-        ตัวอย่าง {count} จาก {product.soundCount} เสียง
+      <p className="bg-surface px-3 py-2 text-xs text-muted">
+        ตัวอย่าง {count} จากทั้งหมด {product.soundCount} เสียง
       </p>
     </div>
   );

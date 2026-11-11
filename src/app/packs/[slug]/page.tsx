@@ -41,29 +41,29 @@ export default async function PackPage({ params }: PageProps<"/packs/[slug]">) {
       </nav>
 
       <section className="grid gap-8 md:grid-cols-2">
-        <div className="self-start overflow-hidden rounded-lg border border-line">
+        <div className="self-start overflow-hidden rounded border border-line">
           <PackCover product={product} />
         </div>
         <div className="flex min-w-0 flex-col gap-4">
           <InstrumentChip instrument={instrument} size="md" />
-          <h1 className="text-3xl font-bold sm:text-4xl">{product.name}</h1>
+          <h1 className="text-3xl font-semibold sm:text-4xl">{product.name}</h1>
           <p className="text-muted">{product.description}</p>
           <dl className="grid grid-cols-2 gap-3 text-sm">
-            <div className="rounded-lg bg-surface p-3">
+            <div className="rounded bg-surface p-3">
               <dt className="text-muted">ใช้กับเครื่อง</dt>
               <dd className="font-semibold">{instrument.worksWith}</dd>
             </div>
-            <div className="rounded-lg bg-surface p-3">
+            <div className="rounded bg-surface p-3">
               <dt className="text-muted">ไฟล์ที่ได้รับ</dt>
               <dd className="font-semibold">{instrument.fileFormat}</dd>
             </div>
-            <div className="rounded-lg bg-surface p-3">
+            <div className="rounded bg-surface p-3">
               <dt className="text-muted">จำนวนเสียง</dt>
               <dd className="font-semibold tabular-nums">
                 {product.soundCount} {instrument.soundUnit}
               </dd>
             </div>
-            <div className="rounded-lg bg-surface p-3">
+            <div className="rounded bg-surface p-3">
               <dt className="text-muted">เอนจินเสียง</dt>
               <dd className="font-semibold">{product.engines}</dd>
             </div>
@@ -72,12 +72,12 @@ export default async function PackPage({ params }: PageProps<"/packs/[slug]">) {
           {available ? (
             <Link
               href={`/checkout/${product.slug}`}
-              className="rounded-md bg-ink px-6 py-3 text-center font-display font-semibold tracking-wide text-white transition hover:bg-brand"
+              className="rounded bg-brand px-6 py-3 text-center font-display font-semibold text-white transition hover:bg-brand-dark"
             >
               ซื้อแพ็กนี้
             </Link>
           ) : (
-            <p className="rounded-md bg-surface px-6 py-3 text-center font-display font-semibold text-muted">
+            <p className="rounded bg-surface px-6 py-3 text-center font-display font-semibold text-muted">
               ยังไม่เปิดขาย
             </p>
           )}

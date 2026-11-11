@@ -10,12 +10,12 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <Link
       href={`/packs/${product.slug}`}
-      className="group flex w-full min-w-0 flex-col overflow-hidden rounded-lg border border-line bg-canvas transition duration-300 hover:-translate-y-1 hover:border-ink hover:shadow-xl active:translate-y-0"
+      className="group flex w-full min-w-0 flex-col overflow-hidden rounded border border-line bg-canvas transition hover:border-brand hover:shadow-md"
     >
       <PackCover product={product} className={comingSoon ? "opacity-80" : ""} />
       <div className="flex flex-1 flex-col gap-2 p-3 sm:p-4">
         <InstrumentChip instrument={instrument} />
-        <h3 className="font-display text-base font-semibold sm:text-lg">{product.name}</h3>
+        <h3 className="font-display text-base font-medium group-hover:text-brand sm:text-lg">{product.name}</h3>
         <p className="text-sm text-muted">{product.summary}</p>
         <p className="text-xs text-muted">
           {product.soundCount} {instrument.soundUnit} · ไฟล์ {instrument.fileFormat}

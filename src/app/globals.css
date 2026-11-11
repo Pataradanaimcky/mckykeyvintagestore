@@ -2,22 +2,20 @@
 
 /* Design tokens. Change the look of the whole store from here. */
 @theme {
-  --color-ink: #101114;
-  --color-muted: #5d636e;
-  --color-line: #dcdfe4;
-  --color-surface: #f2f3f5;
+  --color-ink: #1a1a1a;
+  --color-muted: #666666;
+  --color-line: #e0e0e0;
+  --color-surface: #f5f5f5;
   --color-canvas: #ffffff;
-  --color-brand: #0b7a75;
-  --color-brand-dark: #095e5a;
-  /* Accent used on dark panels, like a lit display. */
-  --color-led: #4fe3d1;
-  --color-sale: #e11d48;
-  --color-sun: #ffd84d;
-  --color-ok: #0f8a5f;
+  --color-brand: #0b4ea2;
+  --color-brand-dark: #083a7a;
+  --color-sale: #d0021b;
+  --color-sun: #ffc400;
+  --color-ok: #1a7f4b;
 
-  --font-sans: "Anuphan", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Chakra Petch", "Anuphan", system-ui, sans-serif;
-  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-sans: "Sarabun", "Leelawadee UI", Tahoma, sans-serif;
+  --font-display: "Kanit", "Sarabun", Tahoma, sans-serif;
+  --font-mono: ui-monospace, Menlo, Consolas, monospace;
 }
 
 html {
@@ -28,7 +26,8 @@ body {
   background: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  line-height: 1.65;
+  font-size: 1.0625rem;
+  line-height: 1.7;
 }
 
 h1,
@@ -61,28 +60,7 @@ h3 {
   }
 }
 
-/* Sections fade up as they scroll in. Browsers without scroll timelines show them as is. */
-@supports (animation-timeline: view()) {
-  .reveal {
-    animation: rise linear both;
-    animation-timeline: view();
-    animation-range: entry 0% entry 40%;
-  }
-}
-
 /* --- Cover motion (see PackCover.tsx) --- */
-.pack-cover .cover-bar {
-  transform-box: fill-box;
-  transform-origin: left center;
-  animation: bar-in 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-
-@keyframes bar-in {
-  from {
-    transform: scaleX(0);
-  }
-}
-
 .pack-cover .cover-key {
   transform-box: fill-box;
   transform-origin: 50% 0;
@@ -91,25 +69,10 @@ h3 {
     fill 0.15s ease;
 }
 
-.pack-cover .cover-knob {
-  transition: transform 0.7s cubic-bezier(0.3, 1.4, 0.5, 1);
-}
-
-.pack-cover .cover-slider {
-  transform-box: fill-box;
-}
-
 /* Hovering a product card plays a quick chord and nudges the controls. */
 .group:hover .pack-cover .cover-key.is-played {
   animation: key-press 1.4s ease-in-out infinite;
   animation-delay: calc(var(--i) * 80ms);
-}
-.group:hover .pack-cover .cover-knob {
-  transform: rotate(var(--turn));
-}
-.group:hover .pack-cover .cover-slider {
-  animation: meter 0.8s ease-in-out infinite alternate;
-  animation-delay: calc(var(--i) * -160ms);
 }
 
 /* A cover with `playing` loops on its own (used in the banner). */
@@ -117,75 +80,17 @@ h3 {
   animation: key-press 2.4s ease-in-out infinite;
   animation-delay: calc(var(--i) * 110ms + 1s);
 }
-.pack-cover.is-playing .cover-knob {
-  animation: knob-turn 5s ease-in-out infinite alternate;
-}
-.pack-cover.is-playing .cover-slider {
-  animation: meter 1.2s ease-in-out infinite alternate;
-  animation-delay: calc(var(--i) * -240ms);
-}
-.pack-cover.is-playing .cover-label {
-  animation: glow 2.4s ease-in-out infinite;
-  animation-delay: 1s;
-}
-.pack-cover.is-playing .cover-scan {
-  animation: scan 3.2s linear infinite;
-}
-
 @keyframes key-press {
   0%,
   45%,
   100% {
     transform: scaleY(1);
-    fill: #f4f5f7;
+    fill: #ffffff;
   }
   8%,
   32% {
-    transform: scaleY(0.965);
-    fill: var(--accent);
-  }
-}
-
-@keyframes meter {
-  from {
-    transform: translateY(5px);
-  }
-  to {
-    transform: translateY(-5px);
-  }
-}
-
-@keyframes knob-turn {
-  to {
-    transform: rotate(var(--turn));
-  }
-}
-
-@keyframes glow {
-  0%,
-  100% {
-    filter: none;
-  }
-  12%,
-  30% {
-    filter: drop-shadow(0 0 6px var(--accent));
-  }
-}
-
-@keyframes scan {
-  0% {
-    transform: translateY(0);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.14;
-  }
-  90% {
-    opacity: 0.14;
-  }
-  100% {
-    transform: translateY(76px);
-    opacity: 0;
+    transform: scaleY(0.97);
+    fill: var(--color-sun);
   }
 }
 
@@ -208,8 +113,8 @@ h3 {
 /* All rows are the same height, so one bar of 1/n height can step through them. */
 .patch-cursor {
   height: calc(100% / var(--n));
-  background: color-mix(in srgb, var(--color-led) 14%, transparent);
-  box-shadow: inset 2px 0 0 var(--color-led);
+  background: color-mix(in srgb, var(--color-sun) 28%, transparent);
+  box-shadow: inset 3px 0 0 var(--color-sun);
   animation: row-select calc(var(--n) * 1.1s) steps(var(--n), jump-none) infinite;
 }
 
@@ -255,16 +160,5 @@ h3 {
   *::after {
     animation: none !important;
     transition: none !important;
-  }
-}
-
-/* Slow breathing glow behind the featured pack in the banner. */
-.banner-glow {
-  animation: breathe 6s ease-in-out infinite;
-}
-
-@keyframes breathe {
-  50% {
-    opacity: 0.55;
   }
 }

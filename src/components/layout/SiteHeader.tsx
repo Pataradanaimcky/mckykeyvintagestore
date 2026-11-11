@@ -12,7 +12,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-canvas/95 backdrop-blur">
       <Container className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-3">
-        <Link href="/" className="font-display text-lg font-bold tracking-tight">
+        <Link href="/" className="font-display text-xl font-semibold text-brand">
           {site.name}
         </Link>
         <nav aria-label="เมนูหลัก" className="flex gap-5 text-sm text-muted">

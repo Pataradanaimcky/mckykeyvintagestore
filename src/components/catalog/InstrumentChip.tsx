@@ -4,12 +4,11 @@ import type { Instrument } from "@/lib/catalog";
 export function InstrumentChip({ instrument, size = "sm" }: { instrument: Instrument; size?: "sm" | "md" }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 self-start rounded-md bg-ink font-display font-semibold tracking-wide text-white ${
-        size === "md" ? "px-3 py-1.5 text-sm" : "px-2 py-1 text-[0.7rem]"
+      className={`self-start rounded-sm border border-brand/40 bg-brand/5 font-medium text-brand ${
+        size === "md" ? "px-2.5 py-1 text-sm" : "px-1.5 py-0.5 text-xs"
       }`}
     >
-      <span className="font-sans font-normal text-white/70">สำหรับ</span>
-      {instrument.maker} {instrument.model}
+      สำหรับ {instrument.maker} {instrument.model}
     </span>
   );
 }

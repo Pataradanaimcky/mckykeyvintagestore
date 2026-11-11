@@ -11,7 +11,6 @@ export function PatchTicker() {
     product.patches.map((patch) => ({
       key: `${product.slug}-${patch.name}`,
       href: `/packs/${product.slug}`,
-      tag: patch.tag,
       name: patch.name,
       model: getInstrument(product.instrument).model,
     })),
@@ -24,14 +23,13 @@ export function PatchTicker() {
           <Link
             href={item.href}
             tabIndex={hidden ? -1 : undefined}
-            className="flex items-center gap-2 whitespace-nowrap px-5 py-3 transition hover:text-led"
+            className="flex items-center gap-2 whitespace-nowrap px-4 py-2 hover:text-brand hover:underline"
           >
-            <span className="text-led">{item.tag}</span>
             <span>{item.name}</span>
-            <span className="text-white/40">{item.model}</span>
+            <span className="text-muted">({item.model})</span>
           </Link>
-          <span aria-hidden="true" className="text-white/25">
-            ◆
+          <span aria-hidden="true" className="text-line">
+            |
           </span>
         </li>
       ))}
@@ -39,7 +37,7 @@ export function PatchTicker() {
   );
 
   return (
-    <section aria-label="ตัวอย่างชื่อเสียงในร้าน" className="ticker overflow-hidden rounded-md bg-ink font-mono text-sm text-white/85">
+    <section aria-label="ตัวอย่างชื่อเสียงในร้าน" className="ticker overflow-hidden border-y border-line bg-surface text-sm">
       <div className="ticker-track flex w-max">
         {row(false)}
         {row(true)}

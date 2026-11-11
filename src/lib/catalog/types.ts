@@ -46,7 +46,9 @@ export interface Product {
   engines: string;
   status: "available" | "coming_soon";
   badge?: string;
-  /** Short label and one accent color used to draw the cover. */
-  cover: { label: string; accent: string };
+  /** Short label and flat background color for the drawn cover. Text on it is white. */
+  cover: { label: string; color: string };
+  /** Optional photo shown instead of the drawn cover, e.g. "/packs/thai-pop-keys-vol-1.jpg" (file in /public). */
+  image?: string;
   patches: Patch[];
 }

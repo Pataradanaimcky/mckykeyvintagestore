@@ -24,7 +24,7 @@ export default async function CheckoutPage({ params }: PageProps<"/checkout/[slu
         <Link href={`/packs/${product.slug}`} className="text-sm text-muted hover:text-ink">
           ← กลับไปหน้าแพ็ก
         </Link>
-        <h1 className="text-3xl font-bold">ชำระเงิน</h1>
+        <h1 className="text-3xl font-semibold">ชำระเงิน</h1>
       </div>
 
       <div className="grid gap-8 md:grid-cols-[1.2fr_1fr]">
@@ -32,10 +32,10 @@ export default async function CheckoutPage({ params }: PageProps<"/checkout/[slu
           <CheckoutForm productSlug={product.slug} paymentLabel={provider.label} />
         </section>
 
-        <aside className="flex min-w-0 flex-col gap-4 self-start rounded-lg border border-line p-5">
+        <aside className="flex min-w-0 flex-col gap-4 self-start rounded border border-line p-5">
           <h2 className="font-semibold">สรุปคำสั่งซื้อ</h2>
           <div className="flex items-center gap-4">
-            <div className="w-24 shrink-0 overflow-hidden rounded-lg">
+            <div className="w-24 shrink-0 overflow-hidden rounded">
               <PackCover product={product} />
             </div>
             <div className="min-w-0">

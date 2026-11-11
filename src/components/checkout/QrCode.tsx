@@ -12,7 +12,7 @@ export async function QrCode({ payload, label }: { payload: string; label: strin
     <div
       role="img"
       aria-label={label}
-      className="w-full max-w-60 overflow-hidden rounded-md border border-line bg-white p-2 [&>svg]:block [&>svg]:h-auto [&>svg]:w-full"
+      className="w-full max-w-60 overflow-hidden rounded border border-line bg-white p-2 [&>svg]:block [&>svg]:h-auto [&>svg]:w-full"
       dangerouslySetInnerHTML={{ __html: svg }}
     />
   );

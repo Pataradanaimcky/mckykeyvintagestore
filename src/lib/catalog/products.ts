@@ -27,7 +27,7 @@ export const products: Product[] = [
     engines: "AWM2 + FM-X",
     status: "available",
     badge: "ใหม่",
-    cover: { label: "VOL.1", accent: "#4fe3d1" },
+    cover: { label: "VOL.1", color: "#0b4ea2" },
     patches: [
       { tag: "Key", name: "Sukhumvit EP" },
       { tag: "Key", name: "Ballad FM Tine" },
@@ -51,7 +51,7 @@ export const products: Product[] = [
     soundCount: 24,
     engines: "FM-X + AWM2",
     status: "coming_soon",
-    cover: { label: "EP", accent: "#ff8fa3" },
+    cover: { label: "EP", color: "#b0205a" },
     patches: [
       { tag: "Key", name: "Neon Avenue Tine" },
       { tag: "Key", name: "Shibuya Dyno" },
@@ -71,7 +71,7 @@ export const products: Product[] = [
     soundCount: 16,
     engines: "AWM2",
     status: "coming_soon",
-    cover: { label: "PF", accent: "#9ad1ff" },
+    cover: { label: "PF", color: "#1f6b4c" },
     patches: [
       { tag: "Pf", name: "Prime Time Grand" },
       { tag: "Pf", name: "Tearjerker Layer" },
@@ -91,7 +91,7 @@ export const products: Product[] = [
     soundCount: 20,
     engines: "AN-X + AWM2",
     status: "coming_soon",
-    cover: { label: "PAD", accent: "#b9a6ff" },
+    cover: { label: "PAD", color: "#5a3d9a" },
     patches: [
       { tag: "Pad", name: "Soi 11 After Dark" },
       { tag: "Pad", name: "Juno Chorus Bed" },
@@ -111,7 +111,7 @@ export const products: Product[] = [
     soundCount: 20,
     engines: "FM-X",
     status: "coming_soon",
-    cover: { label: "FM", accent: "#ffd84d" },
+    cover: { label: "FM", color: "#9a5b00" },
     patches: [
       { tag: "Bass", name: "City Slap FM" },
       { tag: "Bass", name: "Rubber Lately" },
@@ -133,7 +133,7 @@ export const products: Product[] = [
     engines: "AWM2 + FM-X + AN-X",
     status: "coming_soon",
     badge: "คุ้มสุด",
-    cover: { label: "ALL", accent: "#e6e8ee" },
+    cover: { label: "ALL", color: "#2b2b2b" },
     patches: [
       { tag: "Set", name: "Live Set: Pop Show" },
       { tag: "Set", name: "Live Set: Ballad Night" },
@@ -153,7 +153,7 @@ export const products: Product[] = [
     soundCount: 32,
     engines: "LA Synthesis",
     status: "coming_soon",
-    cover: { label: "LA", accent: "#ffb38a" },
+    cover: { label: "LA", color: "#7a3520" },
     patches: [
       { tag: "Bell", name: "Glass Ballad" },
       { tag: "Pad", name: "Soft Air Choir" },

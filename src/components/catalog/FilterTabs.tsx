@@ -45,10 +45,10 @@ export function FilterTabs({
                 <Link
                   href={href(tab.value)}
                   aria-current={selected ? "page" : undefined}
-                  className={`block whitespace-nowrap rounded-md border px-4 py-2 text-sm font-medium transition ${
+                  className={`block whitespace-nowrap rounded border px-3 py-1.5 text-sm font-medium transition ${
                     selected
-                      ? "border-ink bg-ink text-white"
-                      : "border-line bg-canvas text-ink hover:border-ink/50"
+                      ? "border-brand bg-brand text-white"
+                      : "border-line bg-canvas text-ink hover:border-brand hover:text-brand"
                   }`}
                 >
                   {tab.label}
