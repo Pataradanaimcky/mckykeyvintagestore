@@ -148,12 +148,12 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       <Container>
         <section
           data-reveal
-          className="flex flex-col items-start gap-6 rounded-[2rem] bg-ink p-8 text-white sm:p-14"
+          className="flex flex-col items-start gap-6 rounded-[2rem] border border-line bg-surface p-8 sm:p-14"
         >
           <h2 className="max-w-3xl text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
             เลือกเครื่องของคุณ แล้วเริ่มเล่นได้คืนนี้
           </h2>
-          <Link href="/#packs" className="btn btn-white">
+          <Link href="/#packs" className="btn btn-dark">
             ดูแพ็กทั้งหมด <span aria-hidden="true" className="btn-arrow">→</span>
           </Link>
         </section>

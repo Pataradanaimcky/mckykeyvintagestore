@@ -72,7 +72,7 @@ export default async function PackPage({ params }: PageProps<"/packs/[slug]">) {
           {available ? (
             <Link
               href={`/checkout/${product.slug}`}
-              className="rounded-full bg-ink px-6 py-3 text-center font-semibold text-white transition hover:bg-brand-dark"
+              className="rounded-full bg-ink px-6 py-3 text-center font-semibold text-canvas transition hover:bg-brand-dark"
             >
               ซื้อแพ็กนี้
             </Link>

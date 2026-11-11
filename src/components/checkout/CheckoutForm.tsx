@@ -61,7 +61,7 @@ export function CheckoutForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-full bg-ink px-6 py-3 font-semibold text-white transition hover:bg-brand-dark disabled:opacity-60"
+        className="rounded-full bg-ink px-6 py-3 font-semibold text-canvas transition hover:bg-brand-dark disabled:opacity-60"
       >
         {pending ? "กำลังสร้างคำสั่งซื้อ…" : "ไปหน้าชำระเงิน"}
       </button>

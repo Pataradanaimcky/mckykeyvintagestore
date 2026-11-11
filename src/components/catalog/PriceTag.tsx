@@ -11,7 +11,7 @@ export function PriceTag({ product, size = "md" }: { product: Product; size?: "m
       {product.compareAtSatang && discount ? (
         <>
           <s className="text-sm text-muted">{formatTHB(product.compareAtSatang)}</s>
-          <span className="rounded-full bg-sun px-2 py-0.5 text-xs font-semibold text-ink">-{discount}%</span>
+          <span className="rounded-full bg-red px-2 py-0.5 text-xs font-semibold text-white">-{discount}%</span>
         </>
       ) : null}
     </p>

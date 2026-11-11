@@ -19,7 +19,7 @@ export function InstrumentCard({ instrument, delay = 0 }: { instrument: Instrume
           </p>
           <span
             aria-hidden="true"
-            className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-xl text-ink transition-transform duration-500 ease-out group-hover:rotate-45"
+            className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-xl text-black transition-transform duration-500 ease-out group-hover:rotate-45"
           >
             ↗
           </span>
@@ -40,7 +40,7 @@ export function InstrumentCard({ instrument, delay = 0 }: { instrument: Instrume
           </div>
         </dl>
       </div>
-      <svg viewBox="0 0 280 44" aria-hidden="true" preserveAspectRatio="none" className="pack-cover is-playing block h-14 w-full sm:h-20">
+      <svg viewBox="0 0 280 44" aria-hidden="true" preserveAspectRatio="none" className="pack-cover is-playing block h-14 w-full [--press:var(--line-color)] sm:h-20">
         <KeyStrip y={0} height={44} />
       </svg>
     </Link>

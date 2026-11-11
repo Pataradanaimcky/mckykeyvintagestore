@@ -10,7 +10,7 @@ export const instruments: Instrument[] = [
     maker: "Yamaha",
     model: "MODX M",
     worksWith: "MODX M6 / M7 / M8 และ MONTAGE M",
-    color: "#2f5bff",
+    color: "#2456ff",
     fileFormat: ".Y2L",
     soundUnit: "Performance",
     compatibility: [
@@ -31,7 +31,7 @@ export const instruments: Instrument[] = [
     maker: "Roland",
     model: "FANTOM-0",
     worksWith: "FANTOM-06 / 07 / 08",
-    color: "#d92d4a",
+    color: "#e0263f",
     fileFormat: ".SVZ",
     soundUnit: "Tone",
     compatibility: [

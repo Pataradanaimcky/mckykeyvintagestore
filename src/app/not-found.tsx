@@ -8,7 +8,7 @@ export default function NotFound() {
       <p className="text-muted">ลิงก์อาจพิมพ์ผิด หรือสินค้านี้ถูกนำออกแล้ว</p>
       <Link
         href="/"
-        className="rounded-full bg-ink px-5 py-2.5 font-semibold text-white hover:bg-brand-dark"
+        className="rounded-full bg-ink px-5 py-2.5 font-semibold text-canvas hover:bg-brand-dark"
       >
         กลับหน้าร้าน
       </Link>

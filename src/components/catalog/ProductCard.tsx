@@ -16,7 +16,7 @@ export function ProductCard({ product }: { product: Product }) {
         <PackCover product={product} className="transition-transform duration-500 ease-out group-hover:scale-[1.04]" />
         <span
           aria-hidden="true"
-          className="absolute right-3 top-3 grid h-10 w-10 translate-y-2 place-items-center rounded-full bg-white text-lg text-ink opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100"
+          className="absolute right-3 top-3 grid h-10 w-10 translate-y-2 place-items-center rounded-full bg-white text-lg text-black opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100"
         >
           ↗
         </span>
@@ -25,7 +25,7 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="flex flex-wrap items-center gap-2">
           <InstrumentChip instrument={instrument} />
           {comingSoon ? (
-            <span className="rounded-full bg-ink px-2.5 py-1 text-xs font-medium text-white">เร็ว ๆ นี้</span>
+            <span className="rounded-full bg-ink px-2.5 py-1 text-xs font-medium text-canvas">เร็ว ๆ นี้</span>
           ) : null}
         </div>
         <h3 className="text-lg font-semibold leading-snug sm:text-xl">{product.name}</h3>

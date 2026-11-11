@@ -15,9 +15,9 @@ export const metadata: Metadata = { title: "คำสั่งซื้อ", rob
 export const dynamic = "force-dynamic";
 
 const statusLabel: Record<OrderStatus, { text: string; className: string }> = {
-  pending: { text: "รอชำระเงิน", className: "bg-sun text-ink" },
-  paid: { text: "ชำระเงินแล้ว", className: "bg-ok text-white" },
-  failed: { text: "ชำระเงินไม่สำเร็จ", className: "bg-sale text-white" },
+  pending: { text: "รอชำระเงิน", className: "bg-blue text-white" },
+  paid: { text: "ชำระเงินแล้ว", className: "bg-ok text-black" },
+  failed: { text: "ชำระเงินไม่สำเร็จ", className: "bg-sale text-black" },
   expired: { text: "QR หมดอายุ", className: "bg-surface text-muted" },
 };
 
@@ -111,7 +111,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
           <p className="text-muted">ยังไม่มีการตัดเงิน คุณสร้างคำสั่งซื้อใหม่เพื่อรับ QR อันใหม่ได้</p>
           <Link
             href={`/checkout/${order.productSlug}`}
-            className="rounded-full bg-ink px-5 py-2.5 font-semibold text-white hover:bg-brand-dark"
+            className="rounded-full bg-ink px-5 py-2.5 font-semibold text-canvas hover:bg-brand-dark"
           >
             สั่งซื้ออีกครั้ง
           </Link>

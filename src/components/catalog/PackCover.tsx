@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import { getInstrument, type Product } from "@/lib/catalog";
 import { KeyStrip } from "./KeyStrip";
@@ -39,6 +40,7 @@ export function PackCover({
       role="img"
       aria-label={`ปกแพ็ก ${product.name}`}
       className={`pack-cover block h-auto w-full ${playing ? "is-playing" : ""} ${className}`}
+      style={{ "--press": instrument.color } as CSSProperties}
     >
       <rect width="280" height="210" fill={instrument.color} />
       <text x="20" y="36" fill="#ffffff" fillOpacity="0.85" fontFamily="Anuphan, sans-serif" fontWeight="600" fontSize="11" letterSpacing="1.5">

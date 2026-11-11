@@ -47,7 +47,7 @@ export function FilterTabs({
                   aria-current={selected ? "page" : undefined}
                   className={`block whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-colors duration-200 ${
                     selected
-                      ? "border-ink bg-ink text-white"
+                      ? "border-ink bg-ink text-canvas"
                       : "border-line bg-canvas text-ink hover:border-ink"
                   }`}
                 >
