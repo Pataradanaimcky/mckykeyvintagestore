@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { currentUser } from "@/lib/auth";
 import { createOrder, OrderError } from "@/lib/orders";
 
 export interface CheckoutState {
@@ -35,7 +36,8 @@ export async function startCheckout(
 
   let orderId: string;
   try {
-    const order = await createOrder(parsed.data);
+    const user = await currentUser();
+    const order = await createOrder({ ...parsed.data, userId: user?.id });
     orderId = order.id;
   } catch (error) {
     if (error instanceof OrderError) return { error: error.message, email };

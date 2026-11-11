@@ -8,6 +8,8 @@ export interface Order {
   amountSatang: number;
   currency: "THB";
   email: string;
+  /** Signed-in buyer, e.g. "google:1234". Null when bought without signing in. */
+  userId: string | null;
   status: OrderStatus;
   /** Payment provider that created the charge, e.g. "mock". */
   provider: string;
@@ -32,6 +34,8 @@ export interface OrderRepository {
   create(input: NewOrder): Promise<Order>;
   get(id: string): Promise<Order | null>;
   findByProviderRef(provider: string, providerRef: string): Promise<Order | null>;
+  /** A signed-in buyer's orders, newest first. */
+  listByUser(userId: string): Promise<Order[]>;
   /**
    * Move a pending order to a final status. Returns the stored order, or null if it
    * does not exist. In demo mode the returned order has a NEW id, so always use the

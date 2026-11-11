@@ -8,6 +8,13 @@
       "when": 1794374448902,
       "tag": "0000_polite_imperial_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794438797882,
+      "tag": "0001_elite_squirrel_girl",
+      "breakpoints": true
     }
   ]
 }

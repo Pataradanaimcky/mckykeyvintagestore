@@ -8,9 +8,12 @@ const initialState: CheckoutState = {};
 export function CheckoutForm({
   productSlug,
   paymentLabel,
+  defaultEmail,
 }: {
   productSlug: string;
   paymentLabel: string;
+  /** Email of the signed-in buyer, used to fill the field in advance. */
+  defaultEmail?: string;
 }) {
   const [state, formAction, pending] = useActionState(startCheckout, initialState);
 
@@ -35,7 +38,7 @@ export function CheckoutForm({
           autoComplete="email"
           inputMode="email"
           placeholder="name@example.com"
-          defaultValue={state.email}
+          defaultValue={state.email ?? defaultEmail}
           aria-describedby={state.error ? "checkout-error" : undefined}
           aria-invalid={state.error ? true : undefined}
           className="rounded-2xl border border-line bg-canvas px-4 py-3 text-base outline-none focus:border-ink"

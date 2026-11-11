@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { PackCover } from "@/components/catalog/PackCover";
 import { CheckoutForm } from "@/components/checkout/CheckoutForm";
 import { Container } from "@/components/layout/Container";
+import { currentUser } from "@/lib/auth";
 import { getInstrument, getProduct } from "@/lib/catalog";
 import { formatTHB } from "@/lib/format";
 import { getProvider } from "@/lib/payments";
@@ -17,6 +18,7 @@ export default async function CheckoutPage({ params }: PageProps<"/checkout/[slu
 
   const provider = getProvider();
   const instrument = getInstrument(product.instrument);
+  const user = await currentUser();
 
   return (
     <Container className="flex flex-col gap-8 py-6 sm:py-10">
@@ -29,7 +31,11 @@ export default async function CheckoutPage({ params }: PageProps<"/checkout/[slu
 
       <div className="grid gap-8 md:grid-cols-[1.2fr_1fr]">
         <section className="min-w-0">
-          <CheckoutForm productSlug={product.slug} paymentLabel={provider.label} />
+          <CheckoutForm
+            productSlug={product.slug}
+            paymentLabel={provider.label}
+            defaultEmail={user?.email ?? undefined}
+          />
         </section>
 
         <aside className="flex min-w-0 flex-col gap-4 self-start rounded-2xl border border-line p-5">

@@ -10,6 +10,7 @@ export const orders = pgTable(
     amountSatang: integer("amount_satang").notNull(),
     currency: text("currency").notNull().default("THB"),
     email: text("email").notNull(),
+    userId: text("user_id"),
     status: text("status").notNull().default("pending"),
     provider: text("provider").notNull(),
     providerRef: text("provider_ref").notNull(),
@@ -21,6 +22,7 @@ export const orders = pgTable(
   (table) => [
     index("orders_provider_ref_idx").on(table.provider, table.providerRef),
     index("orders_email_idx").on(table.email),
+    index("orders_user_id_idx").on(table.userId),
   ],
 );
 

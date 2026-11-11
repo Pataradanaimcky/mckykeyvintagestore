@@ -47,6 +47,10 @@ export const signedLinkOrderRepository: OrderRepository = {
     return null;
   },
 
+  async listByUser() {
+    return [];
+  },
+
   async setStatus(id, status) {
     const current = decode(id);
     if (!current) return null;

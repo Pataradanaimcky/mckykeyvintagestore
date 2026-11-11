@@ -15,7 +15,11 @@ function repository(): OrderRepository {
 export class OrderError extends Error {}
 
 /** Create a pending order and its payment charge. The price always comes from the catalog. */
-export async function createOrder(input: { productSlug: string; email: string }): Promise<Order> {
+export async function createOrder(input: {
+  productSlug: string;
+  email: string;
+  userId?: string | null;
+}): Promise<Order> {
   const product = getProduct(input.productSlug);
   if (!product) throw new OrderError("ไม่พบสินค้านี้");
   if (product.status !== "available") throw new OrderError("สินค้านี้ยังไม่เปิดขาย");
@@ -32,11 +36,21 @@ export async function createOrder(input: { productSlug: string; email: string })
     amountSatang: product.priceSatang,
     currency: "THB",
     email: input.email,
+    userId: input.userId ?? null,
     provider: provider.name,
     providerRef: charge.providerRef,
     qrPayload: charge.qrPayload,
     expiresAt: charge.expiresAt,
   });
+}
+
+/** Orders a signed-in buyer made, newest first. Always empty in demo mode. */
+export async function listOrdersForUser(userId: string): Promise<Order[]> {
+  const now = Date.now();
+  const orders = await repository().listByUser(userId);
+  return orders.map((order) =>
+    order.status === "pending" && Date.parse(order.expiresAt) < now ? { ...order, status: "expired" } : order,
+  );
 }
 
 /** Load an order. A pending order past its expiry time is reported as expired. */

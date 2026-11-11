@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
 import { orders, type OrderRow } from "@/lib/db/schema";
 import { randomId } from "@/lib/security/sign";
@@ -13,6 +13,7 @@ function toOrder(row: OrderRow): Order {
     amountSatang: row.amountSatang,
     currency: "THB",
     email: row.email,
+    userId: row.userId,
     status: row.status as OrderStatus,
     provider: row.provider,
     providerRef: row.providerRef,
@@ -48,6 +49,16 @@ export const postgresOrderRepository: OrderRepository = {
       .where(and(eq(orders.provider, provider), eq(orders.providerRef, providerRef)))
       .limit(1);
     return row ? toOrder(row) : null;
+  },
+
+  async listByUser(userId) {
+    const rows = await getDb()
+      .select()
+      .from(orders)
+      .where(eq(orders.userId, userId))
+      .orderBy(desc(orders.createdAt))
+      .limit(100);
+    return rows.map(toOrder);
   },
 
   async setStatus(id, status) {
