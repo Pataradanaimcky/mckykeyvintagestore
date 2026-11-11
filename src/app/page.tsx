@@ -1,6 +1,7 @@
 import { CompatibilityTable } from "@/components/catalog/CompatibilityTable";
 import { FilterTabs } from "@/components/catalog/FilterTabs";
 import { ProductCard } from "@/components/catalog/ProductCard";
+import { PatchTicker } from "@/components/catalog/PatchTicker";
 import { PromoBanner } from "@/components/catalog/PromoBanner";
 import { Container } from "@/components/layout/Container";
 import { categories, instruments, isCategoryId, isInstrumentId, listProducts } from "@/lib/catalog";
@@ -39,7 +40,10 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
 
   return (
     <Container className="flex flex-col gap-12 py-6 sm:py-8">
-      <PromoBanner product={featured} />
+      <div className="flex flex-col gap-3">
+        <PromoBanner product={featured} />
+        <PatchTicker />
+      </div>
 
       <section id="packs" className="flex scroll-mt-24 flex-col gap-5">
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -68,7 +72,9 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         {products.length > 0 ? (
           <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
             {products.map((product) => (
-              <ProductCard key={product.slug} product={product} />
+              <div key={product.slug} className="reveal flex min-w-0">
+                <ProductCard product={product} />
+              </div>
             ))}
           </div>
         ) : (
@@ -78,7 +84,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         )}
       </section>
 
-      <section className="grid gap-4 rounded-lg bg-surface p-6 sm:grid-cols-3">
+      <section className="reveal grid gap-4 rounded-lg bg-surface p-6 sm:grid-cols-3">
         {assurances.map((item) => (
           <div key={item.title} className="flex min-w-0 flex-col gap-1">
             <h3 className="font-semibold">{item.title}</h3>
@@ -87,7 +93,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         ))}
       </section>
 
-      <section id="compatibility" className="flex scroll-mt-24 flex-col gap-4">
+      <section id="compatibility" className="reveal flex scroll-mt-24 flex-col gap-4">
         <h2 className="text-2xl font-semibold">รุ่นที่ใช้ได้</h2>
         <p className="max-w-2xl text-muted">
           แต่ละแพ็กทำมาสำหรับเครื่องรุ่นเดียว ไฟล์ของเครื่องหนึ่งใช้กับอีกเครื่องไม่ได้ ตรวจรุ่นของคุณก่อนซื้อ
@@ -99,7 +105,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         </div>
       </section>
 
-      <section id="faq" className="flex scroll-mt-24 flex-col gap-2">
+      <section id="faq" className="reveal flex scroll-mt-24 flex-col gap-2">
         <h2 className="mb-2 text-2xl font-semibold">คำถามที่พบบ่อย</h2>
         {faqs.map((faq) => (
           <details key={faq.q} className="max-w-3xl border-b border-line py-3">

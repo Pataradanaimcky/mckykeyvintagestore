@@ -10,7 +10,7 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <Link
       href={`/packs/${product.slug}`}
-      className="group flex min-w-0 flex-col overflow-hidden rounded-lg border border-line bg-canvas transition hover:border-ink hover:shadow-lg"
+      className="group flex w-full min-w-0 flex-col overflow-hidden rounded-lg border border-line bg-canvas transition duration-300 hover:-translate-y-1 hover:border-ink hover:shadow-xl active:translate-y-0"
     >
       <PackCover product={product} className={comingSoon ? "opacity-80" : ""} />
       <div className="flex flex-1 flex-col gap-2 p-3 sm:p-4">

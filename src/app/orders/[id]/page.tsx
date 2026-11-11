@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -78,7 +79,20 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
       ) : null}
 
       {order.status === "paid" ? (
-        <section className="flex flex-col gap-2 rounded-lg bg-ok/10 p-5">
+        <section className="pop-in flex flex-col gap-2 rounded-lg bg-ok/10 p-5">
+          <svg viewBox="0 0 56 56" aria-hidden="true" className="h-14 w-14 text-ok">
+            <circle className="tick-circle" cx="28" cy="28" r="25" fill="none" stroke="currentColor" strokeWidth="3" />
+            <path
+              className="tick-mark"
+              style={{ "--len": 40 } as CSSProperties}
+              d="M17 29l7 7 15-16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
           <h2 className="text-xl font-semibold">ขอบคุณที่สั่งซื้อ</h2>
           <p className="text-muted">
             ได้รับการชำระเงินเมื่อ {order.paidAt ? formatDateTime(order.paidAt) : "-"}
