@@ -38,7 +38,7 @@ export function CheckoutForm({
           defaultValue={state.email}
           aria-describedby={state.error ? "checkout-error" : undefined}
           aria-invalid={state.error ? true : undefined}
-          className="rounded-xl border border-line bg-canvas px-4 py-3 text-base outline-none focus:border-brand"
+          className="rounded-md border border-line bg-canvas px-4 py-3 text-base outline-none focus:border-brand"
         />
         {state.error ? (
           <p id="checkout-error" role="alert" className="text-sm text-sale">
@@ -49,11 +49,11 @@ export function CheckoutForm({
 
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1.5 font-medium">วิธีชำระเงิน</legend>
-        <label className="flex items-center gap-3 rounded-xl border border-brand bg-brand/5 px-4 py-3">
+        <label className="flex items-center gap-3 rounded-md border border-brand bg-brand/5 px-4 py-3">
           <input type="radio" name="method" value="promptpay" defaultChecked readOnly />
           <span>{paymentLabel}</span>
         </label>
-        <p className="rounded-xl border border-dashed border-line px-4 py-3 text-sm text-muted">
+        <p className="rounded-md border border-dashed border-line px-4 py-3 text-sm text-muted">
           บัตรเครดิตและช่องทางอื่น ยังไม่เปิดให้ใช้
         </p>
       </fieldset>
@@ -61,7 +61,7 @@ export function CheckoutForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-full bg-brand px-6 py-3 font-display font-semibold text-white transition hover:bg-brand-dark disabled:opacity-60"
+        className="rounded-md bg-ink px-6 py-3 font-display font-semibold text-white transition hover:bg-brand disabled:opacity-60"
       >
         {pending ? "กำลังสร้างคำสั่งซื้อ…" : "ไปหน้าชำระเงิน"}
       </button>

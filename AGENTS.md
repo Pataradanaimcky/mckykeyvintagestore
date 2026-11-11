@@ -15,3 +15,4 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Keep colors and fonts in the `@theme` block of `src/app/globals.css`. Components use those tokens, not literal colors.
 - Never add real payment keys, fake reviews, fake sales numbers or Yamaha logos. Keep the footer trademark note.
 - Before pushing: `npm run lint`, `npm run typecheck`, `npm test` and `npm run build` must all pass.
+- `npm run build` deletes `.next` first on purpose. An incremental build was seen to keep an old stylesheet after `globals.css` and class names changed, so always build clean before checking how a page looks.

@@ -2,19 +2,21 @@
 
 /* Design tokens. Change the look of the whole store from here. */
 @theme {
-  --color-ink: #0b1220;
-  --color-muted: #5b6577;
-  --color-line: #e4e7ee;
-  --color-surface: #f3f5f9;
+  --color-ink: #101114;
+  --color-muted: #5d636e;
+  --color-line: #dcdfe4;
+  --color-surface: #f2f3f5;
   --color-canvas: #ffffff;
-  --color-brand: #1f3fff;
-  --color-brand-dark: #1630c9;
+  --color-brand: #0b7a75;
+  --color-brand-dark: #095e5a;
+  /* Accent used on dark panels, like a lit display. */
+  --color-led: #4fe3d1;
   --color-sale: #e11d48;
   --color-sun: #ffd84d;
   --color-ok: #0f8a5f;
 
-  --font-sans: "IBM Plex Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Prompt", "IBM Plex Sans Thai", system-ui, sans-serif;
+  --font-sans: "Anuphan", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Chakra Petch", "Anuphan", system-ui, sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 }
 

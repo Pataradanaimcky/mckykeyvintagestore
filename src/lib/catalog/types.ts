@@ -1,8 +1,26 @@
 export type CategoryId = "keys" | "pads" | "bass-brass" | "bundle";
+export type InstrumentId = "yamaha-modx-m" | "roland-d-50";
 
 export interface Category {
   id: CategoryId;
   label: string;
+}
+
+/** A keyboard that packs are made for. The maker's name is used only to say what a pack works with. */
+export interface Instrument {
+  id: InstrumentId;
+  /** Maker, e.g. "Yamaha". */
+  maker: string;
+  /** Short model name for chips and tabs, e.g. "MODX M". */
+  model: string;
+  /** Full list of models the files load on. */
+  worksWith: string;
+  /** File type the buyer receives, e.g. ".Y2L". */
+  fileFormat: string;
+  /** What one sound is called on this instrument. */
+  soundUnit: string;
+  compatibility: { model: string; ok: boolean; note: string }[];
+  installSteps: string[];
 }
 
 export interface Patch {
@@ -17,16 +35,18 @@ export interface Product {
   /** One line under the name on a tile. */
   summary: string;
   description: string;
+  instrument: InstrumentId;
   category: CategoryId;
   /** Price in satang. Checkout always reads the price from here, never from the browser. */
   priceSatang: number;
   /** Original price in satang, shown struck through when set. */
   compareAtSatang?: number;
-  performances: number;
+  /** Number of sounds in the pack. */
+  soundCount: number;
   engines: string;
   status: "available" | "coming_soon";
   badge?: string;
-  /** Two colors used to draw the cover. */
-  cover: { from: string; to: string; label: string };
+  /** Short label and one accent color used to draw the cover. */
+  cover: { label: string; accent: string };
   patches: Patch[];
 }

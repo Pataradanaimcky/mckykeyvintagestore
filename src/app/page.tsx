@@ -1,24 +1,24 @@
-import { CategoryTabs } from "@/components/catalog/CategoryTabs";
 import { CompatibilityTable } from "@/components/catalog/CompatibilityTable";
+import { FilterTabs } from "@/components/catalog/FilterTabs";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { PromoBanner } from "@/components/catalog/PromoBanner";
 import { Container } from "@/components/layout/Container";
-import { isCategoryId, listProducts } from "@/lib/catalog";
+import { categories, instruments, isCategoryId, isInstrumentId, listProducts } from "@/lib/catalog";
 
 const assurances = [
   { title: "ดาวน์โหลดทันที", text: "ได้ลิงก์ไฟล์ทางอีเมลหลังชำระเงิน" },
-  { title: "พร้อมเล่นสด", text: "ทุกเสียงตั้ง Scene และ Super Knob ไว้แล้ว" },
+  { title: "พร้อมเล่นสด", text: "ทุกเสียงตั้งค่าคอนโทรลสำหรับเล่นบนเวทีไว้แล้ว" },
   { title: "จ่ายด้วย PromptPay", text: "สแกน QR จากแอปธนาคารได้ทุกธนาคาร" },
 ];
 
 const faqs = [
   {
-    q: "ซื้อแล้วได้ไฟล์อย่างไร",
-    a: "หลังชำระเงินสำเร็จ ระบบจะส่งลิงก์ดาวน์โหลดไฟล์ .Y2L ไปที่อีเมลที่กรอกไว้",
+    q: "จะรู้ได้อย่างไรว่าแพ็กไหนใช้กับเครื่องของฉัน",
+    a: "ทุกแพ็กมีป้าย “สำหรับ” บอกยี่ห้อและรุ่นของเครื่อง เลือกดูเฉพาะเครื่องของคุณได้จากตัวกรองด้านบน และตรวจรุ่นย่อยได้ในตารางรุ่นที่ใช้ได้",
   },
   {
-    q: "โหลดแล้วเสียงเดิมในเครื่องหายไหม",
-    a: "ไม่หาย แพ็กติดตั้งเป็น Library แยกจากเสียงโรงงานและเสียง User ของคุณ",
+    q: "ซื้อแล้วได้ไฟล์อย่างไร",
+    a: "หลังชำระเงินสำเร็จ ระบบจะส่งลิงก์ดาวน์โหลดไฟล์เสียงไปที่อีเมลที่กรอกไว้",
   },
   {
     q: "ใช้เสียงนี้อัดเพลงหรือเล่นงานจ้างได้ไหม",
@@ -31,9 +31,10 @@ const faqs = [
 ];
 
 export default async function HomePage({ searchParams }: PageProps<"/">) {
-  const { cat } = await searchParams;
+  const { cat, inst } = await searchParams;
   const category = isCategoryId(cat) ? cat : undefined;
-  const products = listProducts(category);
+  const instrument = isInstrumentId(inst) ? inst : undefined;
+  const products = listProducts({ category, instrument });
   const featured = listProducts().find((p) => p.status === "available") ?? listProducts()[0];
 
   return (
@@ -45,15 +46,39 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           <h2 className="text-2xl font-semibold">แพ็กเสียงทั้งหมด</h2>
           <p className="text-sm text-muted tabular-nums">{products.length} รายการ</p>
         </div>
-        <CategoryTabs active={category} />
-        <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
-          {products.map((product) => (
-            <ProductCard key={product.slug} product={product} />
-          ))}
+        <div className="flex flex-col gap-3 rounded-lg border border-line p-4">
+          <FilterTabs
+            label="เครื่องของคุณ"
+            param="inst"
+            active={instrument}
+            others={{ cat: category }}
+            tabs={[
+              { label: "ทุกเครื่อง" },
+              ...instruments.map((i) => ({ value: i.id, label: `${i.maker} ${i.model}` })),
+            ]}
+          />
+          <FilterTabs
+            label="ประเภทเสียง"
+            param="cat"
+            active={category}
+            others={{ inst: instrument }}
+            tabs={[{ label: "ทั้งหมด" }, ...categories.map((c) => ({ value: c.id, label: c.label }))]}
+          />
         </div>
+        {products.length > 0 ? (
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
+            {products.map((product) => (
+              <ProductCard key={product.slug} product={product} />
+            ))}
+          </div>
+        ) : (
+          <p className="rounded-lg bg-surface p-6 text-muted">
+            ยังไม่มีแพ็กที่ตรงกับตัวกรองนี้ ลองเลือกประเภทเสียงเป็น “ทั้งหมด”
+          </p>
+        )}
       </section>
 
-      <section className="grid gap-4 rounded-2xl bg-surface p-6 sm:grid-cols-3">
+      <section className="grid gap-4 rounded-lg bg-surface p-6 sm:grid-cols-3">
         {assurances.map((item) => (
           <div key={item.title} className="flex min-w-0 flex-col gap-1">
             <h3 className="font-semibold">{item.title}</h3>
@@ -65,9 +90,13 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       <section id="compatibility" className="flex scroll-mt-24 flex-col gap-4">
         <h2 className="text-2xl font-semibold">รุ่นที่ใช้ได้</h2>
         <p className="max-w-2xl text-muted">
-          ทุกแพ็กเป็นไฟล์ .Y2L สำหรับเครื่องตระกูล M เครื่อง MODX และ MODX+ รุ่นเดิมอ่านไฟล์นี้ไม่ได้
+          แต่ละแพ็กทำมาสำหรับเครื่องรุ่นเดียว ไฟล์ของเครื่องหนึ่งใช้กับอีกเครื่องไม่ได้ ตรวจรุ่นของคุณก่อนซื้อ
         </p>
-        <CompatibilityTable />
+        <div className="grid gap-5 lg:grid-cols-2">
+          {instruments.map((item) => (
+            <CompatibilityTable key={item.id} instrument={item} />
+          ))}
+        </div>
       </section>
 
       <section id="faq" className="flex scroll-mt-24 flex-col gap-2">

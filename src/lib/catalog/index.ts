@@ -1,19 +1,34 @@
+import { instruments } from "./instruments";
 import { categories, products } from "./products";
-import type { CategoryId, Product } from "./types";
+import type { CategoryId, Instrument, InstrumentId, Product } from "./types";
 
-export type { Category, CategoryId, Patch, Product } from "./types";
-export { categories };
+export type { Category, CategoryId, Instrument, InstrumentId, Patch, Product } from "./types";
+export { categories, instruments };
 
-export function listProducts(category?: CategoryId): Product[] {
-  return category ? products.filter((p) => p.category === category) : products;
+export function listProducts(filter: { category?: CategoryId; instrument?: InstrumentId } = {}): Product[] {
+  return products.filter(
+    (p) =>
+      (!filter.category || p.category === filter.category) &&
+      (!filter.instrument || p.instrument === filter.instrument),
+  );
 }
 
 export function getProduct(slug: string): Product | undefined {
   return products.find((p) => p.slug === slug);
 }
 
+export function getInstrument(id: InstrumentId): Instrument {
+  const instrument = instruments.find((i) => i.id === id);
+  if (!instrument) throw new Error(`Unknown instrument "${id}".`);
+  return instrument;
+}
+
 export function isCategoryId(value: unknown): value is CategoryId {
   return categories.some((c) => c.id === value);
+}
+
+export function isInstrumentId(value: unknown): value is InstrumentId {
+  return instruments.some((i) => i.id === value);
 }
 
 /** Whole-number discount percentage, or undefined when there is no original price. */

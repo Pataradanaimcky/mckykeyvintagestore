@@ -65,6 +65,7 @@ tests/                        Unit tests
 ## Common changes
 
 - **Add or edit a pack:** `src/lib/catalog/products.ts`. Prices are in satang (฿590 = `59000`).
+- **Add a keyboard model:** `src/lib/catalog/instruments.ts`, then add its id to `InstrumentId` in `types.ts`.
 - **Change brand name or contact:** `src/config/site.ts`.
 - **Change colors or fonts:** the `@theme` block in `src/app/globals.css`.
 - **Remove the "sample data" strip:** set `isSampleCatalog: false` in `src/config/site.ts`.

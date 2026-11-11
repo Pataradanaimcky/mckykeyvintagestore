@@ -22,7 +22,7 @@ const statusLabel: Record<OrderStatus, { text: string; className: string }> = {
 
 function Summary({ order }: { order: Order }) {
   return (
-    <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-6 gap-y-2 rounded-2xl border border-line p-5 text-sm">
+    <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-6 gap-y-2 rounded-lg border border-line p-5 text-sm">
       <dt className="text-muted">สินค้า</dt>
       <dd className="text-right font-medium">{order.productName}</dd>
       <dt className="text-muted">ยอดชำระ</dt>
@@ -57,7 +57,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
       {order.status === "pending" ? (
         <>
           {!isDemoMode ? <OrderStatusPoller /> : null}
-          <section className="grid items-center gap-6 rounded-2xl bg-surface p-5 sm:grid-cols-[auto_minmax(0,1fr)]">
+          <section className="grid items-center gap-6 rounded-lg bg-surface p-5 sm:grid-cols-[auto_minmax(0,1fr)]">
             <div className="mx-auto w-full max-w-60">
               <QrCode payload={order.qrPayload} label="QR สำหรับชำระเงิน" />
             </div>
@@ -78,26 +78,26 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
       ) : null}
 
       {order.status === "paid" ? (
-        <section className="flex flex-col gap-2 rounded-2xl bg-ok/10 p-5">
+        <section className="flex flex-col gap-2 rounded-lg bg-ok/10 p-5">
           <h2 className="text-xl font-semibold">ขอบคุณที่สั่งซื้อ</h2>
           <p className="text-muted">
             ได้รับการชำระเงินเมื่อ {order.paidAt ? formatDateTime(order.paidAt) : "-"}
           </p>
-          <p className="rounded-xl border border-dashed border-ok/50 bg-canvas p-4 text-sm">
-            ลิงก์ดาวน์โหลดไฟล์ .Y2L จะแสดงตรงนี้และส่งทางอีเมล ส่วนนี้ยังไม่ได้เชื่อมกับไฟล์จริง
+          <p className="rounded-md border border-dashed border-ok/50 bg-canvas p-4 text-sm">
+            ลิงก์ดาวน์โหลดไฟล์เสียงจะแสดงตรงนี้และส่งทางอีเมล ส่วนนี้ยังไม่ได้เชื่อมกับไฟล์จริง
           </p>
         </section>
       ) : null}
 
       {order.status === "failed" || order.status === "expired" ? (
-        <section className="flex flex-col items-start gap-3 rounded-2xl bg-surface p-5">
+        <section className="flex flex-col items-start gap-3 rounded-lg bg-surface p-5">
           <h2 className="text-xl font-semibold">
             {order.status === "failed" ? "การชำระเงินไม่สำเร็จ" : "QR นี้หมดอายุแล้ว"}
           </h2>
           <p className="text-muted">ยังไม่มีการตัดเงิน คุณสร้างคำสั่งซื้อใหม่เพื่อรับ QR อันใหม่ได้</p>
           <Link
             href={`/checkout/${order.productSlug}`}
-            className="rounded-full bg-brand px-5 py-2.5 font-display font-semibold text-white hover:bg-brand-dark"
+            className="rounded-md bg-ink px-5 py-2.5 font-display font-semibold text-white hover:bg-brand"
           >
             สั่งซื้ออีกครั้ง
           </Link>
