@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+/* Design tokens. Change the look of the whole store from here. */
+@theme {
+  --color-ink: #0b1220;
+  --color-muted: #5b6577;
+  --color-line: #e4e7ee;
+  --color-surface: #f3f5f9;
+  --color-canvas: #ffffff;
+  --color-brand: #1f3fff;
+  --color-brand-dark: #1630c9;
+  --color-sale: #e11d48;
+  --color-sun: #ffd84d;
+  --color-ok: #0f8a5f;
+
+  --font-sans: "IBM Plex Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Prompt", "IBM Plex Sans Thai", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  line-height: 1.65;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  * {
+    transition: none !important;
+  }
+}
