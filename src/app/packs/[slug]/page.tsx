@@ -30,11 +30,11 @@ export default async function PackPage({ params }: PageProps<"/packs/[slug]">) {
   return (
     <Container className="flex flex-col gap-12 py-6 sm:py-10">
       <nav aria-label="ตำแหน่งหน้า" className="text-sm text-muted">
-        <Link href="/" className="hover:text-ink">
-          หน้าร้าน
+        <Link href="/packs" className="hover:text-ink">
+          แพ็กเสียง
         </Link>{" "}
         /{" "}
-        <Link href={`/?inst=${instrument.id}#packs`} className="hover:text-ink">
+        <Link href={`/packs?inst=${instrument.id}`} className="hover:text-ink">
           {instrument.maker} {instrument.model}
         </Link>{" "}
         / <span className="text-ink">{product.name}</span>

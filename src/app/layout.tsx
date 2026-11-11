@@ -17,6 +17,8 @@ import { site } from "@/config/site";
 export const metadata: Metadata = {
   title: { default: site.name, template: `%s · ${site.name}` },
   description: site.description,
+  metadataBase: new URL(site.url),
+  openGraph: { siteName: site.name, locale: "th_TH", type: "website" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

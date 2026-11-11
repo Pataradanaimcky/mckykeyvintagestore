@@ -27,10 +27,10 @@ export function Hero() {
             ทำโดยนักคีย์บอร์ดแบ็กอัพ ตั้งค่าสำหรับเล่นสดไว้แล้ว โหลดลงเครื่องแล้วเล่นได้เลย
           </p>
           <div className="rise flex flex-wrap gap-3" style={{ "--d": "500ms" } as CSSProperties}>
-            <Link href="/#packs" className="btn btn-dark">
+            <Link href="/packs" className="btn btn-dark">
               ดูแพ็กทั้งหมด <span aria-hidden="true" className="btn-arrow">→</span>
             </Link>
-            <Link href="/#compatibility" className="btn btn-light">
+            <Link href="/compatibility" className="btn btn-light">
               เช็กรุ่นที่ใช้ได้
             </Link>
           </div>

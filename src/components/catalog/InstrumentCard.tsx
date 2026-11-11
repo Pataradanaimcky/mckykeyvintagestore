@@ -8,7 +8,7 @@ export function InstrumentCard({ instrument, delay = 0 }: { instrument: Instrume
   const count = listProducts({ instrument: instrument.id }).length;
   return (
     <Link
-      href={`/?inst=${instrument.id}#packs`}
+      href={`/packs?inst=${instrument.id}`}
       className="rise group relative flex min-w-0 flex-col overflow-hidden rounded-[2rem] bg-[var(--line-color)] text-white transition-transform duration-500 ease-out hover:-translate-y-1.5"
       style={{ "--line-color": instrument.color, "--d": `${delay}ms` } as CSSProperties}
     >

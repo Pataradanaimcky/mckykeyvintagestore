@@ -18,6 +18,8 @@ Read this before changing the interface. Add new entries at the bottom of Histor
 - Do not bring back: dark hero with grid or glow, neon accents, monospace "terminal" text, drawn synth panels with knobs. The owner rejected those as looking AI-made.
 - Real photos beat drawn covers. Set `image` on a product to show a photo from `/public/packs/`. Only use the owner's own photos of his own keyboards.
 - The store keeps its own identity and must not imitate Yamaha's or Roland's corporate identity. No maker logos, wordmarks, brand color schemes, product photos from their sites, or drawings of their real products. Maker and model names appear only as plain text saying what a pack works with, never inside a pack's name, and the footer trademark note stays.
+- The site is made of separate pages, not one long page with jump links: home, /packs, /packs/[slug], /compatibility, /faq. Menu links go to pages. Keep it that way.
+- The brand mark is three white keys with a blue and a red short key on black (`BrandMark.tsx`, `public/brand/`). Do not redraw or recolor it.
 
 ## Open questions
 
@@ -33,3 +35,4 @@ Read this before changing the interface. Add new entries at the bottom of Histor
 - 2026-11-11: Restyled again as a plain Thai retail shop after the owner said the dark panel version still looked AI-made. Flat blue banner, white page, Kanit and Sarabun, red prices, flat single-color covers with optional photo support. Removed glow, grid, knobs, scan line and scroll fade-ins (the fade left sections half-visible).
 - 2026-11-11: Restyled as a modern studio-style page at the owner's request, themed around the MODX M and FANTOM-0 lines. Roland line changed from D-50 to FANTOM-0. New hero with masked headline, product-line cards, sound-name marquee, scroll reveals, pill buttons and large rounded cards.
 - 2026-11-11: Owner approved the studio-style design and asked for a black, red and blue palette. Page turned near-black with white text; yellow accents replaced by the two line colors (pressed keys, discount tag, list highlight, pending badge).
+- 2026-11-11: Split the home page into sub-pages (/packs, /compatibility, /faq) with a highlighted menu. Added the brand mark, site icon, link preview image, and a brand profile kit for social media and Gmail (docs/BRAND_PROFILE.md).

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <!-- Square profile picture. The mark sits inside the central circle so round crops keep it whole. -->
+  <rect width="1080" height="1080" fill="#08080a"/>
+  <g transform="translate(92 106) scale(14)">
+    <rect x="15" y="14" width="10" height="36" rx="2.5" fill="#f4f4f6"/>
+    <rect x="27" y="14" width="10" height="36" rx="2.5" fill="#f4f4f6"/>
+    <rect x="39" y="14" width="10" height="36" rx="2.5" fill="#f4f4f6"/>
+    <rect x="22" y="14" width="8" height="22" rx="2" fill="#2456ff"/>
+    <rect x="34" y="14" width="8" height="22" rx="2" fill="#e0263f"/>
+  </g>
+</svg>

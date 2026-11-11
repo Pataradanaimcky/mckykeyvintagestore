@@ -12,12 +12,15 @@ export interface FilterTab {
  */
 export function FilterTabs({
   label,
+  basePath,
   param,
   tabs,
   active,
   others = {},
 }: {
   label: string;
+  /** Page the filter links point to, e.g. "/packs". */
+  basePath: string;
   param: string;
   tabs: FilterTab[];
   active?: string;
@@ -30,7 +33,7 @@ export function FilterTabs({
     }
     if (value) query.set(param, value);
     const text = query.toString();
-    return `/${text ? `?${text}` : ""}#packs`;
+    return `${basePath}${text ? `?${text}` : ""}`;
   }
 
   return (

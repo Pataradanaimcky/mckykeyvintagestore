@@ -39,16 +39,20 @@ To move from demo mode to a real database: create a Postgres database (Neon thro
 ```
 src/
   app/                        Pages and API routes (one folder per URL)
-    page.tsx                  Store front: banner, category tabs, product grid
-    packs/[slug]/             Product page
+    page.tsx                  Home: headline, product lines, featured packs
+    packs/                    All packs with filters; packs/[slug] is one pack
+    compatibility/            Which keyboards each line works on, and install steps
+    faq/                      Questions and answers
     checkout/[slug]/          Checkout form and its server action
     orders/[id]/              Payment QR, order status, test buttons
+    icon.svg, apple-icon.png, opengraph-image.png   Site icon and link preview image
     api/payments/webhook/     URL that payment gateways call
   components/
     layout/                   Header, footer, announcement bar, container
     catalog/                  Product card, cover art, tabs, banner, patch list
     checkout/                 Checkout form, QR code, test panel
-  config/site.ts              Brand name, contact, sample-data switch
+  config/site.ts              Brand name, site address, contact, sample-data switch
+  content/                    Page text that is not product data (FAQ)
   lib/
     catalog/                  Product data and lookups  ← add packs here
     orders/                   Order rules and the two storage back ends
@@ -58,6 +62,7 @@ src/
     env.ts                    Every environment variable the app reads
 docs/
   PAYMENTS.md                 How to connect a real Thai payment gateway
+  BRAND_PROFILE.md            Name, handle, profile pictures and bio text for social media and Gmail
   DESIGN_LOG.md               Design decisions and history
 tests/                        Unit tests
 ```
