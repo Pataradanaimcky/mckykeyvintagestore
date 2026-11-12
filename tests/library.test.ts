@@ -9,6 +9,7 @@ import {
   getTarget,
   unsupportedNameChars,
   bankPageNameProblems,
+  nameProblemLines,
   decodeLayout,
   emptyLayout,
   encodeLayout,
@@ -215,4 +216,26 @@ test("MODX M Bank Name and Page Name: non-ASCII characters are flagged per bank 
   );
   assert.deepEqual(bankPageNameProblems(modx, { ...base, bankNames: ["Gig"], pageNames: ["Ballads"] }), []);
   assert.deepEqual(bankPageNameProblems(getTarget("fantom-0"), { ...base, target: "fantom-0", pageNames: ["เปียโน"] }), []);
+});
+
+test("MODX M order sheet lists the names the keyboard cannot take; ASCII-only sheets and FANTOM-0 list none", () => {
+  const l = parseLayout({
+    version: 1,
+    target: "modx-m",
+    title: "t",
+    pages: [[{ name: "Grand" }, null, { name: "เปียโน" }]],
+    pool: [],
+    bankNames: ["Café"],
+  });
+  assert.ok(l);
+  assert.deepEqual(nameProblemLines(getTarget("modx-m"), l), ["Bank Name USER 1: é", 'USER 1 · Page 1 · Slot 3 "เปียโน": เ ป ี ย โ น']);
+  const sheet = orderSheet(l);
+  assert.match(sheet, /ชื่อที่ MODX M พิมพ์ไม่ได้/);
+  assert.match(sheet, /  USER 1 · Page 1 · Slot 3 "เปียโน": เ ป ี ย โ น/);
+  const ok = parseLayout({ version: 1, target: "modx-m", title: "t", pages: [[{ name: "Grand" }]], pool: [] });
+  assert.ok(ok);
+  assert.doesNotMatch(orderSheet(ok), /พิมพ์ไม่ได้/);
+  const fantom = parseLayout({ version: 1, target: "fantom-0", title: "t", pages: [[{ name: "เปียโน" }]], pool: [] });
+  assert.ok(fantom);
+  assert.doesNotMatch(orderSheet(fantom), /พิมพ์ไม่ได้/);
 });

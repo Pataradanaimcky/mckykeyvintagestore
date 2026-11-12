@@ -332,6 +332,25 @@ export function sssLabel(v: string): string {
   return v === "System" || v === "Hold" ? v : `${v}sec`;
 }
 
+/**
+ * Every placed name the keyboard cannot take (Bank Name, Page Name, then each slot), one line each,
+ * e.g. "USER 1 · Page 1 · Slot 3 "เปียโน": เ ป ี ย โ น". Empty for keyboards without the ASCII rule.
+ */
+export function nameProblemLines(t: Target, layout: Layout): string[] {
+  if (!t.asciiNames) return [];
+  const out = bankPageNameProblems(t, layout).map((x) => `${x.where}: ${x.chars.join(" ")}`);
+  layout.pages.forEach((page, p) =>
+    page.forEach((item, s) => {
+      if (!item) return;
+      const chars = unsupportedNameChars(t, item.name);
+      if (!chars.length) return;
+      const where = t.pagesPerBank ? (() => { const { bank, page: pg } = bankPage(t, p); return `USER ${bank} · Page ${pg} · `; })() : "";
+      out.push(`${where}${t.slotName} ${slotLabel(t, p, s)} "${item.name}": ${chars.join(" ")}`);
+    }),
+  );
+  return out;
+}
+
 /** Order sheet in the keyboard's own words. */
 export function orderSheet(layout: Layout): string {
   const t = getTarget(layout.target);
@@ -356,6 +375,8 @@ export function orderSheet(layout: Layout): string {
     lines.push("");
   });
   if (layout.pool.length) lines.push(`ยังไม่ได้วาง: ${layout.pool.map((x) => x.name).join(", ")}`, "");
+  const bad = nameProblemLines(t, layout);
+  if (bad.length) lines.push(`ชื่อที่ ${t.short} พิมพ์ไม่ได้ (แก้เป็นตัวอักษรอังกฤษก่อนตั้งชื่อบนเครื่อง):`, ...bad.map((x) => `  ${x}`), "");
   lines.push(t.howTo, "", "จัดบน Mcky Vintage Key");
   return lines.join("\n");
 }
