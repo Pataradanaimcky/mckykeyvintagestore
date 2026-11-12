@@ -50,6 +50,21 @@ export function RackCarousel() {
     return () => observer.disconnect();
   }, [page]);
 
+  // Links such as /#play-fm open that page of the rack (the scroll listener above then marks it current).
+  useEffect(() => {
+    const apply = () => {
+      const match = window.location.hash.match(/^#play-(\w+)$/);
+      const index = match ? PAGES.findIndex((p) => p.id === match[1]) : -1;
+      const el = track.current;
+      if (index < 0 || !el) return;
+      document.getElementById("play")?.scrollIntoView({ block: "start" });
+      el.scrollTo({ left: index * el.clientWidth, behavior: "auto" });
+    };
+    apply();
+    window.addEventListener("hashchange", apply);
+    return () => window.removeEventListener("hashchange", apply);
+  }, []);
+
   const go = (index: number, focus = false) => {
     const el = track.current;
     const next = (index + PAGES.length) % PAGES.length;

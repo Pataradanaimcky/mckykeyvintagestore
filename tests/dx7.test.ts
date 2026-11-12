@@ -46,3 +46,12 @@ test("names are 10 printable characters", () => {
   assert.equal(voiceName(p).length <= 10, true);
   assert.match(voiceName(p), /^[\x20-\x7e]*$/);
 });
+
+test("the free FM bank holds the store's 32 voices in order", async () => {
+  const { FM_PRESETS } = await import("../src/components/rack/fm/presets.ts");
+  assert.equal(FM_PRESETS.length, 32);
+  assert.equal(new Set(FM_PRESETS.map((p) => p.name)).size, 32);
+  const back = parse(bankSysex(FM_PRESETS.map((p) => p.patch), INIT));
+  assert.deepEqual(back.map((v) => v.name), FM_PRESETS.map((p) => p.name));
+  back.forEach((v, i) => assert.deepEqual(v.patch, FM_PRESETS[i].patch));
+});

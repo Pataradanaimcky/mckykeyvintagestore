@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import { Hero } from "@/components/catalog/Hero";
+import { FreePacks } from "@/components/catalog/FreePacks";
 import { InstrumentCard } from "@/components/catalog/InstrumentCard";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { SoundMarquee } from "@/components/catalog/SoundMarquee";
@@ -87,6 +88,11 @@ export default function HomePage() {
               <InstrumentCard key={instrument.id} instrument={instrument} delay={index * 120} />
             ))}
           </div>
+          <div data-reveal className="flex flex-col gap-2 pt-4">
+            <h3 className="text-3xl font-bold tracking-tight">เริ่มจากแพ็กฟรี</h3>
+            <p className="text-muted">เสียงตั้งต้นของซินธ์ในเว็บ ร้านทำเองทั้งหมด</p>
+          </div>
+          <FreePacks />
         </section>
       </Container>
 

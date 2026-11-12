@@ -19,6 +19,11 @@ export const POLY_PROGRAMS: { name: string; chorus: number; settings: PolySettin
   { name: "PAD", chorus: 2, settings: { saw: 0.5, pulse: 0.6, sub: 0.3, cutoff: 0.45, res: 0.3, env: 0.3, attack: 0.6, release: 0.7 } },
   { name: "STAB", chorus: 1, settings: { saw: 0.7, pulse: 0.5, sub: 0.5, cutoff: 0.3, res: 0.45, env: 0.8, attack: 0, release: 0.15 } },
   { name: "BASS", chorus: 0, settings: { saw: 0.6, pulse: 0.35, sub: 1, cutoff: 0.25, res: 0.35, env: 0.55, attack: 0, release: 0.1 } },
+  { name: "KEYS", chorus: 1, settings: { saw: 0.3, pulse: 0.7, sub: 0.2, cutoff: 0.4, res: 0.15, env: 0.5, attack: 0, release: 0.3 } },
+  { name: "RES BASS", chorus: 0, settings: { saw: 0.9, pulse: 0, sub: 0.7, cutoff: 0.18, res: 0.7, env: 0.7, attack: 0, release: 0.12 } },
+  { name: "SOFT PAD", chorus: 2, settings: { saw: 0.3, pulse: 0.3, sub: 0.4, cutoff: 0.3, res: 0.05, env: 0.15, attack: 0.75, release: 0.8 } },
+  { name: "LEAD", chorus: 1, settings: { saw: 0.2, pulse: 0.9, sub: 0.3, cutoff: 0.6, res: 0.3, env: 0.35, attack: 0.05, release: 0.25 } },
+  { name: "SWEEP", chorus: 2, settings: { saw: 0.8, pulse: 0.3, sub: 0.2, cutoff: 0.15, res: 0.6, env: 0.9, attack: 0.55, release: 0.6 } },
 ];
 
 export const cutoffHz = (v: number) => 80 * 2 ** (v * 7.5);

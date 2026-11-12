@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import { FilterTabs } from "@/components/catalog/FilterTabs";
+import { FreePacks } from "@/components/catalog/FreePacks";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { Container } from "@/components/layout/Container";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -62,6 +63,16 @@ export default async function PacksPage({ searchParams }: PageProps<"/packs">) {
           ยังไม่มีแพ็กที่ตรงกับตัวกรองนี้ ลองเลือกประเภทเสียงเป็น “ทั้งหมด”
         </p>
       )}
+
+      <section className="mt-8 flex flex-col gap-5" aria-labelledby="free-packs">
+        <div data-reveal className="flex flex-col gap-2">
+          <h2 id="free-packs" className="section-title">
+            แพ็กฟรี
+          </h2>
+          <p className="max-w-2xl text-muted">เสียงตั้งต้นของซินธ์ในเว็บที่ร้านทำเอง โหลดไปใช้ได้เลย หรือกดเล่นในเว็บก่อน</p>
+        </div>
+        <FreePacks />
+      </section>
     </Container>
   );
 }

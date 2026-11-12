@@ -256,18 +256,36 @@ export function FmPage({ active }: { active: boolean }) {
           <div className="rack-panel col-span-6 md:col-span-4">
             <p className="rack-title">VOICE</p>
             {bank === FM_PRESETS ? (
-              <div className="grid grid-cols-3 gap-1.5" role="group" aria-label="เสียงของร้าน">
-                {FM_PRESETS.map((preset, i) => (
-                  <button
-                    key={preset.name}
-                    type="button"
-                    aria-pressed={i === index}
-                    onClick={() => setIndex(i)}
-                    className="rack-preset"
-                  >
-                    {preset.name.replace("MCKY ", "")}
-                  </button>
-                ))}
+              <div className="flex flex-col gap-1.5">
+                <div className="flex gap-1" role="group" aria-label="กลุ่มเสียง">
+                  {["A", "B", "C", "D"].map((g, gi) => (
+                    <button
+                      key={g}
+                      type="button"
+                      aria-pressed={Math.floor(index / 8) === gi}
+                      onClick={() => setIndex(gi * 8)}
+                      className="rack-preset flex-1"
+                    >
+                      {g} {gi * 8 + 1}–{gi * 8 + 8}
+                    </button>
+                  ))}
+                </div>
+                <div className="grid grid-cols-4 gap-1" role="group" aria-label="เสียงของร้าน">
+                  {FM_PRESETS.slice(Math.floor(index / 8) * 8, Math.floor(index / 8) * 8 + 8).map((preset, j) => {
+                    const i = Math.floor(index / 8) * 8 + j;
+                    return (
+                      <button
+                        key={preset.name}
+                        type="button"
+                        aria-pressed={i === index}
+                        onClick={() => setIndex(i)}
+                        className="rack-preset px-1 text-[0.58rem]"
+                      >
+                        {preset.name.replace("MCKY ", "")}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             ) : (
               <div className="flex flex-col gap-1.5">

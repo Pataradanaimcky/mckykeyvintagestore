@@ -25,6 +25,35 @@ const START_CABLES: Cable[] = [
   { id: 3, a: "vcf.out", b: "out.in", tone: 2 },
 ];
 
+/** The store's starting patches for the modular page: cables and knob positions. */
+const MODULAR_PATCHES: {
+  name: string;
+  cables: [JackId, JackId][];
+  tempo: number;
+  wave: number;
+  rate: number;
+  cutoff: number;
+}[] = [
+  { name: "BASIC", cables: START_CABLES.map((c) => [c.a, c.b]), tempo: 0.45, wave: 0, rate: 0.35, cutoff: 0.55 },
+  {
+    name: "ACID",
+    cables: [["seq.out", "osc.pitch"], ["osc.out", "vcf.in"], ["vcf.out", "out.in"], ["lfo.out", "vcf.mod"]],
+    tempo: 0.75,
+    wave: 0,
+    rate: 0.6,
+    cutoff: 0.3,
+  },
+  {
+    name: "WOBBLE",
+    cables: [["osc.out", "vcf.in"], ["vcf.out", "out.in"], ["lfo.out", "vcf.mod"]],
+    tempo: 0.4,
+    wave: 0.5,
+    rate: 0.25,
+    cutoff: 0.4,
+  },
+  { name: "SIREN", cables: [["osc.out", "out.in"], ["lfo.out", "osc.pitch"]], tempo: 0.4, wave: 1, rate: 0.12, cutoff: 0.55 },
+];
+
 const JACK_LABELS: Record<JackId, string> = {
   "seq.out": "ช่องออกของ SEQ",
   "osc.pitch": "ช่องเข้า PITCH ของ OSC",
@@ -136,7 +165,20 @@ export function SynthRack({ active = true }: { active?: boolean }) {
     setNotes((current) => current.filter((n) => n !== note));
   }, []);
 
+  const [patchName, setPatchName] = useState<string | null>("BASIC");
+  const loadPatch = (p: (typeof MODULAR_PATCHES)[number]) => {
+    setCables(p.cables.map(([a, b], i) => ({ id: nextId.current + i, a, b, tone: i % CABLE_TONES.length })));
+    nextId.current += p.cables.length;
+    setTempo(p.tempo);
+    setWave(p.wave);
+    setRate(p.rate);
+    setCutoff(p.cutoff);
+    setHeld(null);
+    setPatchName(p.name);
+  };
+
   const plug = useCallback((id: number, from: JackId, into: JackId) => {
+    setPatchName(null);
     setCables((current) => {
       const moving = current.find((cable) => cable.id === id);
       const tone = moving?.tone ?? (id - 1) % CABLE_TONES.length;
@@ -347,6 +389,15 @@ export function SynthRack({ active = true }: { active?: boolean }) {
             );
           })}
         </svg>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="แพตช์ตั้งต้น">
+        <span className="mr-1 text-sm text-muted">แพตช์ตั้งต้น</span>
+        {MODULAR_PATCHES.map((p) => (
+          <button key={p.name} type="button" aria-pressed={patchName === p.name} onClick={() => loadPatch(p)} className={`studio-pill ${patchName === p.name ? "is-on" : ""}`}>
+            {p.name}
+          </button>
+        ))}
       </div>
 
       <p className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 text-sm text-muted" aria-live="polite">
