@@ -14,6 +14,8 @@ Sell the owner's sound packs. The free tools (playable synths, sound organizer) 
 
 Agents add one line each: date · agent · question · options · recommendation. The PM answers in docs/DESIGN_LOG.md under "Decisions by the project manager" and removes the line here.
 
+- 2026-11-12 · researcher · MODX M Live Set slots can also be Song, Audio or Pattern (manual p. 361); the organizer handles Performance slots only. · (a) a short note on the page, (b) let slots carry a Slot Type · Recommend (a): low-risk, keeps the organizer simple; not started until you answer.
+
 ## Waiting on the owner
 
 ## Risks
