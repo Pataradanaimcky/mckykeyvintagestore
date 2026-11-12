@@ -36,6 +36,8 @@ export interface Target {
   hasSssTime?: boolean;
   /** Banks and pages have names on the keyboard, up to this many characters. */
   pageNameMax?: number;
+  /** Names take only printable ASCII (0x20–0x7E), per the maker's data list. */
+  asciiNames?: boolean;
   about: string;
   /** How to put the result on the keyboard. */
   howTo: string;
@@ -84,6 +86,8 @@ export const TARGETS: Target[] = [
     // MODX M operation manual p. 361: "SSS Time ... Instellingen: 0.0sec – 30sec, Hold, System".
     hasSssTime: true,
     pageNameMax: 20,
+    // MODX M Data List, MIDI Data Table (LIVE SET): Bank, Page and Slot Name "00, 20 – 7E … (ASCII)".
+    asciiNames: true,
     about: "Live Set แบบ USER 8 แบงก์ แบงก์ละ 16 หน้า หน้าละ 16 ช่อง ตั้งชื่อช่อง สี Volume และ SSS Time ได้เหมือนบนเครื่อง",
     howTo:
       "บนเครื่อง: เลือก Performance แล้วกด [SHIFT] + [LIVE SET] เพื่อลงทะเบียน แตะช่องตามใบจัดเรียง จากนั้นกด Edit เพื่อตั้ง Slot Name, Color, Volume และ SSS Time แล้วกด Done",
@@ -93,6 +97,7 @@ export const TARGETS: Target[] = [
       "https://manual.yamaha.com/mi/synth/montage_m/en/om02screenparameters0310.html",
       "https://yamahasynth.com/learn/modx-series-synthesizers/mastering-modx-performance-basics-2/",
       "https://data.yamaha.com/download/files/2584767",
+      "https://data.yamaha.com/files/download/other_assets/9/2574209/MODX-M_data_list_En_B0.pdf",
     ],
   },
   {
@@ -114,6 +119,12 @@ export const TARGETS: Target[] = [
     sources: ["https://static.roland.com/assets/media/pdf/FANTOM-06_07_08_Parameter_eng01_W.pdf"],
   },
 ];
+
+/** Characters in a name the keyboard cannot show (each listed once), or [] when all fit. */
+export function unsupportedNameChars(t: Target, name: string): string[] {
+  if (!t.asciiNames && !t.usesFile) return [];
+  return [...new Set(Array.from(name).filter((c) => c < " " || c > "~"))];
+}
 
 export function getTarget(id: string): Target {
   return TARGETS.find((t) => t.id === id) ?? TARGETS[0];

@@ -7,6 +7,7 @@ import {
   copyItem,
   deleteAndMove,
   getTarget,
+  unsupportedNameChars,
   decodeLayout,
   emptyLayout,
   encodeLayout,
@@ -188,4 +189,14 @@ test("MODX M slots keep an SSS Time from the manual's settings (0.0sec–30sec, 
   assert.match(sheet, /Slot 2: Pad {2}\(SSS Time: 3\.0sec\)/);
   const dx = parseLayout({ version: 1, target: "dx7", title: "t", pages: [[{ name: "EP", sss: "Hold" }]], pool: [] });
   assert.equal(dx?.pages[0][0]?.sss, undefined);
+});
+
+test("MODX M names: only printable ASCII fits, per the MODX M Data List", () => {
+  const modx = getTarget("modx-m");
+  assert.equal(modx.asciiNames, true);
+  assert.deepEqual(unsupportedNameChars(modx, "Grand Piano 1 (Live)"), []);
+  assert.deepEqual(unsupportedNameChars(modx, "เปียโน Piano"), ["เ", "ป", "ี", "ย", "โ", "น"]);
+  assert.deepEqual(unsupportedNameChars(modx, "Pad\tA é é"), ["\t", "é"]);
+  // FANTOM-0 name rules are not confirmed yet, so nothing is flagged there.
+  assert.deepEqual(unsupportedNameChars(getTarget("fantom-0"), "เปียโน"), []);
 });

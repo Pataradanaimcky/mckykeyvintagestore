@@ -36,6 +36,7 @@ import {
   type DemoPackInfo,
   deleteAndMove,
   TARGETS,
+  unsupportedNameChars,
   updateItem,
   type Item,
   type Layout,
@@ -792,6 +793,11 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
                       maxLength={t.nameMax}
                       onChange={(e) => setLayout((l) => updateItem(l, pickedItem.id, { name: t.usesFile ? e.target.value.replace(/[^\x20-\x7e]/g, "") : e.target.value }))}
                     />
+                    {unsupportedNameChars(t, pickedItem.name).length > 0 && (
+                      <span className="text-xs text-muted" role="status">
+                        {t.short} ตั้งชื่อได้เฉพาะตัวอักษรอังกฤษ ตัวเลข และสัญลักษณ์พื้นฐาน ตัวนี้พิมพ์บนเครื่องไม่ได้: {unsupportedNameChars(t, pickedItem.name).join(" ")}
+                      </span>
+                    )}
                   </label>
                   <label className="studio-field min-w-48 flex-1">
                     <span>โน้ต (เช่น เพลงที่ใช้)</span>
