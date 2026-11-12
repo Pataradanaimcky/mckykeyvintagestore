@@ -211,7 +211,7 @@ export function FmPage({ active }: { active: boolean }) {
           <div className="rack-panel col-span-6 md:col-span-5">
             <p className="rack-title">FM 6-OP</p>
             <div className="rack-lcd" aria-live="polite">
-              <span className="rack-lcd-row">
+              <span key={`${bankName}-${index}`} className="rack-lcd-row lcd-in">
                 <span>{String(index + 1).padStart(2, "0")}</span>
                 <span>{voice.name.toUpperCase()}</span>
               </span>

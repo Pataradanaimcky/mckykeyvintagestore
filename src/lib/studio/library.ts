@@ -123,7 +123,7 @@ export function newItem(name: string, patch?: string): Item {
 
 export function emptyLayout(target: TargetId): Layout {
   const t = getTarget(target);
-  return { version: 1, target: t.id, title: t.id === "dx7" ? "MY CARTRIDGE" : "My Live Set", pages: [emptyPage(t)], pool: [] };
+  return { version: 1, target: t.id, title: t.id === "dx7" ? "MY CARTRIDGE" : t.id === "fantom-0" ? "My Scenes" : "My Live Set", pages: [emptyPage(t)], pool: [] };
 }
 
 /** Names pasted one per line (numbers, bullets and tabs at the start are ignored) become pool items. */

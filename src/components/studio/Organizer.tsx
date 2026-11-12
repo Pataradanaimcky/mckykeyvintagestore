@@ -2,6 +2,7 @@
 
 import { INIT, parse } from "@audio/synth-dx7";
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import { FM_PRESETS } from "@/components/rack/fm/presets";
 import { OctaveSwitch, RackKeys } from "@/components/rack/RackKeys";
 import { bankSysex, voiceSysex } from "@/lib/studio/dx7";
 import {
@@ -44,6 +45,13 @@ const COLOR_LABEL: Record<string, string> = {
 const toB64 = (b: Uint8Array) => btoa(String.fromCharCode(...b));
 const fromB64 = (s: string) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
 
+/** DX7 starts with the store's free FM bank already in the cartridge. */
+function starterLayout(target: TargetId): Layout {
+  if (target !== "dx7") return emptyLayout(target);
+  const withPool = { ...emptyLayout("dx7"), title: "MCKY FM VOL.1", pool: FM_PRESETS.map((p) => newItem(p.name, toB64(p.patch))) };
+  return fillEmpty(withPool);
+}
+
 function load(target: TargetId): Layout {
   try {
     const saved = window.localStorage.getItem(KEY(target));
@@ -52,7 +60,7 @@ function load(target: TargetId): Layout {
   } catch {
     // Storage blocked or bad data: start empty.
   }
-  return emptyLayout(target);
+  return starterLayout(target);
 }
 
 /** A shared link first, then the last keyboard used on this device. */
@@ -91,6 +99,10 @@ export function Organizer() {
   const [layout, setLayout] = useState<Layout>(initial);
   const [page, setPage] = useState(0);
   const [picked, setPicked] = useState<Place | null>(null);
+  // Bumped on each pick so the chosen button and the screen replay their animation.
+  const [pickCount, setPickCount] = useState(0);
+  // Bumped when a new cartridge goes in, to replay the insert animation.
+  const [cartKey, setCartKey] = useState(0);
   const [over, setOver] = useState<string | null>(null);
   const [paste, setPaste] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -99,6 +111,8 @@ export function Organizer() {
   const engine = useRef<{ ctx: AudioContext; node: AudioWorkletNode } | null>(null);
   const starting = useRef<Promise<void> | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const openMode = useRef<"cartridge" | "shelf">("shelf");
+  const [landed, setLanded] = useState<{ id: string; n: number } | null>(null);
   const jsonRef = useRef<HTMLInputElement>(null);
 
   const t = getTarget(layout.target);
@@ -137,8 +151,17 @@ export function Organizer() {
   /** Tap to pick up, tap again somewhere to put it down. */
   const tap = (at: Place, filled: boolean) => {
     if (picked && same(picked, at)) return setPicked(null);
-    if (picked) return move(picked, at);
-    if (filled) setPicked(at);
+    if (picked) {
+      if (at.kind === "slot") setLanded({ id: `${at.page}-${at.slot}`, n: pickCount + 1 });
+      setPickCount((n) => n + 1);
+      return move(picked, at);
+    }
+    if (!filled) return;
+    setPicked(at);
+    setPickCount((n) => n + 1);
+    // Choosing a DX7 voice plays it, like pressing a voice button on the keyboard.
+    const item = at.kind === "slot" ? layout.pages[at.page]?.[at.slot] : layout.pool[at.index];
+    if (item?.patch) void preview(item);
   };
 
   const onDragStart = (at: Place) => (event: DragEvent) => {
@@ -150,6 +173,10 @@ export function Organizer() {
     setOver(null);
     try {
       move(JSON.parse(event.dataTransfer.getData("text/plain")) as Place, to);
+      if (to.kind === "slot") {
+        setLanded({ id: `${to.page}-${to.slot}`, n: pickCount + 1 });
+        setPickCount((n) => n + 1);
+      }
     } catch {
       // Not one of ours: ignore.
     }
@@ -221,12 +248,21 @@ export function Organizer() {
       }
     }
     if (!items.length) return;
-    setLayout((l) => {
-      const empty = l.pages[0].every((x) => !x);
-      const withPool = { ...l, pool: [...l.pool, ...items].slice(0, 512) };
-      return empty ? fillEmpty(withPool) : withPool;
-    });
-    setMessage(`เพิ่ม ${items.length} เสียงแล้ว${items.length > 32 ? " ส่วนที่เกิน 32 อยู่ในที่พักด้านซ้าย" : ""}`);
+    if (openMode.current === "cartridge") {
+      // A new cartridge goes in; the voices that were in it move to the shelf, so nothing is lost.
+      const name = files[0]?.name.replace(/\.syx$/i, "").slice(0, 40) || "CARTRIDGE";
+      setLayout((l) => {
+        const old = l.pages[0].filter((x): x is Item => !!x);
+        const slots = l.pages[0].map((_, i) => items[i] ?? null);
+        return { ...l, title: name, pages: [slots], pool: [...items.slice(slots.length), ...old, ...l.pool].slice(0, 512) };
+      });
+      setCartKey((k) => k + 1);
+      setPicked(null);
+      setMessage(`ใส่ตลับ ${name} แล้ว${items.length > 32 ? " เสียงที่เกิน 32 อยู่บนชั้นวาง" : ""} เสียงจากตลับเดิมย้ายไปอยู่บนชั้นวาง`);
+    } else {
+      setLayout((l) => ({ ...l, pool: [...l.pool, ...items].slice(0, 512) }));
+      setMessage(`วาง ${items.length} เสียงบนชั้นวางแล้ว ลากขึ้นไปวางบนปุ่มได้เลย`);
+    }
   };
 
   const addNames = () => {
@@ -266,7 +302,20 @@ export function Organizer() {
   const sheet = orderSheet(layout);
   const fileBase = (layout.title || "sounds").replace(/[^\p{L}\p{N}_-]+/gu, "-");
 
-  const slotsGrid = t.columns === 8 ? "grid-cols-4 md:grid-cols-8" : "grid-cols-2 sm:grid-cols-4";
+  const slotsGrid = t.columns === 8 ? "grid-cols-4 sm:grid-cols-8 xl:grid-cols-16" : "grid-cols-4";
+  const pickedNo = picked?.kind === "slot" ? slotLabel(t, picked.page, picked.slot) : null;
+  const lcdTop =
+    t.id === "dx7"
+      ? pickedNo
+        ? `INT ${pickedNo.padStart(2, "0")}`
+        : "CARTRIDGE"
+      : t.id === "modx-m"
+        ? `LIVE SET  PAGE ${current + 1}${pickedNo ? `  SLOT ${pickedNo}` : ""}`
+        : pickedNo
+          ? `SCENE ${pickedNo}`
+          : `SCENE ${slotLabel(t, current, 0)}–${slotLabel(t, current, 15)}`;
+  const lcdName = (pickedItem?.name ?? layout.title).toUpperCase();
+  const lcdKey = `${pickCount}-${current}-${layout.target}`;
 
   return (
     <div className="flex flex-col gap-5">
@@ -294,11 +343,115 @@ export function Organizer() {
         <span className="font-semibold text-ink">{t.name}</span> · {t.about}
       </p>
 
-      <div className="grid gap-4 lg:grid-cols-[17rem_minmax(0,1fr)]">
-        {/* Pool: sounds not placed yet */}
+      {/* How it works */}
+      <ol className="organizer-steps">
+        <li>
+          <b>1</b> {t.usesFile ? "ใส่ตลับ: เปิดไฟล์ .syx หรือใช้แบงก์ของร้านที่ใส่ไว้แล้ว" : `ใส่รายชื่อ ${t.slotName === "Scene" ? "Scene" : "Performance"} จากเครื่องลงชั้นวาง`}
+        </li>
+        <li>
+          <b>2</b> ลากเสียงไปวางบนปุ่ม หรือแตะเสียงหนึ่งครั้ง แล้วแตะปุ่มที่จะวาง
+        </li>
+        <li>
+          <b>3</b> {t.usesFile ? "ดาวน์โหลดตลับที่เรียงแล้ว (.syx)" : "ดาวน์โหลดใบจัดเรียงไปทำตามบนเครื่อง"}
+        </li>
+      </ol>
+
+      {/* The machine face */}
+      <section className={`face face-${t.id}`} aria-label={`หน้าเครื่อง ${t.name}`}>
+        <div className="face-top">
+          <div className="face-lcd" aria-live="polite">
+            <span key={`a${lcdKey}`} className="face-lcd-line">
+              {lcdTop}
+            </span>
+            <span key={`b${lcdKey}`} className="face-lcd-line is-big">
+              {lcdName}
+            </span>
+          </div>
+          {t.usesFile ? (
+            <button type="button" className="cartridge" key={`cart${cartKey}`} onClick={() => {
+                openMode.current = "cartridge";
+                fileRef.current?.click();
+              }} aria-label="ใส่ตลับใหม่: เปิดไฟล์ .syx">
+              <span className="cartridge-grip" aria-hidden="true" />
+              <span className="cartridge-label">
+                <span className="cartridge-brand">MCKY · FM CARTRIDGE</span>
+                <span className="cartridge-title">{layout.title}</span>
+                <span className="cartridge-meta">{placed} / 32 VOICES</span>
+              </span>
+              <span className="cartridge-pins" aria-hidden="true" />
+            </button>
+          ) : (
+            <div className="face-pages" role="tablist" aria-label="หน้า">
+              {layout.pages.map((_, p) => (
+                <button
+                  key={p}
+                  type="button"
+                  role="tab"
+                  aria-selected={p === current}
+                  onClick={() => setPage(p)}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setPage(p);
+                  }}
+                  className="face-page"
+                >
+                  {t.id === "fantom-0" ? `${String(p * 16 + 1).padStart(3, "0")}` : `P${p + 1}`}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="face-page is-add"
+                disabled={layout.pages.length >= t.maxPages}
+                onClick={() => {
+                  setLayout((l) => ({ ...l, pages: [...l.pages, emptyPage(t)] }));
+                  setPage(layout.pages.length);
+                }}
+                aria-label="เพิ่มหน้า"
+              >
+                +
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className={`face-keys grid ${slotsGrid}`}>
+          {layout.pages[current].map((item, s) => {
+            const at: Place = { kind: "slot", page: current, slot: s };
+            const id = `${current}-${s}`;
+            const active = same(picked, at);
+            return (
+              <button
+                key={active || landed?.id === id ? `${id}-${pickCount}` : id}
+                type="button"
+                draggable={!!item}
+                onDragStart={onDragStart(at)}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setOver(id);
+                }}
+                onDragLeave={() => setOver((o) => (o === id ? null : o))}
+                onDrop={onDrop(at)}
+                onClick={() => tap(at, !!item)}
+                aria-pressed={active}
+                aria-label={`${t.slotName} ${slotLabel(t, current, s)}: ${item?.name ?? "ว่าง"}`}
+                className={`face-btn color-${item?.color ?? "none"} ${item ? "" : "is-empty"} ${landed?.id === id ? "is-landed" : ""} ${over === id ? "is-over" : ""} ${picked && !active ? "is-target" : ""}`}
+              >
+                <span className="face-btn-top">
+                  <span className="face-led" aria-hidden="true" />
+                  <span className="face-num">{slotLabel(t, current, s)}</span>
+                </span>
+                <span className="face-name">{item?.name ?? ""}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <div className="grid gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]">
+        {/* Shelf: sounds not in the machine yet */}
         <section
           className={`studio-panel organizer-pool ${over === "pool" ? "is-over" : ""} ${picked?.kind === "slot" ? "is-target" : ""}`}
-          aria-label="ที่พักเสียง"
+          aria-label="ชั้นวางเสียง"
           onDragOver={(e) => {
             e.preventDefault();
             setOver("pool");
@@ -306,16 +459,27 @@ export function Organizer() {
           onDragLeave={() => setOver(null)}
           onDrop={onDrop({ kind: "pool", index: layout.pool.length })}
           onClick={(e) => {
-            if (e.target === e.currentTarget && picked?.kind === "slot") move(picked, { kind: "pool", index: layout.pool.length });
+            if (picked?.kind === "slot" && !(e.target as HTMLElement).closest("button, textarea, input")) move(picked, { kind: "pool", index: layout.pool.length });
           }}
         >
           <div className="flex items-center justify-between">
-            <h2 className="font-bold">ที่พักเสียง</h2>
+            <h2 className="font-bold">ชั้นวางเสียง</h2>
             <span className="text-xs text-muted">{layout.pool.length} เสียง</span>
           </div>
+          <p className="text-xs text-muted">
+            เสียงที่ยังไม่ได้อยู่บนเครื่องจะรออยู่ตรงนี้ ลากขึ้นไปวางบนปุ่ม หรือแตะเสียงแล้วแตะปุ่มที่ต้องการ
+            {picked?.kind === "slot" ? " · แตะพื้นที่นี้เพื่อเอาเสียงที่เลือกลงมาพักไว้" : ""}
+          </p>
           {t.usesFile ? (
-            <button type="button" className="studio-btn" onClick={() => fileRef.current?.click()}>
-              เปิดไฟล์ .syx
+            <button
+              type="button"
+              className="studio-btn"
+              onClick={() => {
+                openMode.current = "shelf";
+                fileRef.current?.click();
+              }}
+            >
+              เปิดไฟล์ .syx มาวางบนชั้น
             </button>
           ) : (
             <div className="flex flex-col gap-2">
@@ -327,12 +491,12 @@ export function Organizer() {
                 aria-label="รายชื่อเสียง บรรทัดละชื่อ"
               />
               <button type="button" className="studio-btn" onClick={addNames} disabled={!paste.trim()}>
-                เพิ่มลงที่พัก
+                วางลงชั้นวาง
               </button>
             </div>
           )}
           <input ref={fileRef} type="file" multiple accept=".syx,application/octet-stream" className="sr-only" tabIndex={-1} aria-label="เลือกไฟล์ .syx" onChange={(e) => void openSyx(e)} />
-          <ul className="flex max-h-[26rem] flex-col gap-1 overflow-y-auto">
+          <ul className="flex max-h-[22rem] flex-col gap-1 overflow-y-auto">
             {layout.pool.map((item, i) => {
               const at: Place = { kind: "pool", index: i };
               return (
@@ -350,118 +514,32 @@ export function Organizer() {
                     aria-pressed={same(picked, at)}
                     className={`organizer-chip color-${item.color}`}
                   >
+                    <span aria-hidden="true" className="mr-1.5 text-muted">⋮⋮</span>
                     {item.name}
                   </button>
                 </li>
               );
             })}
             {layout.pool.length === 0 && (
-              <li className="text-xs text-muted">{t.usesFile ? "เสียงที่เกิน 32 ช่องหรือที่เอาออกจะมาอยู่ตรงนี้" : "วางรายชื่อจากเครื่องด้านบน หรือลากเสียงออกจากช่องมาพักไว้"}</li>
+              <li className="organizer-empty">
+                <span aria-hidden="true">↑</span>
+                {t.usesFile ? "ชั้นว่างอยู่ เสียงที่เกิน 32 หรือที่ยกลงจากเครื่องจะมาอยู่ตรงนี้" : "วางรายชื่อจากเครื่องในช่องด้านบน แล้วลากขึ้นไปวางบนปุ่ม"}
+              </li>
             )}
           </ul>
-        </section>
-
-        {/* Grid */}
-        <section className="flex min-w-0 flex-col gap-3" aria-label={t.pageName}>
-          {t.maxPages > 1 && (
-            <div className="flex flex-wrap items-center gap-1.5" role="tablist" aria-label="หน้า">
-              {layout.pages.map((_, p) => (
-                <button
-                  key={p}
-                  type="button"
-                  role="tab"
-                  aria-selected={p === current}
-                  onClick={() => setPage(p)}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setPage(p);
-                  }}
-                  className={`studio-pill ${p === current ? "is-on" : ""}`}
-                >
-                  {t.id === "fantom-0" ? `${String(p * 16 + 1).padStart(3, "0")}–${String(p * 16 + 16).padStart(3, "0")}` : `หน้า ${p + 1}`}
-                </button>
-              ))}
-              <button
-                type="button"
-                className="studio-pill"
-                disabled={layout.pages.length >= t.maxPages}
-                onClick={() => {
-                  setLayout((l) => ({ ...l, pages: [...l.pages, emptyPage(t)] }));
-                  setPage(layout.pages.length);
-                }}
-              >
-                + หน้า
-              </button>
-            </div>
-          )}
-
-          <div className={`organizer-grid grid gap-1.5 ${slotsGrid}`}>
-            {layout.pages[current].map((item, s) => {
-              const at: Place = { kind: "slot", page: current, slot: s };
-              const id = `${current}-${s}`;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  draggable={!!item}
-                  onDragStart={onDragStart(at)}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setOver(id);
-                  }}
-                  onDragLeave={() => setOver((o) => (o === id ? null : o))}
-                  onDrop={onDrop(at)}
-                  onClick={() => tap(at, !!item)}
-                  aria-pressed={same(picked, at)}
-                  aria-label={`${t.slotName} ${slotLabel(t, current, s)}: ${item?.name ?? "ว่าง"}`}
-                  className={`organizer-slot color-${item?.color ?? "none"} ${item ? "" : "is-empty"} ${over === id ? "is-over" : ""} ${picked && !same(picked, at) ? "is-target" : ""}`}
-                >
-                  <span className="organizer-num">{slotLabel(t, current, s)}</span>
-                  <span className="organizer-name">{item?.name ?? ""}</span>
-                </button>
-              );
-            })}
-          </div>
-
           <div className="flex flex-wrap gap-2">
             <button type="button" className="studio-btn" onClick={() => setLayout((l) => fillEmpty(l, current))} disabled={!layout.pool.length}>
-              เติมช่องว่างจากที่พัก
-            </button>
-            <button type="button" className="studio-btn" onClick={() => setLayout((l) => sortPage(l, current))}>
-              เรียงตามชื่อ
-            </button>
-            <button
-              type="button"
-              className="studio-btn"
-              onClick={() =>
-                setLayout((l) => ({
-                  ...l,
-                  pages: l.pages.map((p, i) => (i === current ? p.map(() => null) : p)),
-                  pool: [...l.pool, ...l.pages[current].filter((x): x is Item => !!x)],
-                }))
-              }
-            >
-              ย้ายหน้านี้ไปที่พัก
-            </button>
-            <button
-              type="button"
-              className="studio-btn"
-              onClick={() => {
-                if (window.confirm("ล้างทั้งหมดของรุ่นนี้?")) {
-                  setLayout(emptyLayout(t.id));
-                  setPage(0);
-                }
-              }}
-            >
-              ล้างทั้งหมด
+              เติมปุ่มว่างให้อัตโนมัติ
             </button>
           </div>
+        </section>
 
+        <section className="flex min-w-0 flex-col gap-3">
           {/* The picked sound */}
-          <div className="studio-panel min-h-24" aria-live="polite">
+          <div className="studio-panel min-h-24">
             {pickedItem ? (
               <div className="flex flex-col gap-3">
-                <p className="text-sm text-muted">แตะช่องอื่นเพื่อย้ายไปที่นั่น (ถ้ามีเสียงอยู่จะสลับกัน) หรือแตะที่พักเพื่อเอาออก</p>
+                <p className="text-sm text-muted">แตะปุ่มอื่นเพื่อย้ายเสียงนี้ไปที่นั่น (ถ้ามีเสียงอยู่จะสลับกัน) หรือแตะชั้นวางเพื่อยกลงมาพัก</p>
                 <div className="flex flex-wrap items-end gap-3">
                   <label className="studio-field min-w-48 flex-1">
                     <span>ชื่อ</span>
@@ -478,7 +556,7 @@ export function Organizer() {
                   </label>
                   {pickedItem.patch && (
                     <button type="button" className="studio-btn" onClick={() => void preview(pickedItem)}>
-                      ▶ ฟัง
+                      ▶ ฟังอีกครั้ง
                     </button>
                   )}
                   <button
@@ -509,24 +587,66 @@ export function Organizer() {
                 )}
               </div>
             ) : (
-              <p className="text-sm text-muted">
-                ลากเสียงไปวางช่องที่ต้องการ หรือแตะเสียงหนึ่งครั้งแล้วแตะช่องที่จะวาง · วางแล้ว {placed} เสียง
-              </p>
+              <p className="text-sm text-muted">แตะปุ่มบนเครื่องเพื่อเลือกเสียง{t.usesFile ? " (จะได้ยินเสียงทันที)" : ""} แล้วแตะปุ่มอื่นเพื่อย้าย · ใส่แล้ว {placed} เสียง</p>
             )}
           </div>
 
           {t.usesFile && (
             <div className="studio-panel">
               <div className="flex items-center justify-between gap-2">
-                <h2 className="font-bold">ฟังเสียงที่เลือก</h2>
+                <h2 className="font-bold">เล่นเสียงที่เลือก</h2>
                 <OctaveSwitch octave={octave} onChange={setOctave} />
               </div>
               <div className="rack-skin-fm rounded-xl bg-case p-1.5">
                 <RackKeys active={!!pickedPatch} held={held} octave={octave} onNoteOn={(n) => void noteOn(n)} onNoteOff={noteOff} />
               </div>
-              {!pickedPatch && <p className="text-xs text-muted">แตะเสียงในช่องก่อน แล้วกดคีย์หรือปุ่ม A–K เพื่อฟัง</p>}
             </div>
           )}
+
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="studio-btn" onClick={() => setLayout((l) => sortPage(l, current))}>
+              เรียงตามชื่อ
+            </button>
+            <button
+              type="button"
+              className="studio-btn"
+              onClick={() =>
+                setLayout((l) => ({
+                  ...l,
+                  pages: l.pages.map((p, i) => (i === current ? p.map(() => null) : p)),
+                  pool: [...l.pool, ...l.pages[current].filter((x): x is Item => !!x)],
+                }))
+              }
+            >
+              ยกทั้งหน้าลงชั้นวาง
+            </button>
+            {t.usesFile && (
+              <button
+                type="button"
+                className="studio-btn"
+                onClick={() => {
+                  setLayout(starterLayout("dx7"));
+                  setCartKey((k) => k + 1);
+                  setPicked(null);
+                }}
+              >
+                ใส่แบงก์ของร้าน (MCKY 32 เสียง)
+              </button>
+            )}
+            <button
+              type="button"
+              className="studio-btn"
+              onClick={() => {
+                if (window.confirm("ล้างทั้งหมดของรุ่นนี้?")) {
+                  setLayout(emptyLayout(t.id));
+                  setPage(0);
+                  setPicked(null);
+                }
+              }}
+            >
+              ล้างทั้งหมด
+            </button>
+          </div>
         </section>
       </div>
 
