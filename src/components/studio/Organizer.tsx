@@ -4,7 +4,7 @@ import { INIT, parse } from "@audio/synth-dx7";
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { FM_PRESETS } from "@/components/rack/fm/presets";
 import { OctaveSwitch, RackKeys } from "@/components/rack/RackKeys";
-import { bankSysex, voiceSysex } from "@/lib/studio/dx7";
+import { bankSysex, checkCartridgeDump, voiceSysex } from "@/lib/studio/dx7";
 import { getSound, guessSound, PREVIEW_SOUNDS } from "@/lib/studio/sounds";
 import { GmPreview } from "./gmPreview";
 import {
@@ -295,20 +295,78 @@ export function Organizer() {
     }
     if (!items.length) return;
     if (openMode.current === "cartridge") {
-      // A new cartridge goes in; the voices that were in it move to the shelf, so nothing is lost.
-      const name = files[0]?.name.replace(/\.syx$/i, "").slice(0, 40) || "CARTRIDGE";
-      setLayout((l) => {
-        const old = l.pages[0].filter((x): x is Item => !!x);
-        const slots = l.pages[0].map((_, i) => items[i] ?? null);
-        return { ...l, title: name, pages: [slots], pool: [...items.slice(slots.length), ...old, ...l.pool].slice(0, 512) };
-      });
-      setCartKey((k) => k + 1);
-      setPicked(null);
-      setMessage(`ใส่ตลับ ${name} แล้ว${items.length > 32 ? " เสียงที่เกิน 32 อยู่บนชั้นวาง" : ""} เสียงจากตลับเดิมย้ายไปอยู่บนชั้นวาง`);
+      insertCartridge(items, files[0]?.name.replace(/\.syx$/i, "").slice(0, 40) || "CARTRIDGE");
     } else {
       setLayout((l) => ({ ...l, pool: [...l.pool, ...items].slice(0, 512) }));
       setMessage(`วาง ${items.length} เสียงบนชั้นวางแล้ว ลากขึ้นไปวางบนปุ่มได้เลย`);
     }
+  };
+
+  // A new cartridge goes in; the voices that were in it move to the shelf, so nothing is lost.
+  const insertCartridge = (items: Item[], name: string) => {
+    setLayout((l) => {
+      const old = l.pages[0].filter((x): x is Item => !!x);
+      const slots = l.pages[0].map((_, i) => items[i] ?? null);
+      return { ...l, title: name, pages: [slots], pool: [...items.slice(slots.length), ...old, ...l.pool].slice(0, 512) };
+    });
+    setCartKey((k) => k + 1);
+    setPicked(null);
+    setMessage(`ใส่ตลับ ${name} แล้ว${items.length > 32 ? " เสียงที่เกิน 32 อยู่บนชั้นวาง" : ""} เสียงจากตลับเดิมย้ายไปอยู่บนชั้นวาง`);
+  };
+
+  // Receiving from a DX7 over USB-MIDI: read only. The DX7 sends its 32 voices
+  // when asked from its own panel; this page only listens and sends nothing.
+  const [listening, setListening] = useState(false);
+  const stopListen = useRef<(() => void) | null>(null);
+  useEffect(() => () => stopListen.current?.(), []);
+  const receiveFromDx7 = async () => {
+    if (listening) {
+      stopListen.current?.();
+      setMessage("หยุดรอรับแล้ว");
+      return;
+    }
+    if (!("requestMIDIAccess" in navigator)) {
+      setMessage("เบราว์เซอร์นี้ใช้ MIDI ไม่ได้ ลอง Chrome หรือ Edge บนคอมพิวเตอร์");
+      return;
+    }
+    let access: MIDIAccess;
+    try {
+      access = await navigator.requestMIDIAccess({ sysex: true });
+    } catch {
+      setMessage("ไม่ได้รับอนุญาตให้ใช้ MIDI กดอนุญาตในเบราว์เซอร์แล้วลองใหม่");
+      return;
+    }
+    const inputs = [...access.inputs.values()];
+    if (!inputs.length) {
+      setMessage("ไม่พบอุปกรณ์ MIDI ต่อสาย USB-MIDI จาก MIDI OUT ของ DX7 เข้าคอมพิวเตอร์ก่อน");
+      return;
+    }
+    const onMessage = (event: MIDIMessageEvent) => {
+      const data = event.data;
+      if (!data || data[0] !== 0xf0) return;
+      const check = checkCartridgeDump(data);
+      if (!check.ok) {
+        setMessage(check.reason);
+        return;
+      }
+      const items = parse(data).map((v) => newItem(v.name || "VOICE", toB64(v.patch)));
+      stop();
+      insertCartridge(items, "DX7 INTERNAL");
+    };
+    const timer = window.setTimeout(() => {
+      stop();
+      setMessage("ยังไม่ได้รับข้อมูลจาก DX7 ลองกดส่งจากเครื่องอีกครั้ง");
+    }, 120_000);
+    const stop = () => {
+      window.clearTimeout(timer);
+      inputs.forEach((i) => i.removeEventListener("midimessage", onMessage));
+      stopListen.current = null;
+      setListening(false);
+    };
+    inputs.forEach((i) => i.addEventListener("midimessage", onMessage));
+    stopListen.current = stop;
+    setListening(true);
+    setMessage("กำลังรอ… บน DX7 กด FUNCTION แล้วกดปุ่ม 8 (MIDI) จนจอขึ้น SYS INFO AVAIL กดปุ่ม 8 อีกครั้งจนจอถามว่าจะส่ง (MIDI TRANSMIT ?) แล้วกด YES");
   };
 
   const addNames = () => {
@@ -566,16 +624,22 @@ export function Organizer() {
             {picked?.kind === "slot" ? " · แตะพื้นที่นี้เพื่อเอาเสียงที่เลือกลงมาพักไว้" : ""}
           </p>
           {t.usesFile ? (
-            <button
-              type="button"
-              className="studio-btn"
-              onClick={() => {
-                openMode.current = "shelf";
-                fileRef.current?.click();
-              }}
-            >
-              เปิดไฟล์ .syx มาวางบนชั้น
-            </button>
+            <>
+              <button
+                type="button"
+                className="studio-btn"
+                onClick={() => {
+                  openMode.current = "shelf";
+                  fileRef.current?.click();
+                }}
+              >
+                เปิดไฟล์ .syx มาวางบนชั้น
+              </button>
+              <button type="button" className="studio-btn" aria-pressed={listening} onClick={() => void receiveFromDx7()}>
+                {listening ? "กำลังรอรับจาก DX7… (แตะเพื่อหยุด)" : "รับเสียง 32 เสียงจาก DX7 ทาง USB-MIDI"}
+              </button>
+              <p className="text-xs text-muted">อ่านอย่างเดียว หน้านี้ไม่ส่งอะไรเข้าเครื่อง เสียงที่รับมาจะใส่เป็นตลับ เสียงในตลับเดิมย้ายลงชั้นวาง ใช้ได้บน Chrome หรือ Edge</p>
+            </>
           ) : (
             <div className="flex flex-col gap-2">
               <textarea

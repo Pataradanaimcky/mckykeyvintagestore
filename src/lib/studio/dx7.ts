@@ -61,3 +61,21 @@ export function bankSysex(voices: ArrayLike<number>[], fill: ArrayLike<number>, 
   for (let i = 0; i < 32; i++) data.set(packVoice(voices[i] ?? fill), i * 128);
   return Uint8Array.from([0xf0, 0x43, (channel - 1) & 15, 0x09, 0x20, 0x00, ...data, checksum(data), 0xf7]);
 }
+
+export type DumpCheck = { ok: true; channel: number } | { ok: false; reason: string };
+
+/**
+ * Checks a message received from a DX7 (Web MIDI, read only) before it is used:
+ * a 32-voice bulk dump F0 43 0n 09 20 00 <4096 bytes> <checksum> F7, 4104 bytes.
+ * The DX7 sends it from its panel (FUNCTION, button 8 MIDI, SYS INFO AVAIL,
+ * MIDI TRANSMIT ? → YES); it does not answer voice dump requests, so nothing is
+ * ever sent to it from here. Reasons are in Thai for the page.
+ */
+export function checkCartridgeDump(msg: ArrayLike<number>): DumpCheck {
+  if (msg.length < 6 || msg[0] !== 0xf0 || msg[1] !== 0x43) return { ok: false, reason: "ไม่ใช่ข้อมูลจาก Yamaha" };
+  if (msg[2] >> 4 !== 0 || msg[3] !== 0x09 || msg[4] !== 0x20 || msg[5] !== 0x00) return { ok: false, reason: "ไม่ใช่ข้อมูล 32 เสียงของ DX7" };
+  if (msg.length !== 4104 || msg[4103] !== 0xf7) return { ok: false, reason: "ข้อมูลมาไม่ครบ ลองส่งจากเครื่องอีกครั้ง" };
+  const data = Array.prototype.slice.call(msg, 6, 4102) as number[];
+  if (checksum(data) !== msg[4102]) return { ok: false, reason: "ข้อมูลเสียหายระหว่างทาง (checksum ไม่ตรง) ลองส่งอีกครั้ง" };
+  return { ok: true, channel: (msg[2] & 15) + 1 };
+}

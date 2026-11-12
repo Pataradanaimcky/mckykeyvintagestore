@@ -55,3 +55,17 @@ test("the free FM bank holds the store's 32 voices in order", async () => {
   assert.deepEqual(back.map((v) => v.name), FM_PRESETS.map((p) => p.name));
   back.forEach((v, i) => assert.deepEqual(v.patch, FM_PRESETS[i].patch));
 });
+
+test("a cartridge received from the keyboard is checked before use", async () => {
+  const { checkCartridgeDump } = await import("../src/lib/studio/dx7.ts");
+  const msg = bankSysex([randomVoice(3)], INIT, 2);
+  assert.deepEqual(checkCartridgeDump(msg), { ok: true, channel: 2 });
+  const bad = Uint8Array.from(msg);
+  bad[100] ^= 1;
+  assert.equal(checkCartridgeDump(bad).ok, false);
+  assert.equal(checkCartridgeDump(msg.subarray(0, 2000)).ok, false);
+  assert.equal(checkCartridgeDump(voiceSysex(INIT)).ok, false);
+  assert.equal(checkCartridgeDump([0xf0, 0x41, 0x10, 0x00, 0xf7]).ok, false);
+  // A dump request (F0 43 2n ...) is not a dump.
+  assert.equal(checkCartridgeDump([0xf0, 0x43, 0x20, 0x09, 0x20, 0x00, 0xf7]).ok, false);
+});
