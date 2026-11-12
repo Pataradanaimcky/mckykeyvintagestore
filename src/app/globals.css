@@ -15,6 +15,16 @@
   --color-red: #e0263f;
   --color-ok: #3ecf8e;
 
+  /* The playable rack keeps its vintage cream panels in both themes. */
+  --color-case: #111114;
+  --color-panel: #e9e5d8;
+  --color-panel-ink: #1b1b1f;
+  --color-panel-line: #bfbaa9;
+  --color-metal: #8f8b7f;
+  --color-cable: #26262b;
+  --color-screen: #0b0f14;
+  --color-trace: #7fa2ff;
+
   --font-sans: "Anuphan", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: "Anuphan", system-ui, sans-serif;
   --font-mono: ui-monospace, Menlo, Consolas, monospace;
@@ -22,9 +32,40 @@
   --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/*
+ * White theme. Follows the visitor's phone or computer setting; black is the default.
+ * Slightly warm, like old paper, to suit the vintage feel.
+ */
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-ink: #141414;
+    --color-muted: #5f5b53;
+    --color-line: #dcd7cb;
+    --color-surface: #ebe7de;
+    --color-canvas: #f6f3ec;
+    --color-brand: #141414;
+    --color-brand-dark: #3a3833;
+    --color-sale: #c81e36;
+    --color-ok: #12805a;
+    --color-case: #1c1b19;
+  }
+}
+
 html {
   scroll-behavior: smooth;
-  color-scheme: dark;
+  color-scheme: dark light;
+}
+
+/* A light film grain over the whole page, like an old photo print. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.09;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 body {
@@ -102,6 +143,301 @@ h3 {
 }
 .btn:hover .btn-arrow {
   transform: translateX(5px);
+}
+
+/* --- Playable rack (see src/components/rack) --- */
+.rack-case {
+  background: var(--color-case);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--color-metal) 35%, transparent),
+    0 30px 60px -30px color-mix(in srgb, var(--color-case) 70%, transparent);
+}
+.rack-panel {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 10rem;
+  flex-direction: column;
+  gap: 0.6rem;
+  border-radius: 0.6rem;
+  padding: 0.85rem 0.75rem 0.7rem;
+  color: var(--color-panel-ink);
+  /* Brushed, slightly yellowed faceplate with a screw in each top corner. */
+  background:
+    radial-gradient(circle at 9px 9px, var(--color-metal) 0 2.5px, transparent 3px),
+    radial-gradient(circle at calc(100% - 9px) 9px, var(--color-metal) 0 2.5px, transparent 3px),
+    linear-gradient(180deg, color-mix(in srgb, var(--color-panel) 92%, white), var(--color-panel) 40%, color-mix(in srgb, var(--color-panel) 90%, var(--color-metal)));
+  box-shadow: inset 0 0 0 1px var(--color-panel-line);
+}
+@media (min-width: 48rem) {
+  .rack-panel {
+    min-height: 12.5rem;
+  }
+  .rack-panel.rack-keys {
+    min-height: 0;
+  }
+}
+.rack-title {
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+}
+.rack-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  padding: 0.15rem 0.3rem;
+  border-radius: 0.2rem;
+}
+.rack-label-out {
+  background: var(--color-panel-ink);
+  color: var(--color-panel);
+}
+.rack-hint {
+  font-size: 0.62rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--color-panel-ink) 65%, transparent);
+}
+.rack-knob {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  cursor: grab;
+  touch-action: none;
+  background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--color-panel-ink) 80%, white), var(--color-panel-ink) 60%);
+  box-shadow:
+    0 0 0 3px var(--color-panel-line),
+    0 5px 8px -2px color-mix(in srgb, var(--color-panel-ink) 55%, transparent);
+  transition: transform 0.12s ease-out;
+}
+.rack-knob:active {
+  cursor: grabbing;
+}
+.rack-knob::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  width: 3px;
+  height: 0.9rem;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: var(--color-panel);
+}
+.rack-knob:focus-visible,
+.rack-jack:focus-visible,
+.rack-switch:focus-visible,
+.rack-key:focus-visible {
+  outline-color: var(--color-blue);
+}
+.rack-jack {
+  position: relative;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  cursor: pointer;
+  touch-action: none;
+}
+/* The visible socket is smaller than the tap area. */
+.rack-jack::before {
+  content: "";
+  position: absolute;
+  inset: 0.5rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, var(--color-panel-ink) 0 34%, var(--color-metal) 36% 62%, color-mix(in srgb, var(--color-metal) 60%, white) 64%);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-panel-ink) 50%, transparent);
+  transition: transform 0.3s var(--ease-out-soft);
+}
+.rack-jack:hover::before,
+.rack-jack[aria-pressed="true"]::before {
+  transform: scale(1.18);
+}
+.rack-led {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-panel-ink) 25%, var(--color-panel));
+  transition:
+    background-color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+.rack-led.is-on {
+  background: var(--color-red);
+  box-shadow: 0 0 8px var(--color-red);
+}
+.rack-led-pulse {
+  animation: led-pulse var(--lfo, 1s) ease-in-out infinite;
+}
+@keyframes led-pulse {
+  50% {
+    opacity: 0.15;
+  }
+}
+.rack-scope {
+  display: block;
+  width: 100%;
+  height: 3.6rem;
+  border-radius: 0.4rem;
+  background: var(--color-screen);
+  color: var(--color-trace);
+  box-shadow: inset 0 0 0 2px var(--color-panel-line);
+}
+.rack-switch {
+  margin-bottom: 0.4rem;
+  border-radius: 999px;
+  padding: 0.45rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--color-panel-ink);
+  color: var(--color-panel);
+  transition:
+    background-color 0.25s ease,
+    transform 0.4s var(--ease-out-soft);
+}
+.rack-switch:active {
+  transform: scale(0.95);
+}
+.rack-switch.is-on {
+  background: var(--color-blue);
+  color: #fff;
+}
+.rack-cable {
+  filter: drop-shadow(0 4px 3px color-mix(in srgb, var(--color-case) 45%, transparent));
+}
+.rack-cable path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 5;
+  stroke-linecap: round;
+  /* A cable draws itself in when it is plugged. */
+  stroke-dasharray: 1;
+  animation: cable-in 0.7s var(--ease-out-soft) both;
+}
+.rack-cable circle {
+  fill: currentColor;
+  stroke: color-mix(in srgb, currentColor 60%, white);
+  stroke-width: 2;
+}
+.rack-cable.is-held path {
+  animation: none;
+  stroke-dasharray: none;
+  opacity: 0.85;
+}
+@keyframes cable-in {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+/* Keyboard under the panels: cream keys with dark sharps, set in a dark key bed. */
+.rack-keybed {
+  --black-w: 7%;
+  position: relative;
+  display: flex;
+  height: 6.5rem;
+  gap: 3px;
+  padding: 4px;
+  border-radius: 0.5rem;
+  background: var(--color-case);
+  touch-action: none;
+}
+.rack-key {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 0.45rem;
+  touch-action: none;
+  transform-origin: top;
+  transition:
+    transform 0.08s ease-out,
+    background-color 0.08s ease-out,
+    box-shadow 0.08s ease-out;
+}
+.rack-key-white {
+  flex: 1;
+  border-radius: 0 0 0.45rem 0.45rem;
+  background: linear-gradient(180deg, #fbf8f0, #ede7d6);
+  box-shadow: inset 0 -5px 0 #d7cfba;
+}
+.rack-key-black {
+  position: absolute;
+  top: 4px;
+  z-index: 1;
+  width: var(--black-w);
+  height: 58%;
+  border-radius: 0 0 0.35rem 0.35rem;
+  background: linear-gradient(180deg, #2a2a2e, #121214);
+  box-shadow:
+    inset 0 -4px 0 #000,
+    0 3px 4px rgb(0 0 0 / 0.4);
+}
+.rack-key[aria-pressed="true"] {
+  transform: scaleY(0.97);
+}
+.rack-key-white[aria-pressed="true"] {
+  background: linear-gradient(180deg, #e9eeff, color-mix(in srgb, var(--color-blue) 35%, #ede7d6));
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--color-blue) 60%, #d7cfba);
+}
+.rack-key-black[aria-pressed="true"] {
+  background: linear-gradient(180deg, var(--color-red), color-mix(in srgb, var(--color-red) 60%, black));
+  box-shadow: inset 0 -2px 0 #000;
+}
+.rack-key-hint {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: color-mix(in srgb, var(--color-panel-ink) 45%, transparent);
+  pointer-events: none;
+}
+.rack-key-black .rack-key-hint {
+  color: rgb(255 255 255 / 0.45);
+}
+@media (hover: none) {
+  .rack-key-hint {
+    display: none;
+  }
+}
+
+/* Three small level bars that bounce, used beside short labels. */
+.eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 0.8em;
+}
+.eq i {
+  width: 3px;
+  height: 100%;
+  border-radius: 1px;
+  background: currentColor;
+  transform-origin: bottom;
+  animation: eq 1.1s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.35s);
+}
+@keyframes eq {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+/* Cards lift a little under the pointer. */
+.lift {
+  transition:
+    transform 0.5s var(--ease-out-soft),
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+}
+.lift:hover {
+  transform: translateY(-6px);
 }
 
 /* ------------------------------------------------------------------ */

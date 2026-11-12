@@ -8,9 +8,14 @@ const headline = ["เสียงไทยป๊อป", "และซิตี
 /** Opening section: a large headline that rises line by line, then one card per product line. */
 export function Hero() {
   return (
-    <section className="flex flex-col gap-8 pt-6 sm:gap-10 sm:pt-10">
+    <section className="flex flex-col gap-8 sm:gap-10">
       <div className="flex flex-col items-start gap-6">
-        <p className="rise rounded-full border border-line px-4 py-1.5 text-sm font-medium">
+        <p className="rise flex items-center gap-2.5 rounded-full border border-line px-4 py-1.5 text-sm font-medium">
+          <span aria-hidden="true" className="eq text-red">
+            {[0, 1, 2].map((i) => (
+              <i key={i} style={{ "--i": i } as CSSProperties} />
+            ))}
+          </span>
           แพ็กเสียงสำหรับนักคีย์บอร์ดเล่นสด
         </p>
         <h1 className="text-[clamp(2.75rem,8vw,5.75rem)] font-bold leading-[1.05] tracking-tight">

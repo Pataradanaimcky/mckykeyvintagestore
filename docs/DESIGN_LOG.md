@@ -20,11 +20,18 @@ Read this before changing the interface. Add new entries at the bottom of Histor
 - The store keeps its own identity and must not imitate Yamaha's or Roland's corporate identity. No maker logos, wordmarks, brand color schemes, product photos from their sites, or drawings of their real products. Maker and model names appear only as plain text saying what a pack works with, never inside a pack's name, and the footer trademark note stays.
 - The site is made of separate pages, not one long page with jump links: home, /packs, /packs/[slug], /cart, /checkout, /compatibility, /faq, /login, /account. Menu links go to pages. Keep it that way.
 - The brand mark is three white keys with a blue and a red short key on black (`BrandMark.tsx`, `public/brand/`). Do not redraw or recolor it.
+- 2026-11-12, owner request: the store has a black theme and a white theme and follows the visitor's phone or computer setting (`prefers-color-scheme`). Black stays the default. The white theme is slightly warm, like old paper. Blue and red stay the only accent colors in both themes.
+- 2026-11-12, owner request: the top of the home page is a playable synth rack (`src/components/rack`). Visitors move patch cables between jacks, turn knobs and play a one-octave keyboard (mouse, touch, or computer keys A to K), so they stay on the site longer. This is the one place drawn panels with knobs are allowed; pack covers and everything else still follow the earlier rules. The rack is the store's own generic drawing with plain labels (SEQ, OSC, LFO, FILTER, OUT, KEYS) and must not copy a real module, maker name or logo. Sound never starts on its own: only the sound switch or a key press starts it.
+- 2026-11-12, owner request: the feel is vintage, like the reference photos he sent (a cream-panel modular rack with colored cables, a black modular rack, an old polysynth and drum machine on a wooden floor, a film photo of a musician with old gear by the sea at dusk). Cream faceplates, film grain, hanging cables. Take the mood only.
+- 2026-11-12, owner request: more animation is welcome, still smooth, and still off for reduced-motion users.
 
 ## Open questions
 
 - Brand name: the site currently says "Mcky Vintage Key" (from the repo name). Confirm or change.
 - Real cover images: the owner can supply his own photos of his own keyboards to replace the drawn covers.
+- "Keyboard icon look more modern": the key strip on pack covers was redrawn with rounded keys. Should the brand mark (logo, site icon, social profile picture) be redrawn too? Recommended: no, keep it; it already matches.
+- Should the rack also appear on other pages? Recommended: home page only, so it does not pull attention from buying.
+- Demo audio: a "ฟังตัวอย่าง" player on each pack card and pack page is the feature most likely to raise sales. It needs the owner's own audio files.
 
 ## History
 
@@ -38,3 +45,4 @@ Read this before changing the interface. Add new entries at the bottom of Histor
 - 2026-11-11: Split the home page into sub-pages (/packs, /compatibility, /faq) with a highlighted menu. Added the brand mark, site icon, link preview image, and a brand profile kit for social media and Gmail (docs/BRAND_PROFILE.md).
 - 2026-11-12: Added sign-in with social accounts (/login), an account page with order history (/account) and a "บัญชี" menu link. Buying without signing in still works.
 - 2026-11-12: Added a cart. Pack pages have "ซื้อเลย" and "หยิบใส่ตะกร้า", the header shows a cart count, /cart lists and removes packs, and /checkout pays for the whole cart as one PromptPay order. A failed or expired order can put its packs back in the cart. Two more sample packs (City Pop EP Collection, Thai Pop Stage Keys) were set to available so the cart could be tested; names and prices unchanged.
+- 2026-11-12: Owner asked for a white theme, a playable synth rack header, a vintage feel and more motion. Added a warm white theme that follows the device setting; a rack at the top of the home page with five cream panels, draggable patch cables (drag, tap one jack then another, or keyboard), knobs, a step sequencer, a scope and a sound switch; a one-octave keyboard under the panels; film grain over the page; bouncing level bars in the hero label; cards that lift on hover; rounded keys on pack covers. Built from a patch another session left in the Project, with the keyboard added.

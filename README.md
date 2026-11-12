@@ -58,6 +58,7 @@ src/
     catalog/                  Product card, cover art, tabs, banner, patch list
     cart/                     Add-to-cart buttons, cart rows, header cart link, order summary
     checkout/                 Checkout form, QR code, test panel
+    rack/                     Playable synth rack at the top of the home page (cables, knobs, keys, sound)
   config/site.ts              Brand name, site address, contact, sample-data switch
   content/                    Page text that is not product data (FAQ)
   lib/

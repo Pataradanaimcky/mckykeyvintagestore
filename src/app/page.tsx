@@ -4,6 +4,7 @@ import { Hero } from "@/components/catalog/Hero";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { SoundMarquee } from "@/components/catalog/SoundMarquee";
 import { Container } from "@/components/layout/Container";
+import { SynthRack } from "@/components/rack/SynthRack";
 import { listProducts } from "@/lib/catalog";
 
 const assurances = [
@@ -26,7 +27,8 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col gap-20 pb-10 sm:gap-28">
-      <Container>
+      <Container className="flex flex-col gap-10 pt-2 sm:gap-14 sm:pt-4">
+        <SynthRack />
         <Hero />
       </Container>
 
@@ -57,7 +59,7 @@ export default function HomePage() {
               key={item.title}
               data-reveal
               style={delay(index * 90)}
-              className="flex min-w-0 flex-col gap-3 rounded-3xl border border-line p-6 sm:p-8"
+              className="lift flex min-w-0 flex-col gap-3 rounded-3xl border border-line p-6 hover:border-ink sm:p-8"
             >
               <h3 className="text-2xl font-semibold tracking-tight">{item.title}</h3>
               <p className="text-muted">{item.text}</p>
