@@ -21,6 +21,7 @@ import {
   newItem,
   orderSheet,
   parseLayout,
+  parseSssTime,
   removeItem,
   slotLabel,
   sortPage,
@@ -866,6 +867,45 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
                       onChange={(e) => setLayout((l) => updateItem(l, pickedItem.id, { volume: Number(e.target.value) }))}
                     />
                   </label>
+                )}
+                {t.hasSssTime && (
+                  <div className="flex flex-wrap items-end gap-3">
+                    <label className="studio-field min-w-40 flex-1">
+                      <span>SSS Time</span>
+                      <select
+                        className="studio-input"
+                        value={pickedItem.sss === undefined ? "" : pickedItem.sss === "System" || pickedItem.sss === "Hold" ? pickedItem.sss : "sec"}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setLayout((l) => updateItem(l, pickedItem.id, { sss: v === "" ? undefined : v === "sec" ? "0.0" : v }));
+                        }}
+                      >
+                        <option value="">ตามเครื่อง (ไม่ระบุในใบจัดเรียง)</option>
+                        <option value="System">System</option>
+                        <option value="Hold">Hold</option>
+                        <option value="sec">0.0sec – 30sec</option>
+                      </select>
+                    </label>
+                    {pickedItem.sss !== undefined && pickedItem.sss !== "System" && pickedItem.sss !== "Hold" && (
+                      <label className="studio-field w-32">
+                        <span>วินาที</span>
+                        <input
+                          className="studio-input"
+                          type="number"
+                          inputMode="decimal"
+                          min={0}
+                          max={30}
+                          step={0.1}
+                          value={pickedItem.sss}
+                          onChange={(e) => {
+                            const sss = parseSssTime(e.target.value);
+                            if (sss) setLayout((l) => updateItem(l, pickedItem.id, { sss }));
+                          }}
+                        />
+                      </label>
+                    )}
+                    <p className="w-full text-xs text-muted">เวลาที่เสียงเดิมจางหายหลังปล่อยคีย์ แม้เปลี่ยน Performance ระหว่างเล่น · ตั้งบนเครื่องในหน้า Live Set Edit ตามใบจัดเรียง</p>
+                  </div>
                 )}
                 {picked?.kind === "slot" && t.pagesPerBank && (
                   <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Job">

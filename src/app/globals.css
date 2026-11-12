@@ -1497,7 +1497,8 @@ h3 {
 .slot-c-lilac { --slot: var(--color-slot-lilac); }
 .face-liveset {
   display: flex;
-  min-width: 0;
+  /* Wraps under the screen on phones instead of squeezing the name boxes past the edge. */
+  min-width: min(15rem, 100%);
   flex: 1.2;
   flex-direction: column;
   justify-content: center;
@@ -1524,7 +1525,7 @@ h3 {
   font-weight: 700;
 }
 .face-name-input {
-  min-width: 8rem;
+  min-width: min(8rem, 100%);
   flex: 1;
   height: 2.2rem;
   border-radius: 0.4rem;

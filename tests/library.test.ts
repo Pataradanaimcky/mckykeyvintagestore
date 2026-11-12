@@ -16,6 +16,7 @@ import {
   newItem,
   orderSheet,
   parseLayout,
+  parseSssTime,
   sortPage,
 } from "../src/lib/studio/library.ts";
 
@@ -164,4 +165,27 @@ test("DX7 points to Yamaha FM Converter for MONTAGE/MODX without claiming MODX M
   assert.match(t.howTo, /FM Converter/);
   assert.match(t.howTo, /MODX M ยังไม่ได้ยืนยัน/);
   assert.ok(t.sources.some((s) => s.includes("FM-Converter-User-Guide")));
+});
+
+test("MODX M slots keep an SSS Time from the manual's settings (0.0sec–30sec, Hold, System)", () => {
+  assert.equal(parseSssTime("Hold"), "Hold");
+  assert.equal(parseSssTime("System"), "System");
+  assert.equal(parseSssTime(2.54), "2.5");
+  assert.equal(parseSssTime("45"), "30.0");
+  assert.equal(parseSssTime(-1), "0.0");
+  assert.equal(parseSssTime("Long"), undefined);
+  const l = parseLayout({
+    version: 1,
+    target: "modx-m",
+    title: "t",
+    pages: [[{ name: "Grand", sss: "Hold" }, { name: "Pad", sss: 3 }, { name: "Lead", sss: "x" }]],
+    pool: [],
+  });
+  assert.ok(l);
+  assert.equal(l.pages[0][2]?.sss, undefined);
+  const sheet = orderSheet(l);
+  assert.match(sheet, /Slot 1: Grand {2}\(SSS Time: Hold\)/);
+  assert.match(sheet, /Slot 2: Pad {2}\(SSS Time: 3\.0sec\)/);
+  const dx = parseLayout({ version: 1, target: "dx7", title: "t", pages: [[{ name: "EP", sss: "Hold" }]], pool: [] });
+  assert.equal(dx?.pages[0][0]?.sss, undefined);
 });

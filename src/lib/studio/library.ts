@@ -32,6 +32,8 @@ export interface Target {
   nameMax: number;
   /** Each slot has its own volume (0..127). */
   hasVolume: boolean;
+  /** Each slot has its own SSS Time (MODX M: 0.0sec–30sec, Hold, System). */
+  hasSssTime?: boolean;
   /** Banks and pages have names on the keyboard, up to this many characters. */
   pageNameMax?: number;
   about: string;
@@ -79,15 +81,18 @@ export const TARGETS: Target[] = [
     colors: ["Black", "Red", "Yellow", "Green", "Blue", "Azure", "Pink", "Orange", "Purple", "Sakura", "Cream", "Lime", "Aqua", "Beige", "Mint", "Lilac"],
     nameMax: 20,
     hasVolume: true,
+    // MODX M operation manual p. 361: "SSS Time ... Instellingen: 0.0sec – 30sec, Hold, System".
+    hasSssTime: true,
     pageNameMax: 20,
-    about: "Live Set แบบ USER 8 แบงก์ แบงก์ละ 16 หน้า หน้าละ 16 ช่อง ตั้งชื่อช่อง สี และ Volume ได้เหมือนบนเครื่อง",
+    about: "Live Set แบบ USER 8 แบงก์ แบงก์ละ 16 หน้า หน้าละ 16 ช่อง ตั้งชื่อช่อง สี Volume และ SSS Time ได้เหมือนบนเครื่อง",
     howTo:
-      "บนเครื่อง: เลือก Performance แล้วกด [SHIFT] + [LIVE SET] เพื่อลงทะเบียน แตะช่องตามใบจัดเรียง จากนั้นกด Edit เพื่อตั้ง Slot Name, Color และ Volume แล้วกด Done",
+      "บนเครื่อง: เลือก Performance แล้วกด [SHIFT] + [LIVE SET] เพื่อลงทะเบียน แตะช่องตามใบจัดเรียง จากนั้นกด Edit เพื่อตั้ง Slot Name, Color, Volume และ SSS Time แล้วกด Done",
     verified: true,
     sources: [
       "https://yamahasynth.com/learn/modx-m/welcome-to-modx-m/",
       "https://manual.yamaha.com/mi/synth/montage_m/en/om02screenparameters0310.html",
       "https://yamahasynth.com/learn/modx-series-synthesizers/mastering-modx-performance-basics-2/",
+      "https://data.yamaha.com/download/files/2584767",
     ],
   },
   {
@@ -122,6 +127,8 @@ export interface Item {
   color: string;
   /** 0..127, for keyboards with a volume per slot. */
   volume?: number;
+  /** SSS Time for keyboards that have it per slot: "System", "Hold" or seconds such as "2.5". */
+  sss?: string;
   /** Preview sound type (see sounds.ts) chosen for this slot; guessed from the name when unset. */
   sound?: string;
   /** Set on sounds from a store pack's demo bank (the pack's slug). Demo banks can be played and arranged, not exported. */
@@ -278,6 +285,22 @@ export function slotLabel(t: Target, page: number, slot: number) {
   return String(slot + 1);
 }
 
+/**
+ * Cleans an SSS Time value: "System", "Hold", or seconds 0.0–30 (kept to one decimal).
+ * The manual gives the range, not the step size, so the order sheet says what to aim for.
+ */
+export function parseSssTime(v: unknown): string | undefined {
+  if (v === "System" || v === "Hold") return v;
+  const n = typeof v === "number" ? v : typeof v === "string" && /^\d{1,2}(\.\d+)?$/.test(v) ? Number(v) : NaN;
+  if (!Number.isFinite(n)) return undefined;
+  return (Math.round(Math.min(30, Math.max(0, n)) * 10) / 10).toFixed(1);
+}
+
+/** How an SSS Time value reads on the order sheet, e.g. "2.5sec" or "Hold". */
+export function sssLabel(v: string): string {
+  return v === "System" || v === "Hold" ? v : `${v}sec`;
+}
+
 /** Order sheet in the keyboard's own words. */
 export function orderSheet(layout: Layout): string {
   const t = getTarget(layout.target);
@@ -292,6 +315,7 @@ export function orderSheet(layout: Layout): string {
       const extra = [
         item.color ? `Color: ${item.color}` : "",
         t.hasVolume && item.volume !== undefined ? `Volume: ${item.volume}` : "",
+        t.hasSssTime && item.sss ? `SSS Time: ${sssLabel(item.sss)}` : "",
         item.note,
       ]
         .filter(Boolean)
@@ -315,11 +339,12 @@ function parseItem(raw: unknown, t: Target): Item | null {
   if (!name) return null;
   const color = t.colors.includes(r.color as string) ? (r.color as string) : "";
   const volume = t.hasVolume && typeof r.volume === "number" && Number.isFinite(r.volume) ? Math.min(127, Math.max(0, Math.round(r.volume))) : undefined;
+  const sss = t.hasSssTime ? parseSssTime(r.sss) : undefined;
   const patch = allowPatch && typeof r.patch === "string" && /^[A-Za-z0-9+/]{206}[A-Za-z0-9+/=]{2}$/.test(r.patch) ? r.patch : undefined;
   const sound = typeof r.sound === "string" && PREVIEW_SOUNDS.some((x) => x.key === r.sound) ? r.sound : undefined;
   const demo = typeof r.demo === "string" && /^[a-z0-9-]{1,60}$/.test(r.demo) ? r.demo : undefined;
   const clip = demo && typeof r.clip === "string" && /^\/demos\/[\w./-]{1,160}$/.test(r.clip) && !r.clip.includes("..") ? r.clip : undefined;
-  return { id: newId(), name: name.slice(0, t.nameMax), note: clean(r.note, 60), color, ...(sound ? { sound } : {}), ...(demo ? { demo } : {}), ...(clip ? { clip } : {}), ...(volume !== undefined ? { volume } : {}), ...(patch ? { patch } : {}) };
+  return { id: newId(), name: name.slice(0, t.nameMax), note: clean(r.note, 60), color, ...(sound ? { sound } : {}), ...(demo ? { demo } : {}), ...(clip ? { clip } : {}), ...(volume !== undefined ? { volume } : {}), ...(sss ? { sss } : {}), ...(patch ? { patch } : {}) };
 }
 
 /** Reads a layout from a file or link, rejecting anything malformed. */
