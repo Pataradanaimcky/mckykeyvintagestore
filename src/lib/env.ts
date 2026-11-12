@@ -16,7 +16,7 @@ function read(name: string): string | undefined {
 
 export const env = {
   /** Postgres connection string. When unset, orders are kept in signed links (demo mode). */
-  databaseUrl: read("DATABASE_URL"),
+  databaseUrl: read("DATABASE_URL") ?? read("POSTGRES_URL"),
   /** Secret used to sign order links and mock webhooks. */
   orderSecret: read("ORDER_SECRET") ?? DEV_ORDER_SECRET,
   /** Which payment provider handles checkout. Only "mock" exists today. */

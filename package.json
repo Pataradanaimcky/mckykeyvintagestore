@@ -9,9 +9,9 @@
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "db:generate": "drizzle-kit generate",
-    "db:push": "drizzle-kit push",
     "test": "node --test \"tests/**/*.test.ts\"",
-    "prebuild": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\""
+    "prebuild": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\" && node scripts/migrate.mjs",
+    "db:migrate": "node scripts/migrate.mjs"
   },
   "dependencies": {
     "@fontsource/anuphan": "^5.3.0",

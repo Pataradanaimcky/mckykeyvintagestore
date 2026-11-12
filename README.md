@@ -20,7 +20,8 @@ With no settings at all the store runs in **demo mode**: there is no database, a
 | `npm run lint` | ESLint |
 | `npm run typecheck` | TypeScript check |
 | `npm test` | Unit tests |
-| `npm run db:push` | Create or update database tables from `src/lib/db/schema.ts` |
+| `npm run db:generate` | After changing `src/lib/db/schema.ts`, write a new migration file into `drizzle/` |
+| `npm run db:migrate` | Apply migration files to the database (also runs by itself in every build) |
 
 ## Settings
 
@@ -28,13 +29,13 @@ Copy `.env.example` to `.env.local`. On Vercel, set the same names under Project
 
 | Name | Purpose |
 |---|---|
-| `DATABASE_URL` | Postgres connection string. Empty means demo mode. |
+| `DATABASE_URL` | Postgres connection string (`POSTGRES_URL` also works). Empty means demo mode. |
 | `ORDER_SECRET` | Long random string that signs order links and webhooks. |
 | `PAYMENT_PROVIDER` | `mock` (the only provider today). |
 | `AUTH_SECRET` | Long random string for sign-in sessions. No sign-in is offered without it. |
 | `AUTH_<PLATFORM>_ID` / `_SECRET` | Keys for Google, LINE, Facebook, Apple, X (`TWITTER`) and TikTok. Each platform appears on the sign-in page once both are set. |
 
-To move from demo mode to a real database: create a Postgres database (Neon through Vercel Storage works), set `DATABASE_URL` and `ORDER_SECRET`, then run `npm run db:push` once.
+To move from demo mode to a real database, follow `docs/SETUP.md`. The tables are created automatically during the next build; there is nothing to run by hand.
 
 ## Where things live
 
@@ -67,6 +68,7 @@ src/
     env.ts                    Every environment variable the app reads
 docs/
   PAYMENTS.md                 How to connect a real Thai payment gateway
+  SETUP.md                    Owner checklist: database, secrets and sign-in keys
   LOGIN.md                    How to switch on each social sign-in
   BRAND_PROFILE.md            Name, handle, profile pictures and bio text for social media and Gmail
   DESIGN_LOG.md               Design decisions and history

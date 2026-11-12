@@ -46,7 +46,7 @@ Not tested: a real sign-in round trip with any platform. That needs real keys an
 
 - Publish a privacy policy page. Most platforms require its address, and Thailand's PDPA expects you to say what personal data you keep and why. The store keeps only what the platform sends at sign-in (name, email, picture address) inside the session cookie, and the account id on orders.
 - Sign-in buttons are plain text. Each platform has its own rules for using its logo on a button; follow them if you add logos.
-- Order history needs the database (`DATABASE_URL`). In demo mode the account page shows no orders.
+- Order history needs the database. See `docs/SETUP.md`. In demo mode the account page shows no orders.
 
 ## Adding or removing a platform
 
