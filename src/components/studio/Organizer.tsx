@@ -1206,6 +1206,7 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
       <section className="studio-panel" aria-label="บันทึกและนำไปใช้">
         <h2 className="font-bold">บันทึกและนำไปใช้</h2>
         <p className="text-sm text-muted">{t.howTo}</p>
+        {t.chain && <p className="text-sm text-muted">{t.chain.howTo}</p>}
         <div className="flex flex-wrap gap-2">
           {t.usesFile && (
             <>

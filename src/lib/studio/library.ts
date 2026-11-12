@@ -43,6 +43,11 @@ export interface Target {
    * (MODX M Live Set: Perform, Song, Audio, Pattern).
    */
   slotTypes?: string[];
+  /**
+   * The keyboard can play stored sounds in a chosen order without moving them (FANTOM-0 Scene Chain,
+   * Reference Manual pp. 74–77). Steps in the keyboard's own words, and how many it holds.
+   */
+  chain?: { howTo: string; max: number };
   about: string;
   /** How to put the result on the keyboard. */
   howTo: string;
@@ -125,6 +130,12 @@ export const TARGETS: Target[] = [
     nameMax: 16,
     asciiNames: true,
     hasVolume: false,
+    // Reference Manual pp. 74–77: CHAIN SET 001–100, "Up to 512 scenes (16 x 32 pages)" per chain set.
+    chain: {
+      max: 512,
+      howTo:
+        "ไม่อยากเขียนทับ Scene? ใช้ Scene Chain แทน: กด [CHAIN] → แตะชื่อ <CHAIN SET> เลือกชุดที่ว่าง (001–100) → <EDIT> → <Select Scene> เลือก Scene → [E6] OK → แตะ <Next> ไปตำแหน่งถัดไป ทำซ้ำตามลำดับในใบจัดเรียง → <RENAME> ตั้งชื่อ → <WRITE> บันทึก · ชุดหนึ่งใส่ได้ถึง 512 Scene (16 x 32 หน้า) และ Scene เดิมไม่ถูกย้าย",
+    },
     about: "Scene แบงก์ A–D แบงก์ละ 128 (A001–D128) หน้าจอ SCENE SELECT แสดงทีละ 16 ช่อง ใส่ชื่อ Scene ที่ทำไว้ในเครื่อง (ไม่เกิน 16 ตัวอักษรอังกฤษ) แล้วจัดลำดับ",
     howTo:
       "บนเครื่อง: เลือก Scene เดิม กด [WRITE] → แตะ <SCENE> → (แตะ <Rename> ถ้าจะแก้ชื่อ) → หมุน [VALUE] หรือกด [DEC]/[INC] เลือกหมายเลขตามใบจัดเรียง → <OK> แล้ว <OK> อีกครั้ง · ระวัง: Scene ที่อยู่ในหมายเลขปลายทางจะถูกเขียนทับ ถ้ายังต้องใช้ ให้ย้ายไปเก็บที่หมายเลขว่างก่อน",
@@ -393,6 +404,22 @@ export function nameProblemLines(t: Target, layout: Layout): string[] {
   return out;
 }
 
+/**
+ * The arranged sounds as a chain list, in grid order with empty places skipped (FANTOM-0 Scene Chain:
+ * 16 per chain page, up to the keyboard's limit). [] when the keyboard has no chain or nothing is placed.
+ */
+export function chainLines(layout: Layout): string[] {
+  const t = getTarget(layout.target);
+  if (!t.chain) return [];
+  const names = layout.pages.flat().filter((x): x is Item => !!x).map((x) => x.name).slice(0, t.chain.max);
+  const out: string[] = [];
+  names.forEach((name, i) => {
+    if (i % 16 === 0) out.push(`  หน้า ${i / 16 + 1}`);
+    out.push(`    ${i + 1}. ${name}`);
+  });
+  return out;
+}
+
 /** Order sheet in the keyboard's own words. */
 export function orderSheet(layout: Layout): string {
   const t = getTarget(layout.target);
@@ -419,7 +446,10 @@ export function orderSheet(layout: Layout): string {
   if (layout.pool.length) lines.push(`ยังไม่ได้วาง: ${layout.pool.map((x) => x.name).join(", ")}`, "");
   const bad = nameProblemLines(t, layout);
   if (bad.length) lines.push(`ชื่อที่ ${t.short} พิมพ์ไม่ได้ (แก้เป็นตัวอักษรอังกฤษก่อนตั้งชื่อบนเครื่อง):`, ...bad.map((x) => `  ${x}`), "");
-  lines.push(t.howTo, "", "จัดบน Mcky Vintage Key");
+  lines.push(t.howTo, "");
+  const chain = chainLines(layout);
+  if (t.chain && chain.length) lines.push(t.chain.howTo, "ลำดับสำหรับ Scene Chain:", ...chain, "");
+  lines.push("จัดบน Mcky Vintage Key");
   return lines.join("\n");
 }
 

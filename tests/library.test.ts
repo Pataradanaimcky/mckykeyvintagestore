@@ -9,6 +9,7 @@ import {
   getTarget,
   unsupportedNameChars,
   slotTypeNote,
+  chainLines,
   bankPageNameProblems,
   nameProblemLines,
   decodeLayout,
@@ -270,4 +271,26 @@ test("slot type note: MODX M arranges Perform slots, other keyboards get no note
   for (const w of ["Song", "Audio", "Pattern", "Live Set Edit"]) assert.ok(note.includes(w), w);
   assert.equal(slotTypeNote(getTarget("dx7")), "");
   assert.equal(slotTypeNote(getTarget("fantom-0")), "");
+});
+
+test("FANTOM-0 Scene Chain: order sheet lists placed scenes in grid order, 16 per chain page", () => {
+  const t = getTarget("fantom-0");
+  assert.equal(t.chain?.max, 512);
+  for (const w of ["[CHAIN]", "<CHAIN SET>", "<EDIT>", "<Select Scene>", "[E6] OK", "<Next>", "<WRITE>"]) assert.ok(t.chain?.howTo.includes(w), w);
+  const l = emptyLayout("fantom-0");
+  assert.deepEqual(chainLines(l), []);
+  const item = (name: string) => ({ id: name, name, note: "", color: "" });
+  l.pages = [Array.from({ length: 16 }, (_, i) => (i === 1 ? null : item(`S${i + 1}`))), [item("B1"), item("B2")]];
+  const lines = chainLines(l);
+  assert.equal(lines[0], "  หน้า 1");
+  assert.equal(lines[1], "    1. S1");
+  assert.equal(lines[2], "    2. S3");
+  assert.equal(lines[16], "    16. B1");
+  assert.equal(lines[17], "  หน้า 2");
+  assert.equal(lines[18], "    17. B2");
+  const sheet = orderSheet(l);
+  assert.ok(sheet.includes("ลำดับสำหรับ Scene Chain:"));
+  assert.ok(sheet.indexOf("[WRITE]") < sheet.indexOf("[CHAIN]"));
+  assert.deepEqual(chainLines(emptyLayout("modx-m")), []);
+  assert.ok(!orderSheet(emptyLayout("dx7")).includes("Scene Chain"));
 });
