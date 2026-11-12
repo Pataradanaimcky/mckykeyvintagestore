@@ -948,6 +948,108 @@ h3 {
   color: var(--color-canvas);
 }
 
+/* Landing page: the three parts of the site (Hero.tsx). */
+.pillar:hover .btn-arrow {
+  transform: translateX(5px);
+}
+.pillar-art {
+  width: 100%;
+  height: auto;
+  max-height: 7rem;
+}
+.pillar-panel {
+  fill: var(--color-panel);
+  stroke: var(--color-panel-line);
+}
+.pillar-knob circle {
+  fill: var(--color-panel-ink);
+}
+.pillar-knob line {
+  stroke: var(--color-panel);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+.pillar-knob {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.pillar:hover .pillar-knob {
+  animation: pillar-turn 1.2s var(--ease-out-soft) both;
+  animation-delay: calc(var(--i) * 0.08s);
+}
+@keyframes pillar-turn {
+  50% {
+    transform: rotate(70deg);
+  }
+}
+.pillar-cable {
+  fill: none;
+  stroke: var(--color-red);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.pillar-jack {
+  fill: var(--color-metal);
+}
+.pillar-led {
+  fill: var(--color-red);
+  animation: led-pulse 1.4s ease-in-out infinite;
+}
+.pillar-screen {
+  fill: var(--color-screen);
+}
+.pillar-slot {
+  fill: rgb(255 255 255 / 0.06);
+  stroke: rgb(255 255 255 / 0.15);
+}
+.pillar-slot.is-lit {
+  fill: color-mix(in srgb, var(--color-screen) 70%, white);
+  stroke: none;
+}
+.pillar-slot.is-moving {
+  fill: var(--color-blue);
+  stroke: none;
+  animation: pillar-move 3.2s var(--ease-out-soft) infinite;
+}
+@keyframes pillar-move {
+  0%,
+  20% {
+    transform: translate(0, 0);
+  }
+  50%,
+  70% {
+    transform: translate(70px, 23px);
+  }
+}
+.pillar-white {
+  fill: var(--color-panel);
+  stroke: var(--color-panel-line);
+}
+.pillar-black {
+  fill: var(--color-panel-ink);
+}
+.pillar-arrow {
+  fill: none;
+  stroke: var(--color-blue);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: pillar-drop 1.8s ease-in-out infinite;
+}
+@keyframes pillar-drop {
+  50% {
+    transform: translateY(4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pillar-led,
+  .pillar-slot.is-moving,
+  .pillar-arrow,
+  .pillar:hover .pillar-knob {
+    animation: none;
+  }
+}
+
 /* Three small level bars that bounce, used beside short labels. */
 .eq {
   display: inline-flex;

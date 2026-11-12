@@ -1,11 +1,12 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import { Hero } from "@/components/catalog/Hero";
+import { InstrumentCard } from "@/components/catalog/InstrumentCard";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { SoundMarquee } from "@/components/catalog/SoundMarquee";
 import { Container } from "@/components/layout/Container";
 import { RackCarousel } from "@/components/rack/RackCarousel";
-import { listProducts } from "@/lib/catalog";
+import { instruments, listProducts } from "@/lib/catalog";
 
 const assurances = [
   { title: "ดาวน์โหลดทันที", text: "ได้ลิงก์ไฟล์ทางอีเมลหลังชำระเงิน ไม่ต้องรอจัดส่ง" },
@@ -27,9 +28,66 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col gap-20 pb-10 sm:gap-28">
-      <Container className="flex flex-col gap-10 pt-2 sm:gap-14 sm:pt-4">
-        <RackCarousel />
+      <Container className="pt-2 sm:pt-4">
         <Hero />
+      </Container>
+
+      {/* 01 Play */}
+      <Container>
+        <section id="play" className="flex scroll-mt-24 flex-col gap-6">
+          <div data-reveal className="flex flex-col gap-3">
+            <p className="font-mono text-sm text-muted">01 · เล่นซินธ์</p>
+            <h2 className="section-title">ลองเล่นได้เลย</h2>
+            <p className="max-w-2xl text-lg text-muted">
+              ปัดหรือกดแท็บเพื่อเปลี่ยนเครื่อง กดคีย์บนจอหรือปุ่ม A–K บนคีย์บอร์ดคอม เสียงเริ่มเมื่อคุณกดเท่านั้น
+            </p>
+          </div>
+          <RackCarousel />
+        </section>
+      </Container>
+
+      {/* 02 Arrange */}
+      <Container>
+        <section
+          data-reveal
+          className="grid items-center gap-8 rounded-[2rem] border border-line bg-surface p-6 sm:p-10 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
+        >
+          <div className="flex flex-col items-start gap-4">
+            <p className="font-mono text-sm text-muted">02 · จัดเรียงเสียง</p>
+            <h2 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl">ทำเสียงบนเครื่อง แล้วมาจัดลำดับที่นี่</h2>
+            <p className="text-muted">
+              ลากเสียงวางลงช่องบนจอใหญ่ แทนการเลื่อนทีละช่องบนเครื่อง แบงก์ DX7 ดาวน์โหลดเป็นไฟล์ .syx ได้ทันที ส่วน MODX M และ FANTOM-0
+              ได้ใบจัดเรียงไปทำตามบนเครื่อง
+            </p>
+            <Link href="/studio" className="btn btn-dark">
+              เปิดตัวจัดเรียงเสียง <span aria-hidden="true" className="btn-arrow">→</span>
+            </Link>
+          </div>
+          <div aria-hidden="true" className="organizer-grid grid grid-cols-4 gap-1.5">
+            {["CITY EP", "GRAND", "", "WARM PAD", "BRASS", "", "SYN BASS", "", "", "BELL", "STRINGS", "", "ORGAN", "", "", "LEAD"].map((name, i) => (
+              <span key={i} className={`organizer-slot ${name ? "" : "is-empty"} ${i === 1 ? "color-blue" : i === 4 ? "color-red" : ""}`}>
+                <span className="organizer-num">{i + 1}</span>
+                <span className="organizer-name">{name}</span>
+              </span>
+            ))}
+          </div>
+        </section>
+      </Container>
+
+      {/* 03 Buy */}
+      <Container>
+        <section className="flex flex-col gap-8">
+          <div data-reveal className="flex flex-col gap-3">
+            <p className="font-mono text-sm text-muted">03 · ซื้อเสียง</p>
+            <h2 className="section-title">แพ็กเสียงไทยป๊อป และซิตี้ป๊อป</h2>
+            <p className="max-w-2xl text-lg text-muted">ทำโดยนักคีย์บอร์ดแบ็กอัพ ตั้งค่าสำหรับเล่นสดไว้แล้ว โหลดลงเครื่องแล้วเล่นได้เลย</p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            {instruments.map((instrument, index) => (
+              <InstrumentCard key={instrument.id} instrument={instrument} delay={index * 120} />
+            ))}
+          </div>
+        </section>
       </Container>
 
       <SoundMarquee />
@@ -79,6 +137,9 @@ export default function HomePage() {
           <div className="flex flex-wrap gap-3">
             <Link href="/packs" className="btn btn-dark">
               ดูแพ็กทั้งหมด <span aria-hidden="true" className="btn-arrow">→</span>
+            </Link>
+            <Link href="/studio" className="btn btn-light">
+              จัดเรียงเสียง
             </Link>
             <Link href="/compatibility" className="btn btn-light">
               เช็กรุ่นที่ใช้ได้
