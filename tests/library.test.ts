@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
+  bankPage,
+  copyItem,
+  deleteAndMove,
+  getTarget,
   decodeLayout,
   emptyLayout,
   encodeLayout,
@@ -58,7 +62,7 @@ test("sort puts names in order and empty slots last", () => {
 
 test("order sheet uses the keyboard's words and numbering", () => {
   const modx = fillEmpty({ ...emptyLayout("modx-m"), pool: itemsFromText("Grand\nPad") });
-  assert.match(orderSheet(modx), /Live Set Page 1\n  Slot 1: Grand\n  Slot 2: Pad/);
+  assert.match(orderSheet(modx), /USER 1 · Page 1\n  Slot 1: Grand\n  Slot 2: Pad/);
   let fantom = emptyLayout("fantom-0");
   fantom = { ...fantom, pages: [fantom.pages[0], fantom.pages[0].map(() => null)], pool: itemsFromText("Scene X") };
   fantom = moveItem(fantom, { kind: "pool", index: 0 }, { kind: "slot", page: 1, slot: 0 });
@@ -79,13 +83,44 @@ test("imported data is cleaned and limited", () => {
     version: 1,
     target: "modx-m",
     title: "t",
-    pages: Array.from({ length: 40 }, () => [{ name: "x".repeat(99), color: "purple", patch: "AAAA" }]),
+    pages: Array.from({ length: 200 }, () => [{ name: "x".repeat(99), color: "purple", patch: "AAAA" }]),
     pool: [{ name: "" }, { name: "ok" }],
   });
   assert.ok(l);
-  assert.equal(l.pages.length, 16);
-  assert.equal(l.pages[0][0]?.name.length, 40);
-  assert.equal(l.pages[0][0]?.color, "none");
+  assert.equal(l.pages.length, 128);
+  assert.equal(l.pages[0][0]?.name.length, 20);
+  assert.equal(l.pages[0][0]?.color, "");
   assert.equal(l.pages[0][0]?.patch, undefined);
   assert.deepEqual(l.pool.map((x) => x.name), ["ok"]);
+});
+
+test("MODX M Live Set: banks of 16 pages, page names and keyboard jobs", () => {
+  const t = getTarget("modx-m");
+  assert.deepEqual(bankPage(t, 0), { bank: 1, page: 1 });
+  assert.deepEqual(bankPage(t, 17), { bank: 2, page: 2 });
+  assert.deepEqual(bankPage(t, 127), { bank: 8, page: 16 });
+  let l = fillEmpty({ ...emptyLayout("modx-m"), pool: itemsFromText("A\nB\nC\nD") });
+  l = deleteAndMove(l, 0, 1);
+  assert.deepEqual(names(l).slice(0, 4), ["A", "C", "D", "-"]);
+  assert.deepEqual(l.pool.map((x) => x.name), ["B"]);
+  l = copyItem(l, { kind: "slot", page: 0, slot: 0 }, { page: 0, slot: 5 });
+  assert.equal(names(l)[5], "A");
+  assert.notEqual(l.pages[0][5]?.id, l.pages[0][0]?.id);
+  l = { ...l, pageNames: ["Opening"], bankNames: ["Tour 2026"] };
+  assert.match(orderSheet(l), /USER 1 "Tour 2026" · Page 1 "Opening"/);
+});
+
+test("slot colors and volume follow the keyboard's own list and range", () => {
+  const l = parseLayout({
+    version: 1,
+    target: "modx-m",
+    title: "t",
+    pages: [[{ name: "Grand", color: "Sakura", volume: 300 }, { name: "Pad", color: "Neon" }]],
+    pool: [],
+  });
+  assert.ok(l);
+  assert.equal(l.pages[0][0]?.color, "Sakura");
+  assert.equal(l.pages[0][0]?.volume, 127);
+  assert.equal(l.pages[0][1]?.color, "");
+  assert.match(orderSheet(l), /Slot 1: Grand {2}\(Color: Sakura · Volume: 127\)/);
 });

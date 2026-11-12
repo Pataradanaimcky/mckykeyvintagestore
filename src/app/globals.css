@@ -34,6 +34,25 @@
   --color-poly-line: #353330;
   --color-wood: #5e361d;
   --color-wood-light: #8d5a36;
+  /* Live Set slot colors as named on MODX M (keyboard data shown to the player, not store accents). */
+  --color-slot-black: #3a3a3e;
+  --color-slot-red: #e5383b;
+  --color-slot-yellow: #f2c53d;
+  --color-slot-green: #3fa34d;
+  --color-slot-blue: #2f6fe4;
+  --color-slot-azure: #3cb4e6;
+  --color-slot-pink: #e9508c;
+  --color-slot-orange: #f28c28;
+  --color-slot-purple: #8e44c4;
+  --color-slot-sakura: #f4b6c8;
+  --color-slot-cream: #f1e3b8;
+  --color-slot-lime: #b6d33c;
+  --color-slot-aqua: #3cc9c3;
+  --color-slot-beige: #d6c3a0;
+  --color-slot-mint: #9fe3c5;
+  --color-slot-lilac: #c3a6e6;
+  /* The chosen Live Set slot is outlined in this color, as on the keyboard. */
+  --color-live-active: #f28c28;
 
   --font-sans: "Anuphan", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: "Anuphan", system-ui, sans-serif;
@@ -1418,6 +1437,105 @@ h3 {
 }
 .face-fantom-0 .face-btn.is-empty {
   background: #1d1d22;
+}
+
+/* MODX M Live Set face */
+.slot-c-black { --slot: var(--color-slot-black); }
+.slot-c-red { --slot: var(--color-slot-red); }
+.slot-c-yellow { --slot: var(--color-slot-yellow); }
+.slot-c-green { --slot: var(--color-slot-green); }
+.slot-c-blue { --slot: var(--color-slot-blue); }
+.slot-c-azure { --slot: var(--color-slot-azure); }
+.slot-c-pink { --slot: var(--color-slot-pink); }
+.slot-c-orange { --slot: var(--color-slot-orange); }
+.slot-c-purple { --slot: var(--color-slot-purple); }
+.slot-c-sakura { --slot: var(--color-slot-sakura); }
+.slot-c-cream { --slot: var(--color-slot-cream); }
+.slot-c-lime { --slot: var(--color-slot-lime); }
+.slot-c-aqua { --slot: var(--color-slot-aqua); }
+.slot-c-beige { --slot: var(--color-slot-beige); }
+.slot-c-mint { --slot: var(--color-slot-mint); }
+.slot-c-lilac { --slot: var(--color-slot-lilac); }
+.face-liveset {
+  display: flex;
+  min-width: 0;
+  flex: 1.2;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.45rem;
+}
+.face-stepper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+.face-stepper-label {
+  width: 2.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: rgb(255 255 255 / 0.5);
+}
+.face-stepper-value {
+  min-width: 4.4rem;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+.face-name-input {
+  min-width: 8rem;
+  flex: 1;
+  height: 2.2rem;
+  border-radius: 0.4rem;
+  padding: 0 0.6rem;
+  font-size: 0.85rem;
+  color: #e9ecf2;
+  background: rgb(255 255 255 / 0.06);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+}
+.face-name-input::placeholder {
+  color: rgb(255 255 255 / 0.35);
+}
+.face-name-input:focus-visible {
+  outline: 2px solid var(--color-trace);
+  outline-offset: 1px;
+}
+/* Each slot carries its color as a stripe across the middle. */
+.face-modx-m .face-btn {
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
+}
+.face-modx-m .face-btn:not(.is-empty)::before {
+  content: "";
+  position: absolute;
+  left: 0.45rem;
+  right: 0.45rem;
+  top: 50%;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--slot, rgb(255 255 255 / 0.18));
+}
+.face-modx-m .face-name {
+  margin-top: 0.7rem;
+}
+.face-modx-m .face-btn[aria-pressed="true"] {
+  background: rgb(255 255 255 / 0.12);
+  box-shadow: inset 0 0 0 2px var(--color-live-active);
+}
+.face-modx-m .face-btn[aria-pressed="true"]::after {
+  animation-name: btn-ring-live;
+}
+@keyframes btn-ring-live {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-live-active) 80%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 14px transparent;
+  }
+}
+.organizer-swatch::before {
+  background: var(--slot, transparent);
 }
 
 /* Choosing a sound on a rack page: the button bounces and the screen replays. */

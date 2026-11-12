@@ -22,8 +22,16 @@ export interface Target {
   maxPages: number;
   /** Sounds come from a file that can be saved again in the new order. */
   usesFile: boolean;
-  /** Slot colors can be chosen on the keyboard. */
-  colors: boolean;
+  /** Slot colors the keyboard offers, by its own names; empty when slots have no color. */
+  colors: string[];
+  /** Pages grouped into banks on the keyboard (MODX M: 16 pages per User bank). */
+  pagesPerBank?: number;
+  /** Longest slot name the keyboard takes. */
+  nameMax: number;
+  /** Each slot has its own volume (0..127). */
+  hasVolume: boolean;
+  /** Banks and pages have names on the keyboard, up to this many characters. */
+  pageNameMax?: number;
   about: string;
   /** How to put the result on the keyboard. */
   howTo: string;
@@ -42,7 +50,9 @@ export const TARGETS: Target[] = [
     columns: 8,
     maxPages: 1,
     usesFile: true,
-    colors: false,
+    colors: [],
+    nameMax: 10,
+    hasVolume: false,
     about: "เปิดไฟล์ .syx (แบงก์ 32 เสียงหรือเสียงเดี่ยว) ลากเรียงใหม่ ฟังได้ แล้วดาวน์โหลดแบงก์ที่เรียงแล้ว",
     howTo: "ส่งไฟล์ .syx เข้าเครื่องด้วยโปรแกรม MIDI ที่ใช้อยู่ หรือเปิดใน Dexed",
     verified: true,
@@ -52,17 +62,27 @@ export const TARGETS: Target[] = [
     id: "modx-m",
     name: "Yamaha MODX M",
     short: "MODX M",
-    pageName: "Live Set Page",
+    pageName: "Live Set",
     slotName: "Slot",
     slotsPerPage: 16,
     columns: 4,
-    maxPages: 16,
+    // USER 1–8, 16 pages each.
+    maxPages: 128,
+    pagesPerBank: 16,
     usesFile: false,
-    colors: true,
-    about: "ใส่ชื่อ Performance ที่ทำไว้ในเครื่อง แล้วจัดลง Live Set หน้าละ 16 ช่อง",
-    howTo: "บนเครื่อง: เปิด Live Set แล้วกด Edit วาง Performance ลงช่องตามใบจัดเรียง",
-    verified: false,
-    sources: ["https://files.kraftmusic.com/media/ownersmanual/Yamaha_MODX_M6_Operation_Manual.pdf"],
+    colors: ["Black", "Red", "Yellow", "Green", "Blue", "Azure", "Pink", "Orange", "Purple", "Sakura", "Cream", "Lime", "Aqua", "Beige", "Mint", "Lilac"],
+    nameMax: 20,
+    hasVolume: true,
+    pageNameMax: 20,
+    about: "Live Set แบบ USER 8 แบงก์ แบงก์ละ 16 หน้า หน้าละ 16 ช่อง ตั้งชื่อช่อง สี และ Volume ได้เหมือนบนเครื่อง",
+    howTo:
+      "บนเครื่อง: เลือก Performance แล้วกด [SHIFT] + [LIVE SET] เพื่อลงทะเบียน แตะช่องตามใบจัดเรียง จากนั้นกด Edit เพื่อตั้ง Slot Name, Color และ Volume แล้วกด Done",
+    verified: true,
+    sources: [
+      "https://yamahasynth.com/learn/modx-m/welcome-to-modx-m/",
+      "https://manual.yamaha.com/mi/synth/montage_m/en/om02screenparameters0310.html",
+      "https://yamahasynth.com/learn/modx-series-synthesizers/mastering-modx-performance-basics-2/",
+    ],
   },
   {
     id: "fantom-0",
@@ -74,7 +94,9 @@ export const TARGETS: Target[] = [
     columns: 4,
     maxPages: 16,
     usesFile: false,
-    colors: false,
+    colors: [],
+    nameMax: 16,
+    hasVolume: false,
     about: "ใส่ชื่อ Scene ที่ทำไว้ในเครื่อง แล้วจัดลำดับทีละแบงก์ แบงก์ละ 16 ช่อง",
     howTo: "บนเครื่อง: ใช้ Scene Write เก็บแต่ละ Scene ลงหมายเลขตามใบจัดเรียง",
     verified: false,
@@ -86,15 +108,14 @@ export function getTarget(id: string): Target {
   return TARGETS.find((t) => t.id === id) ?? TARGETS[0];
 }
 
-/** Slot colors use the store's two line colors and neutral tones. */
-export const SLOT_COLORS = ["none", "blue", "red", "light-blue", "light-red", "gray"] as const;
-export type SlotColor = (typeof SLOT_COLORS)[number];
-
 export interface Item {
   id: string;
   name: string;
   note: string;
-  color: SlotColor;
+  /** One of the target's color names, or "" for none. */
+  color: string;
+  /** 0..127, for keyboards with a volume per slot. */
+  volume?: number;
   /** DX7 only: the voice data (155 bytes), base64. */
   patch?: string;
 }
@@ -107,6 +128,9 @@ export interface Layout {
   pages: (Item | null)[][];
   /** Sounds not placed yet. */
   pool: Item[];
+  /** Names given to pages and banks on the keyboard. */
+  pageNames?: string[];
+  bankNames?: string[];
 }
 
 /** Where an item sits: in a slot, or in the pool. */
@@ -118,7 +142,7 @@ export const newId = () => `i${Date.now().toString(36)}${(counter++).toString(36
 export const emptyPage = (t: Target) => Array.from({ length: t.slotsPerPage }, () => null as Item | null);
 
 export function newItem(name: string, patch?: string): Item {
-  return { id: newId(), name: name.trim().slice(0, 40), note: "", color: "none", ...(patch ? { patch } : {}) };
+  return { id: newId(), name: name.trim().slice(0, 40), note: "", color: "", ...(patch ? { patch } : {}) };
 }
 
 export function emptyLayout(target: TargetId): Layout {
@@ -196,6 +220,46 @@ export function removeItem(layout: Layout, id: string): Layout {
   };
 }
 
+/** Where page `p` sits on the keyboard: bank and page numbers (1-based). */
+export function bankPage(t: Target, p: number) {
+  const per = t.pagesPerBank ?? t.maxPages;
+  return { bank: Math.floor(p / per) + 1, page: (p % per) + 1 };
+}
+
+/** Page heading in the keyboard's words, with its name when it has one. */
+export function pageTitle(t: Target, layout: Layout, p: number) {
+  const name = layout.pageNames?.[p];
+  if (t.pagesPerBank) {
+    const { bank, page } = bankPage(t, p);
+    const bankName = layout.bankNames?.[bank - 1];
+    return `USER ${bank}${bankName ? ` "${bankName}"` : ""} · Page ${page}${name ? ` "${name}"` : ""}`;
+  }
+  return `${t.pageName} ${p + 1}${name ? ` "${name}"` : ""}`;
+}
+
+/** Copies the item at `from` onto a slot (the keyboard's Copy job). The copy is a new item. */
+export function copyItem(layout: Layout, from: Place, to: { page: number; slot: number }): Layout {
+  const item = from.kind === "slot" ? layout.pages[from.page]?.[from.slot] : layout.pool[from.index];
+  if (!item || !layout.pages[to.page]) return layout;
+  const pages = layout.pages.map((p) => [...p]);
+  const displaced = pages[to.page][to.slot];
+  pages[to.page][to.slot] = { ...item, id: newId() };
+  return { ...layout, pages, pool: displaced ? [...layout.pool, displaced] : layout.pool };
+}
+
+/** Clears a slot and moves the later slots on that page up by one (the keyboard's Delete & Move job). */
+export function deleteAndMove(layout: Layout, page: number, slot: number): Layout {
+  const row = layout.pages[page];
+  if (!row) return layout;
+  const removed = row[slot];
+  const next = [...row.slice(0, slot), ...row.slice(slot + 1), null];
+  return {
+    ...layout,
+    pages: layout.pages.map((p, i) => (i === page ? next : p)),
+    pool: removed ? [...layout.pool, removed] : layout.pool,
+  };
+}
+
 /** Slot label as the keyboard counts: DX7 voices 1–32, Live Set slots 1–16 on each page, FANTOM scenes numbered through. */
 export function slotLabel(t: Target, page: number, slot: number) {
   if (t.id === "fantom-0") return String(page * t.slotsPerPage + slot + 1).padStart(3, "0");
@@ -207,10 +271,19 @@ export function orderSheet(layout: Layout): string {
   const t = getTarget(layout.target);
   const lines = [layout.title, `${t.name} · ${t.pageName}`, ""];
   layout.pages.forEach((page, p) => {
-    if (t.maxPages > 1) lines.push(`${t.pageName} ${p + 1}`);
+    if (t.maxPages > 1) {
+      if (page.every((x) => !x) && !layout.pageNames?.[p]) return;
+      lines.push(pageTitle(t, layout, p));
+    }
     page.forEach((item, s) => {
       if (!item) return;
-      const extra = [item.color !== "none" ? item.color : "", item.note].filter(Boolean).join(" · ");
+      const extra = [
+        item.color ? `Color: ${item.color}` : "",
+        t.hasVolume && item.volume !== undefined ? `Volume: ${item.volume}` : "",
+        item.note,
+      ]
+        .filter(Boolean)
+        .join(" · ");
       lines.push(`  ${t.slotName} ${slotLabel(t, p, s)}: ${item.name}${extra ? `  (${extra})` : ""}`);
     });
     lines.push("");
@@ -222,14 +295,16 @@ export function orderSheet(layout: Layout): string {
 
 const clean = (s: unknown, max: number) => (typeof s === "string" ? s.replace(/[\u0000-\u001f]/g, "").slice(0, max) : "");
 
-function parseItem(raw: unknown, allowPatch: boolean): Item | null {
+function parseItem(raw: unknown, t: Target): Item | null {
+  const allowPatch = t.usesFile;
   const r = raw as Record<string, unknown> | null;
   if (!r || typeof r !== "object") return null;
   const name = clean(r.name, 40);
   if (!name) return null;
-  const color = SLOT_COLORS.includes(r.color as SlotColor) ? (r.color as SlotColor) : "none";
+  const color = t.colors.includes(r.color as string) ? (r.color as string) : "";
+  const volume = t.hasVolume && typeof r.volume === "number" && Number.isFinite(r.volume) ? Math.min(127, Math.max(0, Math.round(r.volume))) : undefined;
   const patch = allowPatch && typeof r.patch === "string" && /^[A-Za-z0-9+/]{206}[A-Za-z0-9+/=]{2}$/.test(r.patch) ? r.patch : undefined;
-  return { id: newId(), name, note: clean(r.note, 60), color, ...(patch ? { patch } : {}) };
+  return { id: newId(), name: name.slice(0, t.nameMax), note: clean(r.note, 60), color, ...(volume !== undefined ? { volume } : {}), ...(patch ? { patch } : {}) };
 }
 
 /** Reads a layout from a file or link, rejecting anything malformed. */
@@ -240,13 +315,25 @@ export function parseLayout(raw: unknown): Layout | null {
   if (t.id !== r.target) return null;
   const pages = (r.pages as unknown[]).slice(0, t.maxPages).map((page) => {
     const list = Array.isArray(page) ? page : [];
-    return Array.from({ length: t.slotsPerPage }, (_, s) => parseItem(list[s], t.usesFile));
+    return Array.from({ length: t.slotsPerPage }, (_, s) => parseItem(list[s], t));
   });
   const pool = (Array.isArray(r.pool) ? r.pool : [])
     .slice(0, 512)
-    .map((x) => parseItem(x, t.usesFile))
+    .map((x) => parseItem(x, t))
     .filter((x): x is Item => !!x);
-  return { version: 1, target: t.id, title: clean(r.title, 40) || emptyLayout(t.id).title, pages: pages.length ? pages : [emptyPage(t)], pool };
+  const names = (v: unknown, n: number) =>
+    Array.isArray(v) ? v.slice(0, n).map((x) => clean(x, t.pageNameMax ?? 20)) : undefined;
+  const pageNames = t.pageNameMax ? names(r.pageNames, t.maxPages) : undefined;
+  const bankNames = t.pageNameMax && t.pagesPerBank ? names(r.bankNames, Math.ceil(t.maxPages / t.pagesPerBank)) : undefined;
+  return {
+    version: 1,
+    target: t.id,
+    title: clean(r.title, 40) || emptyLayout(t.id).title,
+    pages: pages.length ? pages : [emptyPage(t)],
+    pool,
+    ...(pageNames ? { pageNames } : {}),
+    ...(bankNames ? { bankNames } : {}),
+  };
 }
 
 const strip = (layout: Layout) => ({

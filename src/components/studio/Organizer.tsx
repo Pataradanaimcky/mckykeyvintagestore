@@ -21,7 +21,9 @@ import {
   removeItem,
   slotLabel,
   sortPage,
-  SLOT_COLORS,
+  bankPage,
+  copyItem,
+  deleteAndMove,
   TARGETS,
   updateItem,
   type Item,
@@ -33,14 +35,6 @@ import {
 const KEY = (t: TargetId) => `mcky-organizer-${t}`;
 const LAST_KEY = "mcky-organizer-target";
 
-const COLOR_LABEL: Record<string, string> = {
-  none: "ไม่มีสี",
-  blue: "น้ำเงิน",
-  red: "แดง",
-  "light-blue": "ฟ้า",
-  "light-red": "ชมพู",
-  gray: "เทา",
-};
 
 const toB64 = (b: Uint8Array) => btoa(String.fromCharCode(...b));
 const fromB64 = (s: string) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
@@ -113,6 +107,8 @@ export function Organizer() {
   const fileRef = useRef<HTMLInputElement>(null);
   const openMode = useRef<"cartridge" | "shelf">("shelf");
   const [landed, setLanded] = useState<{ id: string; n: number } | null>(null);
+  // What the next tap does with the chosen slot, like the keyboard's edit jobs.
+  const [job, setJob] = useState<"exchange" | "copy">("exchange");
   const jsonRef = useRef<HTMLInputElement>(null);
 
   const t = getTarget(layout.target);
@@ -143,6 +139,19 @@ export function Organizer() {
     setMessage(null);
   };
 
+  /** Opens page `p`, adding empty pages up to it the first time (banks fill in as you visit them). */
+  const goToPage = (p: number) => {
+    const target = Math.min(t.maxPages - 1, Math.max(0, p));
+    setLayout((l) => (l.pages.length > target ? l : { ...l, pages: [...l.pages, ...Array.from({ length: target + 1 - l.pages.length }, () => emptyPage(t))] }));
+    setPage(target);
+  };
+  const setName = (key: "pageNames" | "bankNames", index: number, value: string) =>
+    setLayout((l) => {
+      const list = [...(l[key] ?? [])];
+      list[index] = value.slice(0, t.pageNameMax ?? 20);
+      return { ...l, [key]: list };
+    });
+
   const move = (from: Place, to: Place) => {
     setLayout((l) => moveItem(l, from, to));
     setPicked(null);
@@ -154,6 +163,12 @@ export function Organizer() {
     if (picked) {
       if (at.kind === "slot") setLanded({ id: `${at.page}-${at.slot}`, n: pickCount + 1 });
       setPickCount((n) => n + 1);
+      if (job === "copy" && at.kind === "slot") {
+        setLayout((l) => copyItem(l, picked, at));
+        setPicked(null);
+        setJob("exchange");
+        return;
+      }
       return move(picked, at);
     }
     if (!filled) return;
@@ -270,7 +285,7 @@ export function Organizer() {
     if (!items.length) return;
     setLayout((l) => ({ ...l, pool: [...l.pool, ...items].slice(0, 512) }));
     setPaste("");
-    setMessage(`เพิ่ม ${items.length} ชื่อในที่พักแล้ว ลากลงช่อง หรือกด “เติมช่องว่าง”`);
+    setMessage(`วาง ${items.length} ชื่อบนชั้นวางแล้ว ลากขึ้นไปวางบนช่อง หรือกด “เติมปุ่มว่างให้อัตโนมัติ”`);
   };
 
   const openJson = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -310,7 +325,7 @@ export function Organizer() {
         ? `INT ${pickedNo.padStart(2, "0")}`
         : "CARTRIDGE"
       : t.id === "modx-m"
-        ? `LIVE SET  PAGE ${current + 1}${pickedNo ? `  SLOT ${pickedNo}` : ""}`
+        ? `USER ${bankPage(t, current).bank} · PAGE ${String(bankPage(t, current).page).padStart(2, "0")}${pickedNo ? ` · SLOT ${pickedNo}` : ""}${pickedItem?.volume !== undefined ? ` · VOL ${pickedItem.volume}` : ""}`
         : pickedNo
           ? `SCENE ${pickedNo}`
           : `SCENE ${slotLabel(t, current, 0)}–${slotLabel(t, current, 15)}`;
@@ -381,6 +396,54 @@ export function Organizer() {
               <span className="cartridge-pins" aria-hidden="true" />
             </button>
           ) : (
+            t.pagesPerBank ? (
+              <div className="face-liveset">
+                {(() => {
+                  const { bank, page: pg } = bankPage(t, current);
+                  const banks = Math.ceil(t.maxPages / t.pagesPerBank!);
+                  return (
+                    <>
+                      <div className="face-stepper">
+                        <span className="face-stepper-label">BANK</span>
+                        <button type="button" className="face-page" onClick={() => goToPage((bank - 2) * t.pagesPerBank! + pg - 1)} disabled={bank <= 1} aria-label="แบงก์ก่อนหน้า">
+                          ◀
+                        </button>
+                        <span className="face-stepper-value">USER {bank}</span>
+                        <button type="button" className="face-page" onClick={() => goToPage(bank * t.pagesPerBank! + pg - 1)} disabled={bank >= banks} aria-label="แบงก์ถัดไป">
+                          ▶
+                        </button>
+                        <input
+                          className="face-name-input"
+                          value={layout.bankNames?.[bank - 1] ?? ""}
+                          placeholder="Bank Name"
+                          maxLength={t.pageNameMax}
+                          onChange={(e) => setName("bankNames", bank - 1, e.target.value)}
+                          aria-label={`ชื่อแบงก์ USER ${bank}`}
+                        />
+                      </div>
+                      <div className="face-stepper">
+                        <span className="face-stepper-label">PAGE</span>
+                        <button type="button" className="face-page" onClick={() => goToPage(current - 1)} disabled={current <= 0} aria-label="หน้าก่อนหน้า">
+                          ◀
+                        </button>
+                        <span className="face-stepper-value">{String(pg).padStart(2, "0")}</span>
+                        <button type="button" className="face-page" onClick={() => goToPage(current + 1)} disabled={current >= t.maxPages - 1} aria-label="หน้าถัดไป">
+                          ▶
+                        </button>
+                        <input
+                          className="face-name-input"
+                          value={layout.pageNames?.[current] ?? ""}
+                          placeholder="Page Name"
+                          maxLength={t.pageNameMax}
+                          onChange={(e) => setName("pageNames", current, e.target.value)}
+                          aria-label={`ชื่อหน้า ${pg}`}
+                        />
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            ) : (
             <div className="face-pages" role="tablist" aria-label="หน้า">
               {layout.pages.map((_, p) => (
                 <button
@@ -411,6 +474,7 @@ export function Organizer() {
                 +
               </button>
             </div>
+            )
           )}
         </div>
 
@@ -434,7 +498,7 @@ export function Organizer() {
                 onClick={() => tap(at, !!item)}
                 aria-pressed={active}
                 aria-label={`${t.slotName} ${slotLabel(t, current, s)}: ${item?.name ?? "ว่าง"}`}
-                className={`face-btn color-${item?.color ?? "none"} ${item ? "" : "is-empty"} ${landed?.id === id ? "is-landed" : ""} ${over === id ? "is-over" : ""} ${picked && !active ? "is-target" : ""}`}
+                className={`face-btn ${item?.color ? `slot-c-${item.color.toLowerCase()}` : ""} ${item ? "" : "is-empty"} ${landed?.id === id ? "is-landed" : ""} ${over === id ? "is-over" : ""} ${picked && !active ? "is-target" : ""}`}
               >
                 <span className="face-btn-top">
                   <span className="face-led" aria-hidden="true" />
@@ -512,7 +576,7 @@ export function Organizer() {
                     }}
                     onClick={() => tap(at, true)}
                     aria-pressed={same(picked, at)}
-                    className={`organizer-chip color-${item.color}`}
+                    className={`organizer-chip ${item.color ? `slot-c-${item.color.toLowerCase()}` : ""}`}
                   >
                     <span aria-hidden="true" className="mr-1.5 text-muted">⋮⋮</span>
                     {item.name}
@@ -546,7 +610,7 @@ export function Organizer() {
                     <input
                       className="studio-input"
                       value={pickedItem.name}
-                      maxLength={t.usesFile ? 10 : 40}
+                      maxLength={t.nameMax}
                       onChange={(e) => setLayout((l) => updateItem(l, pickedItem.id, { name: t.usesFile ? e.target.value.replace(/[^\x20-\x7e]/g, "") : e.target.value }))}
                     />
                   </label>
@@ -570,19 +634,73 @@ export function Organizer() {
                     ลบ
                   </button>
                 </div>
-                {t.colors && (
-                  <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="สีช่อง">
-                    {SLOT_COLORS.map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        aria-pressed={pickedItem.color === c}
-                        onClick={() => setLayout((l) => updateItem(l, pickedItem.id, { color: c }))}
-                        className={`organizer-swatch color-${c}`}
-                      >
-                        {COLOR_LABEL[c]}
+                {t.colors.length > 0 && (
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-xs text-muted">Color</span>
+                    <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Color">
+                      <button type="button" aria-pressed={!pickedItem.color} onClick={() => setLayout((l) => updateItem(l, pickedItem.id, { color: "" }))} className="organizer-swatch">
+                        ไม่ตั้ง
                       </button>
-                    ))}
+                      {t.colors.map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          aria-pressed={pickedItem.color === c}
+                          onClick={() => setLayout((l) => updateItem(l, pickedItem.id, { color: c }))}
+                          className={`organizer-swatch slot-c-${c.toLowerCase()}`}
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {t.hasVolume && (
+                  <label className="studio-field">
+                    <span>
+                      Volume <b>{pickedItem.volume ?? "ตามเครื่อง"}</b>
+                    </span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={127}
+                      value={pickedItem.volume ?? 100}
+                      onChange={(e) => setLayout((l) => updateItem(l, pickedItem.id, { volume: Number(e.target.value) }))}
+                    />
+                  </label>
+                )}
+                {picked?.kind === "slot" && t.pagesPerBank && (
+                  <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Job">
+                    <span className="mr-1 text-xs text-muted">Job</span>
+                    <button type="button" className={`studio-pill ${job === "exchange" ? "is-on" : ""}`} aria-pressed={job === "exchange"} onClick={() => setJob("exchange")}>
+                      Exchange
+                    </button>
+                    <button type="button" className={`studio-pill ${job === "copy" ? "is-on" : ""}`} aria-pressed={job === "copy"} onClick={() => setJob("copy")}>
+                      Copy
+                    </button>
+                    <button
+                      type="button"
+                      className="studio-pill"
+                      onClick={() => {
+                        setLayout((l) => moveItem(l, picked, { kind: "pool", index: l.pool.length }));
+                        setPicked(null);
+                      }}
+                    >
+                      Delete
+                    </button>
+                    <button
+                      type="button"
+                      className="studio-pill"
+                      onClick={() => {
+                        if (picked.kind === "slot") setLayout((l) => deleteAndMove(l, picked.page, picked.slot));
+                        setPicked(null);
+                      }}
+                    >
+                      Delete &amp; Move
+                    </button>
+                    <span className="text-xs text-muted">
+                      {job === "copy" ? "แตะช่องที่จะวางสำเนา" : "แตะช่องอื่นเพื่อสลับ (Exchange)"} · Delete ยกลงชั้นวาง
+                    </span>
                   </div>
                 )}
               </div>
