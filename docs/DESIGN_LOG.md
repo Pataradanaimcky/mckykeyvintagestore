@@ -38,6 +38,10 @@ Read this before changing the interface. Add new entries at the bottom of Histor
 - 2026-11-12, owner clarification: "demo" means demo banks in the organizer: a store pack's sounds load onto the keyboard face, each slot plays its own demo, people can swap and arrange, but nothing from a demo bank can be downloaded, saved or shared.
 - 2026-11-12, owner request (replaces the /demo page entry above): no separate demo page; demos live inside each feature (▶ on every sound in a pack page, demo banks in the organizer). Navigation must be easy: the menu shows the three parts in the landing page order, numbered 01 เล่นซินธ์ (/#play), 02 จัดเรียงเสียง (/studio), 03 แพ็กเสียง (/packs), then บัญชี; รุ่นที่ใช้ได้ and คำถาม move to the footer. On a phone the menu is one row that scrolls sideways under the name, with the cart beside the name.
 
+## Decisions by the project manager
+
+Delegated by the owner on 2026-11-12. The PM records each decision here with the date and the question it answers. Agents treat these as settled. The PM never decides the matters reserved for the owner in AGENTS.md ("Who decides"), and never edits the owner's Decisions above.
+
 ## Open questions
 
 - Free pack terms: the free FM bank currently has no written licence. Recommended: free to use in any music, including commercial releases; not to be resold or shared as a sound pack.
