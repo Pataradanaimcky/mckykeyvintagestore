@@ -37,6 +37,7 @@ import {
   deleteAndMove,
   TARGETS,
   unsupportedNameChars,
+  bankPageNameProblems,
   updateItem,
   type Item,
   type Layout,
@@ -613,6 +614,15 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
                           aria-label={`ชื่อหน้า ${pg}`}
                         />
                       </div>
+                      {(() => {
+                        const bad = bankPageNameProblems(t, layout).filter((x) => x.bank === bank || x.page === current);
+                        return bad.length > 0 ? (
+                          <p className="face-name-warn" role="status">
+                            {t.short} ตั้งชื่อได้เฉพาะตัวอักษรอังกฤษ ตัวเลข และสัญลักษณ์พื้นฐาน{" "}
+                            {bad.map((x) => `${x.where}: ${x.chars.join(" ")}`).join(" · ")}
+                          </p>
+                        ) : null;
+                      })()}
                     </>
                   );
                 })()}

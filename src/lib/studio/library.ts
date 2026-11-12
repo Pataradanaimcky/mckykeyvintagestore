@@ -256,6 +256,26 @@ export function bankPage(t: Target, p: number) {
   return { bank: Math.floor(p / per) + 1, page: (p % per) + 1 };
 }
 
+/**
+ * Bank Name and Page Name entries the keyboard cannot take (MODX M Data List: Live Set names are
+ * printable ASCII), as "Bank Name USER 2" / "Page Name USER 1 · Page 3" with the bad characters.
+ */
+export function bankPageNameProblems(t: Target, layout: Layout): { where: string; page?: number; bank?: number; chars: string[] }[] {
+  if (!t.asciiNames || !t.pagesPerBank) return [];
+  const out: { where: string; page?: number; bank?: number; chars: string[] }[] = [];
+  (layout.bankNames ?? []).forEach((n, i) => {
+    const chars = unsupportedNameChars(t, n ?? "");
+    if (chars.length) out.push({ where: `Bank Name USER ${i + 1}`, bank: i + 1, chars });
+  });
+  (layout.pageNames ?? []).forEach((n, p) => {
+    const chars = unsupportedNameChars(t, n ?? "");
+    if (!chars.length) return;
+    const { bank, page } = bankPage(t, p);
+    out.push({ where: `Page Name USER ${bank} · Page ${page}`, page: p, chars });
+  });
+  return out;
+}
+
 /** Page heading in the keyboard's words, with its name when it has one. */
 export function pageTitle(t: Target, layout: Layout, p: number) {
   const name = layout.pageNames?.[p];

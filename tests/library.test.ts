@@ -8,6 +8,7 @@ import {
   deleteAndMove,
   getTarget,
   unsupportedNameChars,
+  bankPageNameProblems,
   decodeLayout,
   emptyLayout,
   encodeLayout,
@@ -199,4 +200,19 @@ test("MODX M names: only printable ASCII fits, per the MODX M Data List", () => 
   assert.deepEqual(unsupportedNameChars(modx, "Pad\tA é é"), ["\t", "é"]);
   // FANTOM-0 name rules are not confirmed yet, so nothing is flagged there.
   assert.deepEqual(unsupportedNameChars(getTarget("fantom-0"), "เปียโน"), []);
+});
+
+test("MODX M Bank Name and Page Name: non-ASCII characters are flagged per bank and page", () => {
+  const modx = getTarget("modx-m");
+  const base = { version: 1 as const, target: "modx-m" as const, title: "t", pages: [], pool: [] };
+  const problems = bankPageNameProblems(modx, { ...base, bankNames: ["Gig", "งานแต่ง"], pageNames: ["Set 1", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Café"] });
+  assert.deepEqual(
+    problems.map((x) => [x.where, x.chars.join("")]),
+    [
+      ["Bank Name USER 2", "งานแต่"],
+      ["Page Name USER 2 · Page 1", "é"],
+    ],
+  );
+  assert.deepEqual(bankPageNameProblems(modx, { ...base, bankNames: ["Gig"], pageNames: ["Ballads"] }), []);
+  assert.deepEqual(bankPageNameProblems(getTarget("fantom-0"), { ...base, target: "fantom-0", pageNames: ["เปียโน"] }), []);
 });
