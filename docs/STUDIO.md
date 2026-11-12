@@ -1,33 +1,36 @@
-# Studio (/studio)
+# Sound organizer (/studio, menu "จัดเรียงเสียง")
 
-A tool for arranging layered sounds for hardware keyboards: parts (or zones), the sound each one uses, key ranges (split points), velocity ranges, level, pan and octave. Visitors hear it in the browser, or on their own keyboard over USB, then download a work file, a setup sheet in the keyboard's own words, or share a link.
+People make and edit sounds on their own keyboard as usual. This page is only for putting those sounds in the order they want to find them: drag and drop on a big screen instead of moving one slot at a time on the keyboard. Sound editing and part settings do not belong here (owner decision 2026-11-12).
+
+Order of work set by the owner: DX7 first (to learn the whole loop on a fully documented format), then MODX M, then FANTOM-0.
+
+## What each keyboard does today
+
+- DX7 (works end to end): open one or more .syx files (32-voice cartridges or single voices); the first 32 voices fill the cartridge, the rest wait in the pool. Drag or tap to reorder, rename (10 ASCII characters), listen through the site's FM engine (@audio/synth-dx7), then download the cartridge in the new order as a 32-voice .syx. Empty slots are saved as INIT VOICE. Packing is checked against the engine's unpack in tests/dx7.test.ts.
+- MODX M Live Set: paste the Performance names from the keyboard (one per line), drag them into Live Set pages of 16 slots, choose slot colors, then download or print an order sheet to follow on the keyboard. Not verified yet: page count, slot color names, exact steps.
+- FANTOM-0 scenes: paste scene names, arrange in banks of 16, order sheet with scene numbers. Not verified yet: scene numbering and bank size, exact Scene Write steps.
+
+Work is kept in the visitor's browser per keyboard, in a downloaded work file, or in a share link. Nothing is uploaded.
 
 ## Where things live
 
-- `src/lib/studio/machines.ts`: one profile per keyboard: part count, key sizes, note naming (Yamaha middle C = C3, Roland = C4), the keyboard's own words for each setting, MIDI behaviour, `verified` and `sources`.
-- `src/lib/studio/arrangement.ts`: the data and rules (routing a played note to parts, reorder, fit to another keyboard, Split/Dual detection, share links, setup sheet). Tested in `tests/studio.test.ts`.
-- `src/components/studio/`: the page. `Studio.tsx` (screen-style part list, part editor, USB, files), `KeyMap.tsx` (keyboard with one draggable lane per part), `studioSound.ts` (browser preview: FM engine and polysynth from the rack, one channel strip per part), `useMidi.ts` (Web MIDI: notes and CC only, never SysEx).
-
-## What USB does today
-
-- Plays: notes played on the page (screen keys, A–K, or a connected MIDI keyboard) are routed by key and velocity range and sent to each part's MIDI channel, so the keyboard sounds its own parts. Two-part keyboards (XPS, D-50) get the note as played, because they split by themselves.
-- Sends: Level as CC7 and Pan as CC10 per part channel.
-- Does not yet: write key ranges, sound choice or anything else into the keyboard. That needs each maker's system-exclusive (SysEx) parameter addresses from its MIDI implementation or data list, and must be tested on a real keyboard before it ships. Add it per machine, behind a clear "write to keyboard" button, only after checking the addresses in the official document.
+- src/lib/studio/library.ts: keyboard targets (words, grid size, verified flag, sources), layout data, move/swap, fill, sort, order sheet, share links, import checks. Tests: tests/library.test.ts.
+- src/lib/studio/dx7.ts: DX7 voice names, single-voice and cartridge .syx writing. Tests: tests/dx7.test.ts.
+- src/components/studio/Organizer.tsx: the page.
 
 ## Rules
 
-- Use the maker's own parameter names in `terms`, taken from the official manual. Put the document link in `sources`. Set `verified: true` only after checking the manual.
-- No maker logos, product photos or screen copies. The screen-style list is the store's own drawing.
-- Never ship factory sound data from any maker. Visitors load their own .syx files; they stay in their browser.
-- Nothing is uploaded: work is kept in the visitor's browser (localStorage), in files they download, or in the link they share.
+- Use each keyboard's own words, from the official manual, with the link in `sources`. Set `verified: true` only after checking.
+- No maker logos, product photos or copies of a keyboard's screen design. Never ship factory sound data from any maker.
+- Sending anything to a keyboard over USB that would overwrite its memory must be behind a clear confirmation, off by default, and labelled as needing a real-keyboard test.
 
 ## Checklist for the hourly research agent
 
-Work top to bottom; one small, tested change per run.
+One small, tested change per run, top to bottom.
 
-1. XPS-30: confirm from the official manual how many parts a Performance layers, the split/dual terms, and per-part MIDI channels. Update its profile and set `verified`.
-2. D-50: confirm Key Mode names (Whole, Dual, Split, Separate, ...), Split Point term, Upper/Lower tone balance range, and update the profile.
-3. MODX M: confirm the screen term for key range ("Note Limit") and velocity ("Velocity Limit"), how many parts can be under Keyboard Control, and per-part receive channel behaviour. Add element count notes if useful.
-4. FANTOM-0: confirm "Keyboard Range" wording on the zone screen and the receive channel default per zone.
-5. Add a SysEx write path for one machine only after the parameter addresses are confirmed in an official MIDI implementation PDF. Keep it off by default and label it as needing a test on a real keyboard.
-6. Improve the arranging flow itself (faster split setting, templates such as "piano + pad split at C4", "layer strings on piano"), keeping the page easy on a phone.
+1. DX7: check against the DX7 manual's MIDI data format that cartridge files written here load in Dexed and on a DX7 (header, byte count, checksum, packed layout). Add "receive a cartridge from the keyboard over USB" (Web MIDI with SysEx; only reading) so people can pull their DX7 memory into the organizer.
+2. DX7: small organizer helpers a DX7 owner wants: merge two cartridges into one, find duplicate voices, swap whole halves (1–16 / 17–32), export a voice list as text.
+3. MODX M: confirm from the official MODX M manual how Live Set is organised (banks, pages, 16 slots, slot colors and their names) and the steps to place a Performance in a slot; update the target and the order sheet wording. Confirm whether Yamaha FM Converter output (DX7 .syx to MONTAGE/MODX) loads on MODX M, and if so show that route next to the DX7 download.
+4. MODX M: research whether the MODX M user file or library file lists Performance names in a readable way, so names can be imported from a file instead of typed. Only use documented or clearly safe reading; never write those files.
+5. FANTOM-0: confirm scene numbering, banks and the Scene Write / scene order steps from the official manual; update the target.
+6. Later: other keyboards' sound lists (XPS, D-50 patch banks, Juno banks) once the three above are done.

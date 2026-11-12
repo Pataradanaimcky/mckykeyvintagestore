@@ -46,7 +46,7 @@ src/
     packs/                    All packs with filters; packs/[slug] is one pack
     compatibility/            Which keyboards each line works on, and install steps
     faq/                      Questions and answers
-    studio/                   Arrange layered sounds for MODX M, FANTOM-0, XPS and D-50 (see docs/STUDIO.md)
+    studio/                   Sound organizer: order DX7 cartridges, MODX M Live Sets, FANTOM-0 scenes (see docs/STUDIO.md)
     login/, account/          Sign in with a social account; my orders
     api/auth/                 Sign-in endpoints the platforms call back to
     cart/                     Cart page and the add/remove actions
@@ -59,7 +59,7 @@ src/
     catalog/                  Product card, cover art, tabs, banner, patch list
     cart/                     Add-to-cart buttons, cart rows, header cart link, order summary
     checkout/                 Checkout form, QR code, test panel
-    studio/                   The studio page: part list, keyboard map, USB/MIDI, browser preview
+    studio/                   The sound organizer page
     rack/                     Playable rack at the top of the home page, as swipeable pages (RackCarousel):
                               MODULAR (SynthRack: cables, knobs, sequencer), fm/ (six-operator FM that
                               opens DX7 .syx files) and poly/ (eight-voice analog-style polysynth)
@@ -70,7 +70,7 @@ src/
     catalog/                  Product data and lookups  ← add packs here
     auth/                     Sign-in setup and the list of platforms
     cart/                     Cart cookie: read, write, clean up
-    studio/                   Keyboard profiles and arrangement rules for the studio page
+    studio/                   Organizer rules and DX7 .syx writing
     orders/                   Order rules and the two storage back ends
     payments/                 Provider interface, simulator, PromptPay QR builder
     db/                       Database schema and connection
@@ -82,7 +82,7 @@ docs/
   LOGIN.md                    How to switch on each social sign-in
   BRAND_PROFILE.md            Name, handle, profile pictures and bio text for social media and Gmail
   DESIGN_LOG.md               Design decisions and history
-  STUDIO.md                   How the studio works, what USB does, and the research checklist
+  STUDIO.md                   How the sound organizer works, and the research checklist
 tests/                        Unit tests
 ```
 

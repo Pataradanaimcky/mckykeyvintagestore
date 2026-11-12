@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const links = [
-  { href: "/studio", label: "สตูดิโอ" },
+  { href: "/studio", label: "จัดเรียงเสียง" },
   { href: "/packs", label: "แพ็กเสียง" },
   { href: "/compatibility", label: "รุ่นที่ใช้ได้" },
   { href: "/faq", label: "คำถาม" },

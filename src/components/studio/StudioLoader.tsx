@@ -2,8 +2,8 @@
 
 import dynamic from "next/dynamic";
 
-/** The studio reads saved work from this browser, so it only renders in the browser. */
-export const StudioLoader = dynamic(() => import("./Studio").then((m) => m.Studio), {
+/** The organizer reads saved work from this browser, so it only renders in the browser. */
+export const StudioLoader = dynamic(() => import("./Organizer").then((m) => m.Organizer), {
   ssr: false,
-  loading: () => <p className="studio-panel text-muted">กำลังเปิดสตูดิโอ…</p>,
+  loading: () => <p className="studio-panel text-muted">กำลังเปิด…</p>,
 });
