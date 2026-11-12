@@ -38,6 +38,11 @@ export interface Target {
   pageNameMax?: number;
   /** Names take only printable ASCII (0x20–0x7E), per the maker's data list. */
   asciiNames?: boolean;
+  /**
+   * Slot types the keyboard offers, by its own names; the organizer arranges only the first
+   * (MODX M Live Set: Perform, Song, Audio, Pattern).
+   */
+  slotTypes?: string[];
   about: string;
   /** How to put the result on the keyboard. */
   howTo: string;
@@ -88,6 +93,9 @@ export const TARGETS: Target[] = [
     pageNameMax: 20,
     // MODX M Data List, MIDI Data Table (LIVE SET): Bank, Page and Slot Name "00, 20 – 7E … (ASCII)".
     asciiNames: true,
+    // MONTAGE M online manual, Live Set Edit, and MODX M operation manual p. 361: Slot Type
+    // "Perform, Song, Audio, Pattern"; Slot Name is shown only when the Slot Type is Perform.
+    slotTypes: ["Perform", "Song", "Audio", "Pattern"],
     about: "Live Set แบบ USER 8 แบงก์ แบงก์ละ 16 หน้า หน้าละ 16 ช่อง ตั้งชื่อช่อง สี Volume และ SSS Time ได้เหมือนบนเครื่อง",
     howTo:
       "บนเครื่อง: เลือก Performance แล้วกด [SHIFT] + [LIVE SET] เพื่อลงทะเบียน แตะช่องตามใบจัดเรียง จากนั้นกด Edit เพื่อตั้ง Slot Name, Color, Volume และ SSS Time แล้วกด Done",
@@ -119,6 +127,16 @@ export const TARGETS: Target[] = [
     sources: ["https://static.roland.com/assets/media/pdf/FANTOM-06_07_08_Parameter_eng01_W.pdf"],
   },
 ];
+
+/**
+ * A short note saying which slot types the organizer arranges and which stay on the keyboard,
+ * or "" when the keyboard has only one kind of slot.
+ */
+export function slotTypeNote(t: Target): string {
+  const [main, ...others] = t.slotTypes ?? [];
+  if (!main || others.length === 0) return "";
+  return `หน้านี้จัดเฉพาะช่อง Slot Type: ${main} · ช่องแบบ ${others.join(", ")} (Performance คู่กับ ${others.join(" / ")}) ให้ตั้งบนเครื่องในหน้า Live Set Edit`;
+}
 
 /** Characters in a name the keyboard cannot show (each listed once), or [] when all fit. */
 export function unsupportedNameChars(t: Target, name: string): string[] {

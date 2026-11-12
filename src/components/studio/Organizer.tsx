@@ -38,6 +38,7 @@ import {
   deleteAndMove,
   TARGETS,
   unsupportedNameChars,
+  slotTypeNote,
   bankPageNameProblems,
   updateItem,
   type Item,
@@ -608,6 +609,7 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
       <p className="text-sm text-muted">
         <span className="font-semibold text-ink">{t.name}</span> · {t.about}
       </p>
+      {slotTypeNote(t) && <p className="text-xs text-muted">{slotTypeNote(t)}</p>}
 
       {/* How it works */}
       <ol className="organizer-steps">

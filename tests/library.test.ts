@@ -8,6 +8,7 @@ import {
   deleteAndMove,
   getTarget,
   unsupportedNameChars,
+  slotTypeNote,
   bankPageNameProblems,
   nameProblemLines,
   decodeLayout,
@@ -238,4 +239,12 @@ test("MODX M order sheet lists the names the keyboard cannot take; ASCII-only sh
   const fantom = parseLayout({ version: 1, target: "fantom-0", title: "t", pages: [[{ name: "เปียโน" }]], pool: [] });
   assert.ok(fantom);
   assert.doesNotMatch(orderSheet(fantom), /พิมพ์ไม่ได้/);
+});
+
+test("slot type note: MODX M arranges Perform slots, other keyboards get no note", () => {
+  const note = slotTypeNote(getTarget("modx-m"));
+  assert.match(note, /Slot Type: Perform/);
+  for (const w of ["Song", "Audio", "Pattern", "Live Set Edit"]) assert.ok(note.includes(w), w);
+  assert.equal(slotTypeNote(getTarget("dx7")), "");
+  assert.equal(slotTypeNote(getTarget("fantom-0")), "");
 });
