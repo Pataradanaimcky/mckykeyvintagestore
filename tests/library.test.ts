@@ -13,6 +13,8 @@ import {
   nameProblemLines,
   decodeLayout,
   emptyLayout,
+  pageTitle,
+  slotLabel,
   encodeLayout,
   fillEmpty,
   itemsFromText,
@@ -73,7 +75,7 @@ test("order sheet uses the keyboard's words and numbering", () => {
   let fantom = emptyLayout("fantom-0");
   fantom = { ...fantom, pages: [fantom.pages[0], fantom.pages[0].map(() => null)], pool: itemsFromText("Scene X") };
   fantom = moveItem(fantom, { kind: "pool", index: 0 }, { kind: "slot", page: 1, slot: 0 });
-  assert.match(orderSheet(fantom), /Scene 017: Scene X/);
+  assert.match(orderSheet(fantom), /Scene A017: Scene X/);
 });
 
 test("share links round-trip and reject junk", () => {
@@ -200,8 +202,9 @@ test("MODX M names: only printable ASCII fits, per the MODX M Data List", () => 
   assert.deepEqual(unsupportedNameChars(modx, "Grand Piano 1 (Live)"), []);
   assert.deepEqual(unsupportedNameChars(modx, "เปียโน Piano"), ["เ", "ป", "ี", "ย", "โ", "น"]);
   assert.deepEqual(unsupportedNameChars(modx, "Pad\tA é é"), ["\t", "é"]);
-  // FANTOM-0 name rules are not confirmed yet, so nothing is flagged there.
-  assert.deepEqual(unsupportedNameChars(getTarget("fantom-0"), "เปียโน"), []);
+  // FANTOM-0 Scene Name is ASCII too (MIDI Implementation, Scene Common: 32 - 127 [ASCII]).
+  assert.deepEqual(unsupportedNameChars(getTarget("fantom-0"), "เปียโน Pad"), ["เ", "ป", "ี", "ย", "โ", "น"]);
+  assert.deepEqual(unsupportedNameChars(getTarget("fantom-0"), "Strings & Pad"), []);
 });
 
 test("MODX M Bank Name and Page Name: non-ASCII characters are flagged per bank and page", () => {
@@ -219,7 +222,7 @@ test("MODX M Bank Name and Page Name: non-ASCII characters are flagged per bank 
   assert.deepEqual(bankPageNameProblems(getTarget("fantom-0"), { ...base, target: "fantom-0", pageNames: ["เปียโน"] }), []);
 });
 
-test("MODX M order sheet lists the names the keyboard cannot take; ASCII-only sheets and FANTOM-0 list none", () => {
+test("MODX M order sheet lists the names the keyboard cannot take; ASCII-only sheets list none", () => {
   const l = parseLayout({
     version: 1,
     target: "modx-m",
@@ -238,7 +241,27 @@ test("MODX M order sheet lists the names the keyboard cannot take; ASCII-only sh
   assert.doesNotMatch(orderSheet(ok), /พิมพ์ไม่ได้/);
   const fantom = parseLayout({ version: 1, target: "fantom-0", title: "t", pages: [[{ name: "เปียโน" }]], pool: [] });
   assert.ok(fantom);
-  assert.doesNotMatch(orderSheet(fantom), /พิมพ์ไม่ได้/);
+  assert.match(orderSheet(fantom), /ชื่อที่ FANTOM-0 พิมพ์ไม่ได้/);
+  assert.match(orderSheet(fantom), /Scene A001 "เปียโน"/);
+});
+
+test("FANTOM-0 scenes are numbered A001–D128, 16 to a screen, as on the keyboard", () => {
+  const t = getTarget("fantom-0");
+  assert.equal(t.slotsPerPage, 16);
+  assert.equal(t.maxPages, 32);
+  assert.equal(t.nameMax, 16);
+  assert.equal(slotLabel(t, 0, 0), "A001");
+  assert.equal(slotLabel(t, 0, 15), "A016");
+  assert.equal(slotLabel(t, 7, 15), "A128");
+  assert.equal(slotLabel(t, 8, 0), "B001");
+  assert.equal(slotLabel(t, 31, 15), "D128");
+  const l = { ...emptyLayout("fantom-0") };
+  assert.equal(pageTitle(t, l, 0), "BANK A · A001–A016");
+  assert.equal(pageTitle(t, l, 9), "BANK B · B017–B032");
+  // Pages beyond D128 are dropped when a work file is opened.
+  const big = parseLayout({ version: 1, target: "fantom-0", title: "t", pages: Array.from({ length: 40 }, () => []), pool: [] });
+  assert.ok(big);
+  assert.equal(big.pages.length, 32);
 });
 
 test("slot type note: MODX M arranges Perform slots, other keyboards get no note", () => {

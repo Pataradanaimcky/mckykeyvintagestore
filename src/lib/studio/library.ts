@@ -114,17 +114,26 @@ export const TARGETS: Target[] = [
     short: "FANTOM-0",
     pageName: "Scene Bank",
     slotName: "Scene",
+    // SCENE SELECT shows 16 scenes as a 4 x 4 grid (Owner's Manual p. 17).
     slotsPerPage: 16,
     columns: 4,
-    maxPages: 16,
+    // Banks A–D of 128 scenes, A001–D128 (Reference Manual p. 28): 8 screens of 16 per bank.
+    maxPages: 32,
     usesFile: false,
     colors: [],
+    // MIDI Implementation, Scene Common: Scene Name 1–16, "32 - 127 [ASCII]".
     nameMax: 16,
+    asciiNames: true,
     hasVolume: false,
-    about: "ใส่ชื่อ Scene ที่ทำไว้ในเครื่อง แล้วจัดลำดับทีละแบงก์ แบงก์ละ 16 ช่อง",
-    howTo: "บนเครื่อง: ใช้ Scene Write เก็บแต่ละ Scene ลงหมายเลขตามใบจัดเรียง",
-    verified: false,
-    sources: ["https://static.roland.com/assets/media/pdf/FANTOM-06_07_08_Parameter_eng01_W.pdf"],
+    about: "Scene แบงก์ A–D แบงก์ละ 128 (A001–D128) หน้าจอ SCENE SELECT แสดงทีละ 16 ช่อง ใส่ชื่อ Scene ที่ทำไว้ในเครื่อง (ไม่เกิน 16 ตัวอักษรอังกฤษ) แล้วจัดลำดับ",
+    howTo:
+      "บนเครื่อง: เลือก Scene เดิม กด [WRITE] → แตะ <SCENE> → (แตะ <Rename> ถ้าจะแก้ชื่อ) → หมุน [VALUE] หรือกด [DEC]/[INC] เลือกหมายเลขตามใบจัดเรียง → <OK> แล้ว <OK> อีกครั้ง · ระวัง: Scene ที่อยู่ในหมายเลขปลายทางจะถูกเขียนทับ ถ้ายังต้องใช้ ให้ย้ายไปเก็บที่หมายเลขว่างก่อน",
+    verified: true,
+    sources: [
+      "https://www.roland.com/us/support/by_product/fantom-06/owners_manuals/",
+      "https://static.roland.com/assets/media/pdf/FANTOM-06_07_08_eng01_W.pdf",
+      "https://static.roland.com/assets/media/pdf/FANTOM-06_07_08_Parameter_eng01_W.pdf",
+    ],
   },
 ];
 
@@ -302,6 +311,10 @@ export function pageTitle(t: Target, layout: Layout, p: number) {
     const bankName = layout.bankNames?.[bank - 1];
     return `USER ${bank}${bankName ? ` "${bankName}"` : ""} · Page ${page}${name ? ` "${name}"` : ""}`;
   }
+  if (t.id === "fantom-0") {
+    const first = slotLabel(t, p, 0);
+    return `BANK ${first[0]} · ${first}–${slotLabel(t, p, t.slotsPerPage - 1)}${name ? ` "${name}"` : ""}`;
+  }
   return `${t.pageName} ${p + 1}${name ? ` "${name}"` : ""}`;
 }
 
@@ -328,9 +341,20 @@ export function deleteAndMove(layout: Layout, page: number, slot: number): Layou
   };
 }
 
-/** Slot label as the keyboard counts: DX7 voices 1–32, Live Set slots 1–16 on each page, FANTOM scenes numbered through. */
+/** FANTOM-0 scene banks A–D, 128 scenes each (Reference Manual p. 28). */
+export const FANTOM_SCENE_BANKS = ["A", "B", "C", "D"];
+export const FANTOM_SCENES_PER_BANK = 128;
+
+/**
+ * Slot label as the keyboard counts: DX7 voices 1–32, Live Set slots 1–16 on each page,
+ * FANTOM-0 scenes A001–D128.
+ */
 export function slotLabel(t: Target, page: number, slot: number) {
-  if (t.id === "fantom-0") return String(page * t.slotsPerPage + slot + 1).padStart(3, "0");
+  if (t.id === "fantom-0") {
+    const n = page * t.slotsPerPage + slot;
+    const bank = FANTOM_SCENE_BANKS[Math.floor(n / FANTOM_SCENES_PER_BANK)] ?? "?";
+    return bank + String((n % FANTOM_SCENES_PER_BANK) + 1).padStart(3, "0");
+  }
   return String(slot + 1);
 }
 

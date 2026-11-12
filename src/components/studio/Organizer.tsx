@@ -742,7 +742,7 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
                   }}
                   className="face-page"
                 >
-                  {t.id === "fantom-0" ? `${String(p * 16 + 1).padStart(3, "0")}` : `P${p + 1}`}
+                  {t.id === "fantom-0" ? slotLabel(t, p, 0) : `P${p + 1}`}
                 </button>
               ))}
               <button
