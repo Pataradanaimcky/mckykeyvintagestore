@@ -1,6 +1,6 @@
 /**
- * FANTOM-0 (FANTOM-06/07/08) Scene Name over MIDI, read only. Rules only: no
- * button on the page yet, and not tested on a real keyboard.
+ * FANTOM-0 (FANTOM-06/07/08) Scene Name over MIDI, read only. Used by the
+ * "รับชื่อ Scene" button on /studio (behind a confirmation); not tested on a real keyboard.
  *
  * From Roland's FANTOM-06/07/08 MIDI Implementation (v1.00):
  * - Data Request 1 (RQ1): F0 41 dev 00 00 00 5B 11 aa bb cc dd ss tt uu vv sum F7

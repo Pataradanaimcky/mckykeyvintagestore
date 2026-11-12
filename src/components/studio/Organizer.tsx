@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEv
 import { FM_PRESETS } from "@/components/rack/fm/presets";
 import { OctaveSwitch, RackKeys } from "@/components/rack/RackKeys";
 import { bankSysex, checkCartridgeDump, voiceSysex } from "@/lib/studio/dx7";
+import { readSceneNameReply, SceneNameCollector, sceneNameRequest } from "@/lib/studio/fantom";
 import { namesOnPage, pageNameRequests, placeNames, readSlotNameReply, SlotNameCollector } from "@/lib/studio/modxm";
 import { getSound, guessSound, PREVIEW_SOUNDS } from "@/lib/studio/sounds";
 import { GmPreview } from "./gmPreview";
@@ -532,6 +533,81 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
     setMessage(`กำลังขอชื่อ 16 ช่องของหน้า ${where.page} จาก MODX M… (ประมาณ 8 วินาที)`);
   };
 
+  // Asking a FANTOM-0 for the name of the scene on screen: read only. One Data
+  // Request (RQ1) for the 16 Scene Name characters of the Temporary Scene (MIDI
+  // Implementation v1.00); the name goes on the shelf, no slot changes. Off until
+  // the visitor confirms, and not yet tested on a real FANTOM-0.
+  const askFantom = async () => {
+    if (asking) {
+      stopAsk.current?.();
+      setMessage("หยุดขอชื่อแล้ว");
+      return;
+    }
+    const ok = window.confirm(
+      "ขอชื่อ Scene ที่เปิดอยู่บนจอ FANTOM-0 มาวางบนชั้นวาง\n\n" +
+        "• หน้านี้ส่งแค่คำขอ (Data Request RQ1) 1 ครั้ง ไม่เขียนอะไรลงเครื่อง และไม่เปลี่ยน Scene บนเครื่อง\n" +
+        "• ยังไม่ได้ทดสอบกับ FANTOM-0 จริง ถ้าไม่มีอะไรตอบกลับก็ไม่มีอะไรเปลี่ยน\n" +
+        "• เครื่องจะตอบก็ต่อเมื่อเปิด Receive Exclusive ไว้ (SYSTEM: MIDI) และ Device ID ตรงกับ 17\n" +
+        "• ช่องที่จัดไว้ไม่เปลี่ยน ชื่อที่ได้จะไปอยู่ท้ายชั้นวาง\n\nทำต่อไหม",
+    );
+    if (!ok) return;
+    if (!("requestMIDIAccess" in navigator)) {
+      setMessage("เบราว์เซอร์นี้ใช้ MIDI ไม่ได้ ลอง Chrome หรือ Edge บนคอมพิวเตอร์");
+      return;
+    }
+    let access: MIDIAccess;
+    try {
+      access = await navigator.requestMIDIAccess({ sysex: true });
+    } catch {
+      setMessage("ไม่ได้รับอนุญาตให้ใช้ MIDI กดอนุญาตในเบราว์เซอร์แล้วลองใหม่");
+      return;
+    }
+    const inputs = [...access.inputs.values()];
+    const allOut = [...access.outputs.values()];
+    const named = allOut.filter((o) => /fantom/i.test(o.name ?? ""));
+    const outputs = named.length ? named : allOut;
+    if (!inputs.length || !outputs.length) {
+      setMessage("ไม่พบ FANTOM-0 ต่อสาย USB จากเครื่องเข้าคอมพิวเตอร์ก่อน");
+      return;
+    }
+    const collector = new SceneNameCollector();
+    const onMessage = (event: MIDIMessageEvent) => {
+      const reply = event.data ? readSceneNameReply(event.data) : null;
+      if (!reply) return;
+      collector.add(reply);
+      if (collector.name() !== undefined) finish();
+    };
+    const finish = () => {
+      stop();
+      const name = collector.name();
+      if (name === undefined) {
+        setMessage("ไม่ได้รับชื่อจาก FANTOM-0 ดูว่าต่อสาย USB แล้ว เปิด Receive Exclusive (SYSTEM: MIDI) และ Device ID เป็น 17");
+        return;
+      }
+      const label = name || "INIT SCENE";
+      setLayout((l) => ({ ...l, pool: [...l.pool, newItem(label)].slice(0, 512) }));
+      setMessage(`รับชื่อ Scene “${label}” จาก FANTOM-0 วางท้ายชั้นวางแล้ว ลากไปวางบนช่องที่ต้องการ`);
+    };
+    const timer = window.setTimeout(finish, 3000);
+    const stop = () => {
+      window.clearTimeout(timer);
+      inputs.forEach((i) => i.removeEventListener("midimessage", onMessage));
+      stopAsk.current = null;
+      setAsking(false);
+    };
+    inputs.forEach((i) => i.addEventListener("midimessage", onMessage));
+    try {
+      sendPaced(outputs, [sceneNameRequest()], 0);
+    } catch {
+      stop();
+      setMessage("ส่งคำขอไม่ได้ ลองถอดสาย USB แล้วต่อใหม่");
+      return;
+    }
+    stopAsk.current = stop;
+    setAsking(true);
+    setMessage("กำลังขอชื่อ Scene ที่เปิดอยู่จาก FANTOM-0…");
+  };
+
   const addNames = () => {
     const items = itemsFromText(paste);
     if (!items.length) return;
@@ -847,6 +923,16 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
               <button type="button" className="studio-btn" onClick={addNames} disabled={!paste.trim()}>
                 วางลงชั้นวาง
               </button>
+              {t.id === "fantom-0" && !demoSlug && (
+                <>
+                  <button type="button" className="studio-btn" aria-pressed={asking} onClick={() => void askFantom()}>
+                    {asking ? "กำลังขอชื่อจาก FANTOM-0… (แตะเพื่อหยุด)" : "รับชื่อ Scene ที่เปิดอยู่จาก FANTOM-0 ทาง USB (ยังไม่ได้ทดสอบกับเครื่องจริง)"}
+                  </button>
+                  <p className="text-xs text-muted">
+                    อ่านอย่างเดียว ส่งแค่คำขอชื่อ ไม่เขียนอะไรลงเครื่อง ได้ทีละ 1 Scene (Scene ที่อยู่บนจอ) เปลี่ยน Scene บนเครื่องแล้วกดอีกครั้ง ชื่อจะไปอยู่ท้ายชั้นวาง ใช้ได้บน Chrome หรือ Edge
+                  </p>
+                </>
+              )}
               {t.id === "modx-m" && !demoSlug && (
                 <>
                   <button type="button" className="studio-btn" aria-pressed={asking} onClick={() => void receiveFromModx()}>
