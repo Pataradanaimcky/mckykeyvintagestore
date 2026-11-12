@@ -103,3 +103,41 @@ export class SlotNameCollector {
     return text.replace(/\s+$/, "");
   }
 }
+
+/** All 320 requests (16 slots × 20 characters) for one Live Set page, slot by slot. */
+export function pageNameRequests(page: number): Uint8Array[] {
+  return Array.from({ length: 16 }, (_, s) => slotNameRequests(page, s)).flat();
+}
+
+/**
+ * The 16 slot names of one page from what has arrived: a name once all 20
+ * characters are in, "" for a slot whose name is all spaces, undefined if
+ * characters are still missing.
+ */
+export function namesOnPage(collector: SlotNameCollector, page: number): (string | undefined)[] {
+  return Array.from({ length: 16 }, (_, s) => collector.name(page, s));
+}
+
+/**
+ * Puts received names into a page of the organizer. Slots that got a name get a
+ * new sound with that name; the sounds that were in those slots move to the
+ * front of the shelf, so nothing is lost. Slots with no reply, or a blank name,
+ * are left as they were. Returns the new slots, the sounds for the shelf and how
+ * many names were placed.
+ */
+export function placeNames<T extends { name: string }>(
+  slots: (T | null)[],
+  names: (string | undefined)[],
+  make: (name: string) => T,
+): { slots: (T | null)[]; shelved: T[]; placed: number } {
+  const shelved: T[] = [];
+  let placed = 0;
+  const next = slots.map((old, i) => {
+    const name = names[i];
+    if (!name) return old;
+    placed++;
+    if (old) shelved.push(old);
+    return make(name);
+  });
+  return { slots: next, shelved, placed };
+}

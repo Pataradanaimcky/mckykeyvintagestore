@@ -54,3 +54,29 @@ test("a name is ready only when all 20 characters have come in", () => {
   assert.equal(c.name(0, 3), "Pad");
   assert.equal(c.name(1, 3), undefined);
 });
+
+test("one page asks for 16 slots × 20 characters, slot by slot", async () => {
+  const { pageNameRequests } = await import("../src/lib/studio/modxm.ts");
+  const all = pageNameRequests(3);
+  assert.equal(all.length, 320);
+  assert.equal(hex(all[0]), "F0 43 30 7F 1C 0D 03 23 00 00 F7");
+  assert.equal(hex(all[20]), "F0 43 30 7F 1C 0D 03 23 01 00 F7");
+  assert.equal(hex(all[319]), "F0 43 30 7F 1C 0D 03 23 0F 13 F7");
+});
+
+test("received names fill a page; old sounds go to the shelf; missing and blank names change nothing", async () => {
+  const { namesOnPage, placeNames } = await import("../src/lib/studio/modxm.ts");
+  const c = new SlotNameCollector();
+  const bytes = (s: string) => Array.from(s.padEnd(20, " "), (ch) => ch.charCodeAt(0));
+  c.add({ page: 0, slot: 0, start: 0, bytes: bytes("CP80 Stage") });
+  c.add({ page: 0, slot: 1, start: 0, bytes: bytes("") });
+  c.add({ page: 0, slot: 2, start: 0, bytes: bytes("Half").slice(0, 10) });
+  const names = namesOnPage(c, 0);
+  assert.equal(names.length, 16);
+  assert.deepEqual(names.slice(0, 3), ["CP80 Stage", "", undefined]);
+  const slots = [{ name: "Old A" }, { name: "Old B" }, null, ...Array(13).fill(null)];
+  const r = placeNames(slots, names, (name) => ({ name }));
+  assert.equal(r.placed, 1);
+  assert.deepEqual(r.slots.slice(0, 3), [{ name: "CP80 Stage" }, { name: "Old B" }, null]);
+  assert.deepEqual(r.shelved, [{ name: "Old A" }]);
+});

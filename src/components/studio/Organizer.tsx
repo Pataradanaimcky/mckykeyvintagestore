@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEv
 import { FM_PRESETS } from "@/components/rack/fm/presets";
 import { OctaveSwitch, RackKeys } from "@/components/rack/RackKeys";
 import { bankSysex, checkCartridgeDump, voiceSysex } from "@/lib/studio/dx7";
+import { namesOnPage, pageNameRequests, placeNames, readSlotNameReply, SlotNameCollector } from "@/lib/studio/modxm";
 import { getSound, guessSound, PREVIEW_SOUNDS } from "@/lib/studio/sounds";
 import { GmPreview } from "./gmPreview";
 import {
@@ -48,6 +49,12 @@ import {
 const KEY = (t: TargetId) => `mcky-organizer-${t}`;
 const LAST_KEY = "mcky-organizer-target";
 
+
+/** Sends requests one after another, `gap` ms apart, so the keyboard is not flooded. */
+function sendPaced(outputs: MIDIOutput[], requests: Uint8Array[], gap: number) {
+  const start = performance.now() + 50;
+  requests.forEach((r, i) => outputs.forEach((o) => o.send(r, start + i * gap)));
+}
 
 const toB64 = (b: Uint8Array) => btoa(String.fromCharCode(...b));
 const fromB64 = (s: string) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
@@ -433,6 +440,97 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
     setMessage("กำลังรอ… บน DX7 กด FUNCTION แล้วกดปุ่ม 8 (MIDI) จนจอขึ้น SYS INFO AVAIL กดปุ่ม 8 อีกครั้งจนจอถามว่าจะส่ง (MIDI TRANSMIT ?) แล้วกด YES");
   };
 
+  // Asking a MODX M for the Slot Names of one Live Set page: read only. Only
+  // Parameter Requests are sent (Data List 3-5-6); nothing on the keyboard changes.
+  // Off until the visitor confirms, and not yet tested on a real MODX M.
+  const [asking, setAsking] = useState(false);
+  const stopAsk = useRef<(() => void) | null>(null);
+  useEffect(() => () => stopAsk.current?.(), []);
+  const receiveFromModx = async () => {
+    if (asking) {
+      stopAsk.current?.();
+      setMessage("หยุดขอชื่อแล้ว");
+      return;
+    }
+    const where = bankPage(t, current);
+    const ok = window.confirm(
+      `ขอชื่อ 16 ช่องจาก MODX M มาใส่หน้า ${where.page} ที่เปิดอยู่\n\n` +
+        "• หน้านี้ส่งแค่คำขอ (Parameter Request) ไม่เขียนอะไรลงเครื่อง\n" +
+        "• ยังไม่ได้ทดสอบกับ MODX M จริง ถ้าไม่มีอะไรตอบกลับก็ไม่มีอะไรเปลี่ยน\n" +
+        "• บนเครื่องเปิด Live Set ที่ต้องการไว้ และตั้ง Device Number เป็น All หรือ 1 ([UTILITY] → Settings → Advanced)\n" +
+        "• เสียงที่อยู่ในช่องเดิมจะย้ายลงชั้นวาง\n\nทำต่อไหม",
+    );
+    if (!ok) return;
+    if (!("requestMIDIAccess" in navigator)) {
+      setMessage("เบราว์เซอร์นี้ใช้ MIDI ไม่ได้ ลอง Chrome หรือ Edge บนคอมพิวเตอร์");
+      return;
+    }
+    let access: MIDIAccess;
+    try {
+      access = await navigator.requestMIDIAccess({ sysex: true });
+    } catch {
+      setMessage("ไม่ได้รับอนุญาตให้ใช้ MIDI กดอนุญาตในเบราว์เซอร์แล้วลองใหม่");
+      return;
+    }
+    const inputs = [...access.inputs.values()];
+    const allOut = [...access.outputs.values()];
+    const named = allOut.filter((o) => /modx/i.test(o.name ?? ""));
+    const outputs = named.length ? named : allOut;
+    if (!inputs.length || !outputs.length) {
+      setMessage("ไม่พบ MODX M ต่อสาย USB จากเครื่องเข้าคอมพิวเตอร์ก่อน");
+      return;
+    }
+    const kbPage = where.page - 1;
+    const collector = new SlotNameCollector();
+    const onMessage = (event: MIDIMessageEvent) => {
+      const reply = event.data ? readSlotNameReply(event.data) : null;
+      if (reply && reply.page === kbPage) collector.add(reply);
+    };
+    const requests = pageNameRequests(kbPage);
+    const gap = 15;
+    const finish = () => {
+      stop();
+      const names = namesOnPage(collector, kbPage);
+      const missing = names.filter((n) => n === undefined).length;
+      if (missing === 16) {
+        setMessage("ไม่ได้รับชื่อจาก MODX M ดูว่าต่อสาย USB แล้ว และตั้ง Device Number เป็น All หรือ 1");
+        return;
+      }
+      let placedCount = 0;
+      setLayout((l) => {
+        const pages = l.pages.map((x) => x.slice());
+        const r = placeNames(pages[current] ?? emptyPage(t), names, (name) => newItem(name));
+        pages[current] = r.slots;
+        placedCount = r.placed;
+        return { ...l, pages, pool: [...r.shelved, ...l.pool].slice(0, 512) };
+      });
+      setPicked(null);
+      setMessage(
+        `รับชื่อจาก MODX M ใส่หน้า ${where.page} แล้ว${placedCount ? ` ${placedCount} ช่อง` : ""}` +
+          (missing ? ` · ${missing} ช่องยังไม่ได้รับครบ ปล่อยไว้ตามเดิม` : "") +
+          " · เสียงในช่องเดิมอยู่บนชั้นวาง",
+      );
+    };
+    const timer = window.setTimeout(finish, 50 + requests.length * gap + 3000);
+    const stop = () => {
+      window.clearTimeout(timer);
+      inputs.forEach((i) => i.removeEventListener("midimessage", onMessage));
+      stopAsk.current = null;
+      setAsking(false);
+    };
+    inputs.forEach((i) => i.addEventListener("midimessage", onMessage));
+    try {
+      sendPaced(outputs, requests, gap);
+    } catch {
+      stop();
+      setMessage("ส่งคำขอไม่ได้ ลองถอดสาย USB แล้วต่อใหม่");
+      return;
+    }
+    stopAsk.current = stop;
+    setAsking(true);
+    setMessage(`กำลังขอชื่อ 16 ช่องของหน้า ${where.page} จาก MODX M… (ประมาณ 8 วินาที)`);
+  };
+
   const addNames = () => {
     const items = itemsFromText(paste);
     if (!items.length) return;
@@ -747,6 +845,16 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
               <button type="button" className="studio-btn" onClick={addNames} disabled={!paste.trim()}>
                 วางลงชั้นวาง
               </button>
+              {t.id === "modx-m" && !demoSlug && (
+                <>
+                  <button type="button" className="studio-btn" aria-pressed={asking} onClick={() => void receiveFromModx()}>
+                    {asking ? "กำลังขอชื่อจาก MODX M… (แตะเพื่อหยุด)" : "รับชื่อช่องจาก MODX M ทาง USB (ยังไม่ได้ทดสอบกับเครื่องจริง)"}
+                  </button>
+                  <p className="text-xs text-muted">
+                    อ่านอย่างเดียว ส่งแค่คำขอชื่อ ไม่เขียนอะไรลงเครื่อง ชื่อ 16 ช่องจะใส่หน้าที่เปิดอยู่ เสียงในช่องเดิมย้ายลงชั้นวาง ใช้ได้บน Chrome หรือ Edge
+                  </p>
+                </>
+              )}
             </div>
           )}
           <input ref={fileRef} type="file" multiple accept=".syx,application/octet-stream" className="sr-only" tabIndex={-1} aria-label="เลือกไฟล์ .syx" onChange={(e) => void openSyx(e)} />
