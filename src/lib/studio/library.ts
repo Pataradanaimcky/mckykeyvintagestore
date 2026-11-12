@@ -56,9 +56,13 @@ export const TARGETS: Target[] = [
     nameMax: 10,
     hasVolume: false,
     about: "เปิดไฟล์ .syx (แบงก์ 32 เสียงหรือเสียงเดี่ยว) ลากเรียงใหม่ ฟังได้ แล้วดาวน์โหลดแบงก์ที่เรียงแล้ว",
-    howTo: "ส่งไฟล์ .syx เข้าเครื่องด้วยโปรแกรม MIDI ที่ใช้อยู่ หรือเปิดใน Dexed",
+    howTo:
+      "ส่งไฟล์ .syx เข้าเครื่องด้วยโปรแกรม MIDI ที่ใช้อยู่ หรือเปิดใน Dexed · จะเล่นบน MONTAGE หรือ MODX: แปลงไฟล์นี้ด้วย Yamaha FM Converter (Yamaha ระบุว่ารองรับ Montage และ MODX ส่วน MODX M ยังไม่ได้ยืนยัน)",
     verified: true,
-    sources: [],
+    sources: [
+      "https://shop.usa.yamaha.com/en/fmconverter/index/converter/",
+      "https://www.yamaha.com/us/downloads/FM-Converter-User-Guide-English.pdf",
+    ],
   },
   {
     id: "modx-m",

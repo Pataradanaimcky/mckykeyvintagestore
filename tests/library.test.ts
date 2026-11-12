@@ -158,3 +158,10 @@ test("DX7 order sheet is the plain voice list: Voice 1–32 in cartridge order, 
   assert.match(sheet, /^My Cart\nYamaha DX7 · Cartridge\n\n {2}Voice 1: E\.PIANO 1\n {2}Voice 32: BRASS 2\n/);
   assert.match(sheet, /ยังไม่ได้วาง: SPARE/);
 });
+
+test("DX7 points to Yamaha FM Converter for MONTAGE/MODX without claiming MODX M", () => {
+  const t = getTarget("dx7");
+  assert.match(t.howTo, /FM Converter/);
+  assert.match(t.howTo, /MODX M ยังไม่ได้ยืนยัน/);
+  assert.ok(t.sources.some((s) => s.includes("FM-Converter-User-Guide")));
+});
