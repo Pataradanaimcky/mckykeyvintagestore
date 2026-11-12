@@ -10,10 +10,12 @@
     "typecheck": "next typegen && tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "test": "node --test \"tests/**/*.test.ts\"",
-    "prebuild": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\" && node scripts/migrate.mjs",
-    "db:migrate": "node scripts/migrate.mjs"
+    "prebuild": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\" && node scripts/build-worklets.mjs && node scripts/migrate.mjs",
+    "db:migrate": "node scripts/migrate.mjs",
+    "predev": "node scripts/build-worklets.mjs"
   },
   "dependencies": {
+    "@audio/synth-dx7": "^0.1.0",
     "@fontsource/anuphan": "^5.3.0",
     "drizzle-orm": "^0.45.4",
     "next": "16.4.6",

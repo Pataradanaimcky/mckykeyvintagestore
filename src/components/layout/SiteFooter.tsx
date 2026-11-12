@@ -8,9 +8,9 @@ export function SiteFooter() {
         <p className="text-lg font-bold tracking-tight text-ink">{site.name}</p>
         <p>ติดต่อ: {site.contact}</p>
         <p className="text-xs">
-          Yamaha, MODX และ MONTAGE เป็นเครื่องหมายการค้าของ Yamaha Corporation ส่วน Roland และ FANTOM
+          Yamaha, MODX, MONTAGE และ DX7 เป็นเครื่องหมายการค้าของ Yamaha Corporation ส่วน Roland และ FANTOM
           เป็นเครื่องหมายการค้าของ Roland Corporation ร้านนี้เป็นผู้ผลิตเสียงอิสระ
-          ไม่ได้เป็นตัวแทนและไม่ได้รับการรับรองจากทั้งสองบริษัท ชื่อยี่ห้อและรุ่นใช้เพื่อบอกว่าแพ็กใช้กับเครื่องใดเท่านั้น
+          ไม่ได้เป็นตัวแทนและไม่ได้รับการรับรองจากทั้งสองบริษัท ชื่อยี่ห้อและรุ่นใช้เพื่อบอกว่าแพ็กหรือไฟล์ใช้กับเครื่องใดเท่านั้น
         </p>
       </Container>
     </footer>

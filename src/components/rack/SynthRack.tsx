@@ -13,7 +13,8 @@ import {
 } from "react";
 import { Knob } from "./Knob";
 import { Scope } from "./Scope";
-import { connected, KEYS, routeOf, STEP_NOTES, WAVES, type Cable, type JackId, type Point } from "./patch";
+import { connected, routeOf, STEP_NOTES, WAVES, type Cable, type JackId, type Point } from "./patch";
+import { midiToHz, RackKeys } from "./RackKeys";
 import { useRackSound } from "./useRackSound";
 
 const CABLE_TONES = ["text-blue", "text-red", "text-cable"] as const;
@@ -35,8 +36,6 @@ const JACK_LABELS: Record<JackId, string> = {
   "out.in": "ช่องเข้าของ OUT",
 };
 
-const WHITE = KEYS.filter((k) => !k.black);
-
 /** A cable hangs between two points like a real patch lead. */
 function cablePath(from: Point, to: Point) {
   const sag = 26 + Math.hypot(to.x - from.x, to.y - from.y) * 0.28;
@@ -50,11 +49,10 @@ function cablePath(from: Point, to: Point) {
  *
  * The panel is the store's own generic drawing. It is not a copy of any real module.
  */
-export function SynthRack() {
+export function SynthRack({ active = true }: { active?: boolean }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const jackRefs = useRef(new Map<JackId, HTMLButtonElement>());
   const nextId = useRef(START_CABLES.length + 1);
-  const pressing = useRef(false);
 
   const [cables, setCables] = useState<Cable[]>(START_CABLES);
   const [points, setPoints] = useState<Partial<Record<JackId, Point>>>({});
@@ -68,7 +66,11 @@ export function SynthRack() {
   const [cutoff, setCutoff] = useState(0.55);
   const [step, setStep] = useState(0);
   const [soundOn, setSoundOn] = useState(false);
-  const [key, setKey] = useState<number | null>(null);
+  // Held notes, newest last. The modular page is monophonic: the newest note sounds.
+  const [notes, setNotes] = useState<number[]>([]);
+  const lastNote = notes.length > 0 ? notes[notes.length - 1] : null;
+  const key = lastNote === null ? null : midiToHz(lastNote);
+  const heldKeys = useMemo(() => new Set(lastNote === null ? [] : [lastNote]), [lastNote]);
 
   const waveIndex = Math.min(WAVES.length - 1, Math.round(wave * (WAVES.length - 1)));
   const heldId = held?.id;
@@ -96,15 +98,26 @@ export function SynthRack() {
     return () => observer.disconnect();
   }, []);
 
-  // The sequencer clock. It stays still for reduced-motion visitors unless they turn sound on.
+  // Leaving this page of the rack silences it (state adjusted while rendering, as React advises).
+  const [wasActive, setWasActive] = useState(active);
+  if (active !== wasActive) {
+    setWasActive(active);
+    if (!active) {
+      setSoundOn(false);
+      setNotes([]);
+    }
+  }
+
+  // The sequencer clock. It stays still for reduced-motion visitors unless they turn sound on,
+  // and while another page of the rack is showing.
   useEffect(() => {
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches && !soundOn;
-    if (still) return;
+    if (still || !active) return;
     const timer = window.setInterval(() => {
       if (!document.hidden) setStep((current) => (current + 1) % STEP_NOTES.length);
     }, 30000 / bpm);
     return () => window.clearInterval(timer);
-  }, [bpm, soundOn]);
+  }, [bpm, soundOn, active]);
 
   // Keep the sound in step with the patch, the knobs, the keys and the clock.
   useEffect(() => {
@@ -112,52 +125,15 @@ export function SynthRack() {
   }, [sound, route, waveIndex, rate, cutoff, step, soundOn, key]);
 
   /** Pressing a key also switches the sound on: a key press is when browsers allow sound. */
-  const press = useCallback(
-    (hz: number) => {
-      if (!soundOn) {
-        sound.start();
-        setSoundOn(true);
-      }
-      setKey(hz);
-    },
-    [sound, soundOn],
-  );
-
-  // Computer keys A W S E D F T G Y H U J K play the keyboard.
-  useEffect(() => {
-    const byKey = new Map(KEYS.map((k) => [k.key, k.hz]));
-    const isTyping = (target: EventTarget | null) =>
-      target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
-    const down = (event: KeyboardEvent) => {
-      if (event.repeat || event.metaKey || event.ctrlKey || event.altKey || isTyping(event.target)) return;
-      const hz = byKey.get(event.key.toLowerCase());
-      if (hz) press(hz);
-    };
-    const up = (event: KeyboardEvent) => {
-      const hz = byKey.get(event.key.toLowerCase());
-      if (hz) setKey((current) => (current === hz ? null : current));
-    };
-    window.addEventListener("keydown", down);
-    window.addEventListener("keyup", up);
-    return () => {
-      window.removeEventListener("keydown", down);
-      window.removeEventListener("keyup", up);
-    };
-  }, [press]);
-
-  // Letting go anywhere on the page stops the note.
-  useEffect(() => {
-    const release = () => {
-      if (!pressing.current) return;
-      pressing.current = false;
-      setKey(null);
-    };
-    window.addEventListener("pointerup", release);
-    window.addEventListener("pointercancel", release);
-    return () => {
-      window.removeEventListener("pointerup", release);
-      window.removeEventListener("pointercancel", release);
-    };
+  const noteOn = (note: number) => {
+    if (!soundOn) {
+      sound.start();
+      setSoundOn(true);
+    }
+    setNotes((current) => [...current.filter((n) => n !== note), note]);
+  };
+  const noteOff = useCallback((note: number) => {
+    setNotes((current) => current.filter((n) => n !== note));
   }, []);
 
   const plug = useCallback((id: number, from: JackId, into: JackId) => {
@@ -268,54 +244,12 @@ export function SynthRack() {
     );
   };
 
-  const pianoKey = (k: (typeof KEYS)[number], index: number) => {
-    const down = key === k.hz;
-    const whiteBefore = KEYS.slice(0, index).filter((x) => !x.black).length;
-    const style = k.black
-      ? ({ left: `calc(${(whiteBefore / WHITE.length) * 100}% - var(--black-w) / 2)` } as CSSProperties)
-      : undefined;
-    return (
-      <button
-        key={`${k.note}-${k.hz}`}
-        type="button"
-        aria-label={`โน้ต ${k.note} (ปุ่ม ${k.key.toUpperCase()})`}
-        aria-pressed={down}
-        onPointerDown={(event) => {
-          if (event.button !== 0) return;
-          event.preventDefault();
-          // Let the pointer slide across keys for a glissando.
-          event.currentTarget.releasePointerCapture?.(event.pointerId);
-          pressing.current = true;
-          press(k.hz);
-        }}
-        onPointerEnter={() => {
-          if (pressing.current) setKey(k.hz);
-        }}
-        onKeyDown={(event) => {
-          if ((event.key === "Enter" || event.key === " ") && !event.repeat) {
-            event.preventDefault();
-            press(k.hz);
-          }
-        }}
-        onKeyUp={(event) => {
-          if (event.key === "Enter" || event.key === " ") setKey(null);
-        }}
-        className={k.black ? "rack-key rack-key-black" : "rack-key rack-key-white"}
-        style={style}
-      >
-        <span className="rack-key-hint" aria-hidden="true">
-          {k.key.toUpperCase()}
-        </span>
-      </button>
-    );
-  };
-
   const heldCable = held ? cables.find((cable) => cable.id === held.id) : undefined;
   const heldFrom = held ? points[held.from] : undefined;
   const hanging = heldFrom ? { x: heldFrom.x + 18, y: heldFrom.y + 54 } : undefined;
 
   return (
-    <section aria-label="แร็คซินธ์สำหรับลองเล่น" className="rise flex flex-col gap-3">
+    <section aria-label="แร็คโมดูลาร์สำหรับลองเล่น" className="flex flex-col gap-3">
       <div ref={rootRef} className="rack-case relative select-none rounded-3xl p-2 sm:p-3">
         <div className="grid grid-cols-6 gap-1.5 md:grid-cols-12 md:gap-2">
           <div className="rack-panel col-span-6 md:col-span-3">
@@ -394,9 +328,7 @@ export function SynthRack() {
               <p className="rack-title">KEYS</p>
               <p className="rack-hint hidden sm:block">กดคีย์ หรือใช้ปุ่ม A–K บนคีย์บอร์ดคอม</p>
             </div>
-            <div className="rack-keybed" role="group" aria-label="คีย์บอร์ดสำหรับลองเล่น">
-              {KEYS.map((k, index) => pianoKey(k, index))}
-            </div>
+            <RackKeys active={active} held={heldKeys} onNoteOn={noteOn} onNoteOff={noteOff} />
           </div>
         </div>
 

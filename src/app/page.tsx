@@ -4,7 +4,7 @@ import { Hero } from "@/components/catalog/Hero";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { SoundMarquee } from "@/components/catalog/SoundMarquee";
 import { Container } from "@/components/layout/Container";
-import { SynthRack } from "@/components/rack/SynthRack";
+import { RackCarousel } from "@/components/rack/RackCarousel";
 import { listProducts } from "@/lib/catalog";
 
 const assurances = [
@@ -28,7 +28,7 @@ export default function HomePage() {
   return (
     <div className="flex flex-col gap-20 pb-10 sm:gap-28">
       <Container className="flex flex-col gap-10 pt-2 sm:gap-14 sm:pt-4">
-        <SynthRack />
+        <RackCarousel />
         <Hero />
       </Container>
 

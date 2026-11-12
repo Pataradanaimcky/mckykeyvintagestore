@@ -46,21 +46,21 @@ export const WAVES: { type: "sawtooth" | "square" | "triangle"; label: string }[
 /** One bar of eighth notes, in Hz. */
 export const STEP_NOTES = [220, 261.63, 329.63, 392, 440, 392, 329.63, 261.63];
 
-/** The playable keys: one octave from C4, with the computer keys that play them. */
-export const KEYS: { note: string; hz: number; black: boolean; key: string }[] = [
-  { note: "C", hz: 261.63, black: false, key: "a" },
-  { note: "C#", hz: 277.18, black: true, key: "w" },
-  { note: "D", hz: 293.66, black: false, key: "s" },
-  { note: "D#", hz: 311.13, black: true, key: "e" },
-  { note: "E", hz: 329.63, black: false, key: "d" },
-  { note: "F", hz: 349.23, black: false, key: "f" },
-  { note: "F#", hz: 369.99, black: true, key: "t" },
-  { note: "G", hz: 392.0, black: false, key: "g" },
-  { note: "G#", hz: 415.3, black: true, key: "y" },
-  { note: "A", hz: 440.0, black: false, key: "h" },
-  { note: "A#", hz: 466.16, black: true, key: "u" },
-  { note: "B", hz: 493.88, black: false, key: "j" },
-  { note: "C", hz: 523.25, black: false, key: "k" },
+/** The playable keys: one octave from middle C (MIDI 60), with the computer keys that play them. */
+export const KEYS: { note: string; midi: number; black: boolean; key: string }[] = [
+  { note: "C", midi: 60, black: false, key: "a" },
+  { note: "C#", midi: 61, black: true, key: "w" },
+  { note: "D", midi: 62, black: false, key: "s" },
+  { note: "D#", midi: 63, black: true, key: "e" },
+  { note: "E", midi: 64, black: false, key: "d" },
+  { note: "F", midi: 65, black: false, key: "f" },
+  { note: "F#", midi: 66, black: true, key: "t" },
+  { note: "G", midi: 67, black: false, key: "g" },
+  { note: "G#", midi: 68, black: true, key: "y" },
+  { note: "A", midi: 69, black: false, key: "h" },
+  { note: "A#", midi: 70, black: true, key: "u" },
+  { note: "B", midi: 71, black: false, key: "j" },
+  { note: "C", midi: 72, black: false, key: "k" },
 ];
 
 export function connected(cables: Cable[], x: JackId, y: JackId) {

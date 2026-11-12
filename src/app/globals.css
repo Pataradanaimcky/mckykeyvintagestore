@@ -403,6 +403,176 @@ h3 {
   }
 }
 
+/* Rack pages: tabs, a swipeable track, small buttons and the FM screen. */
+.rack-tabs {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.rack-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  border-radius: 0.9rem;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+  color: var(--color-muted);
+  box-shadow: inset 0 0 0 1px var(--color-line);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    transform 0.4s var(--ease-out-soft);
+}
+.rack-tab:hover {
+  color: var(--color-ink);
+}
+.rack-tab[aria-selected="true"] {
+  background: var(--color-panel);
+  color: var(--color-panel-ink);
+  box-shadow: inset 0 0 0 1px var(--color-panel-line);
+}
+.rack-tab-note {
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  opacity: 0.7;
+}
+.rack-nav {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px var(--color-line);
+  transition: transform 0.4s var(--ease-out-soft);
+}
+.rack-nav:hover {
+  transform: scale(1.08);
+}
+.rack-track {
+  display: flex;
+  align-items: flex-start;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.rack-track::-webkit-scrollbar,
+.rack-tabs::-webkit-scrollbar {
+  display: none;
+}
+.rack-page {
+  width: 100%;
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  transition: opacity 0.5s var(--ease-out-soft);
+}
+.rack-page[aria-hidden="true"] {
+  opacity: 0.35;
+}
+.rack-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: var(--color-line);
+  transition:
+    width 0.4s var(--ease-out-soft),
+    background-color 0.3s ease;
+}
+.rack-dot.is-on {
+  width: 1.4rem;
+  background: var(--color-ink);
+}
+.rack-mini,
+.rack-preset {
+  min-width: 2rem;
+  height: 2rem;
+  border-radius: 0.4rem;
+  padding: 0 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--color-panel-ink);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-panel) 80%, white), color-mix(in srgb, var(--color-panel) 88%, var(--color-metal)));
+  box-shadow:
+    inset 0 0 0 1px var(--color-panel-line),
+    0 2px 0 var(--color-panel-line);
+  transition: transform 0.08s ease-out;
+}
+.rack-mini:active,
+.rack-preset:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 0 0 1px var(--color-panel-line);
+}
+.rack-mini:disabled {
+  opacity: 0.4;
+}
+.rack-preset[aria-pressed="true"] {
+  background: var(--color-panel-ink);
+  color: var(--color-panel);
+}
+.rack-mini:focus-visible,
+.rack-preset:focus-visible,
+.rack-select:focus-visible {
+  outline-color: var(--color-blue);
+}
+.rack-select {
+  width: 100%;
+  height: 2.2rem;
+  border-radius: 0.4rem;
+  padding: 0 0.5rem;
+  font-size: 0.8rem;
+  color: var(--color-panel-ink);
+  background: color-mix(in srgb, var(--color-panel) 80%, white);
+  box-shadow: inset 0 0 0 1px var(--color-panel-line);
+}
+/* A backlit character screen. */
+.rack-lcd {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  border-radius: 0.4rem;
+  padding: 0.6rem 0.75rem;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  background: var(--color-screen);
+  color: var(--color-trace);
+  text-shadow: 0 0 6px color-mix(in srgb, var(--color-trace) 60%, transparent);
+  box-shadow: inset 0 0 0 2px var(--color-panel-line), inset 0 6px 14px rgb(0 0 0 / 0.35);
+}
+.rack-lcd-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.rack-lcd-small {
+  font-size: 0.68rem;
+  opacity: 0.75;
+}
+.rack-drop {
+  box-shadow:
+    inset 0 0 0 3px var(--color-blue),
+    0 30px 60px -30px color-mix(in srgb, var(--color-case) 70%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .rack-page,
+  .rack-dot,
+  .rack-tab,
+  .rack-nav {
+    transition: none;
+  }
+}
+
 /* Three small level bars that bounce, used beside short labels. */
 .eq {
   display: inline-flex;
