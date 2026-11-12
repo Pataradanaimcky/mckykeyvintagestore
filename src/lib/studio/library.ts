@@ -407,3 +407,52 @@ export function demoBank(pack: DemoPackInfo, guess: (name: string) => string): L
 export function demoOf(layout: Layout): string | undefined {
   return [...layout.pages.flat(), ...layout.pool].find((x) => x?.demo)?.demo ?? undefined;
 }
+
+/**
+ * DX7 voices that sound the same: identical voice data (the 145 bytes before
+ * the 10-character name), even when the names differ. Returns, for each later
+ * copy, the id of the first item with the same sound. Slots are read in order
+ * (voice 1 first), then the shelf.
+ */
+export function duplicateVoices(layout: Layout): Map<string, string> {
+  const first = new Map<string, string>();
+  const dups = new Map<string, string>();
+  for (const item of [...layout.pages.flat(), ...layout.pool]) {
+    if (!item?.patch) continue;
+    let key: string;
+    try {
+      key = Array.from(atob(item.patch).slice(0, 145), (c) => c.charCodeAt(0).toString(16)).join(",");
+    } catch {
+      continue;
+    }
+    const seen = first.get(key);
+    if (seen) dups.set(item.id, seen);
+    else first.set(key, item.id);
+  }
+  return dups;
+}
+
+/** Moves later copies of the same DX7 voice from the slots to the shelf, so each sound is in the cartridge once. */
+export function shelveDuplicates(layout: Layout): Layout {
+  const dups = duplicateVoices(layout);
+  const moved: Item[] = [];
+  const pages = layout.pages.map((p) =>
+    p.map((x) => {
+      if (x && dups.has(x.id)) {
+        moved.push(x);
+        return null;
+      }
+      return x;
+    }),
+  );
+  return moved.length ? { ...layout, pages, pool: [...layout.pool, ...moved] } : layout;
+}
+
+/** Swaps the first and second half of a page (DX7: voices 1–16 ↔ 17–32), keeping the order inside each half. */
+export function swapHalves(layout: Layout, page: number): Layout {
+  const row = layout.pages[page];
+  if (!row || row.length % 2) return layout;
+  const h = row.length / 2;
+  const next = [...row.slice(h), ...row.slice(0, h)];
+  return { ...layout, pages: layout.pages.map((p, i) => (i === page ? next : p)) };
+}

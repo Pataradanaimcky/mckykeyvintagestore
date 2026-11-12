@@ -25,6 +25,9 @@ import {
   slotLabel,
   sortPage,
   bankPage,
+  duplicateVoices,
+  shelveDuplicates,
+  swapHalves,
   copyItem,
   demoBank,
   demoOf,
@@ -132,6 +135,12 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
   const jsonRef = useRef<HTMLInputElement>(null);
 
   const t = getTarget(layout.target);
+  const dupes = t.usesFile ? duplicateVoices(layout) : new Map<string, string>();
+  const dupesInCart = layout.pages[0].flatMap((x, s) => {
+    const firstId = x ? dupes.get(x.id) : undefined;
+    const first = firstId ? layout.pages[0].findIndex((y) => y?.id === firstId) : -1;
+    return firstId ? [`${s + 1} = ${first >= 0 ? first + 1 : "ชั้นวาง"}`] : [];
+  });
   const current = Math.min(page, layout.pages.length - 1);
   const pickedItem: Item | null = picked
     ? picked.kind === "slot"
@@ -922,6 +931,11 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
             )}
           </div>
 
+          {t.usesFile && dupesInCart.length > 0 && (
+            <p className="text-xs text-muted" role="status">
+              เสียงซ้ำในแบงก์ (ค่าเสียงเหมือนกันทุกอย่าง แม้ชื่อต่างกัน): Voice {dupesInCart.join(", ")}
+            </p>
+          )}
           <div className="flex flex-wrap gap-2">
             <button type="button" className="studio-btn" onClick={() => setLayout((l) => sortPage(l, current))}>
               เรียงตามชื่อ
@@ -939,6 +953,16 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
             >
               ยกทั้งหน้าลงชั้นวาง
             </button>
+            {t.usesFile && (
+              <button type="button" className="studio-btn" onClick={() => setLayout((l) => swapHalves(l, current))}>
+                สลับครึ่ง 1–16 ↔ 17–32
+              </button>
+            )}
+            {t.usesFile && dupesInCart.length > 0 && (
+              <button type="button" className="studio-btn" onClick={() => setLayout((l) => shelveDuplicates(l))}>
+                ย้ายเสียงซ้ำลงชั้นวาง ({dupesInCart.length})
+              </button>
+            )}
             {t.usesFile && (
               <button
                 type="button"

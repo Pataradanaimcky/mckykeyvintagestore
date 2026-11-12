@@ -40,7 +40,8 @@ One small, tested change per run, top to bottom.
 
 1. [x] DX7: receive a cartridge from the keyboard over USB (read only), done 2026-11-12.
 1a. DX7: still open: confirm the exact transmit prompt text on the display (the online copy of the manual is OCR and reads "MIDI TRANSIT?"/"MIT?"; the page now writes "MIDI TRANSMIT ?") and test a real DX7 dump and a downloaded cartridge in Dexed and on a DX7. Yamaha's own DX7 PDF (data.yamaha.com DX7E1.pdf) is a scan with no text, so the transmission data table could not be quoted this run.
-2. DX7: small organizer helpers a DX7 owner wants: merge two cartridges into one, find duplicate voices, swap whole halves (1–16 / 17–32), export a voice list as text.
+2. [x] DX7: find duplicate voices (same 145 parameter bytes, names ignored; "ย้ายเสียงซ้ำลงชั้นวาง" keeps the first copy) and swap halves 1–16 ↔ 17–32, done 2026-11-12 (`duplicateVoices`, `shelveDuplicates`, `swapHalves`, tests/dx7-helpers.test.ts).
+2a. DX7: still open from item 2: merge two cartridges into one (pick which 16 of each), export a plain voice list as text (the order sheet already lists names; decide if a separate list is needed).
 3. MODX M: done for structure, names, colors, volume and jobs (see above). Still open: the Volume default value and SSS Time per slot (MONTAGE M has SSS Time; check MODX M), and whether Yamaha FM Converter output (DX7 .syx to MONTAGE/MODX) loads on MODX M, and if so show that route next to the DX7 download.
 4. MODX M: research whether the MODX M user file or library file lists Performance names in a readable way, so names can be imported from a file instead of typed. Only use documented or clearly safe reading; never write those files.
 5. FANTOM-0: confirm scene numbering, banks and the Scene Write / scene order steps from the official manual; update the target.
