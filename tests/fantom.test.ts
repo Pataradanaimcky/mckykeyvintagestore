@@ -48,3 +48,27 @@ test("rejects bad checksum, other addresses, other models and too-long data", ()
   assert.equal(readSceneNameReply(other), null);
   assert.equal(readSceneNameReply(dt1(10, "TooLongName")), null);
 });
+
+test("Identity Request asks every device by default (F0 7E 7F 06 01 F7)", async () => {
+  const { identityRequest } = await import("../src/lib/studio/fantom.ts");
+  assert.equal(hex(identityRequest()), "F0 7E 7F 06 01 F7");
+  assert.equal(hex(identityRequest(0x10)), "F0 7E 10 06 01 F7");
+  assert.throws(() => identityRequest(0x20));
+});
+
+test("Identity Reply names the FANTOM-0 model from the manual's revision bytes", async () => {
+  const { readIdentityReply } = await import("../src/lib/studio/fantom.ts");
+  const reply = (dev: number, rev: number[]) => [0xf0, 0x7e, dev, 0x06, 0x02, 0x41, 0x5b, 0x03, 0x00, 0x01, ...rev, 0xf7];
+  assert.equal(readIdentityReply(reply(0x10, [0x00, 0x03, 0x00, 0x00]))?.model, "FANTOM-06");
+  assert.equal(readIdentityReply(reply(0x10, [0x01, 0x03, 0x00, 0x00]))?.model, "FANTOM-07");
+  const r = readIdentityReply(reply(0x11, [0x02, 0x03, 0x00, 0x00]));
+  assert.deepEqual([r?.device, r?.model], [0x11, "FANTOM-08"]);
+  // Same family, revision not printed in the manual: still FANTOM-0, model unknown.
+  const later = readIdentityReply(reply(0x10, [0x00, 0x04, 0x00, 0x00]));
+  assert.ok(later);
+  assert.equal(later.model, undefined);
+  // Other family number, other maker, wrong length: not a FANTOM-0.
+  assert.equal(readIdentityReply([0xf0, 0x7e, 0x10, 0x06, 0x02, 0x41, 0x5b, 0x03, 0x00, 0x00, 0, 3, 0, 0, 0xf7]), null);
+  assert.equal(readIdentityReply([0xf0, 0x7e, 0x10, 0x06, 0x02, 0x43, 0x5b, 0x03, 0x00, 0x01, 0, 3, 0, 0, 0xf7]), null);
+  assert.equal(readIdentityReply(reply(0x10, [0x00, 0x03, 0x00])), null);
+});

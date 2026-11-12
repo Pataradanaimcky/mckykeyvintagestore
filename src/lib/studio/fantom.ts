@@ -80,3 +80,54 @@ export class SceneNameCollector {
     return (this.chars as number[]).map((b) => String.fromCharCode(b)).join("").replace(/\s+$/, "");
   }
 }
+
+/*
+ * Identity Request / Identity Reply (Universal Non-realtime, General Information),
+ * from the same MIDI Implementation v1.00, read only:
+ * - Identity Request (received): F0 7E dev 06 01 F7, dev 10H–1FH or 7FH (broadcast).
+ *   "When this message is received, Identity Reply message will be transmitted."
+ * - Identity Reply (transmitted): F0 7E dev 06 02 41 5B 03 00 01 rr 03 00 00 F7,
+ *   41H Roland, 5BH 03H device family code, 00H 01H device family number code,
+ *   then the software revision, given per model: FANTOM-06 00H 03H 00H 00H,
+ *   FANTOM-07 01H 03H 00H 00H, FANTOM-08 02H 03H 00H 00H.
+ * Nothing here is used by the page yet; it is for finding which USB port is a
+ * FANTOM-0 without relying on the port name. Not tested on a real keyboard.
+ */
+
+/** Identity Request. 7FH asks every device; 10H–1FH asks one Device ID. */
+export function identityRequest(device = 0x7f): Uint8Array {
+  if (!Number.isInteger(device) || !(device === 0x7f || (device >= 0x10 && device <= 0x1f))) {
+    throw new RangeError("device is 10H–1FH or 7FH");
+  }
+  return Uint8Array.from([0xf0, 0x7e, device, 0x06, 0x01, 0xf7]);
+}
+
+export type FantomModel = "FANTOM-06" | "FANTOM-07" | "FANTOM-08";
+
+const IDENTITY_HEAD = [0x06, 0x02, 0x41, 0x5b, 0x03, 0x00, 0x01] as const;
+const MODEL_BY_REVISION: Record<number, FantomModel> = { 0x00: "FANTOM-06", 0x01: "FANTOM-07", 0x02: "FANTOM-08" };
+
+export interface FantomIdentity {
+  /** Device ID the keyboard answered with (10H–1FH). */
+  device: number;
+  /** Model from the first software revision byte, or undefined if the value is not in the manual. */
+  model?: FantomModel;
+  /** The four software revision bytes as sent. */
+  revision: number[];
+}
+
+/**
+ * Reads an Identity Reply. Gives null unless it is Roland's FANTOM-0 family
+ * (family code 5B 03, family number 00 01). The model is named only for the
+ * revision values printed in the manual; later firmware may send other values.
+ */
+export function readIdentityReply(msg: ArrayLike<number>): FantomIdentity | null {
+  const m = Array.from(msg);
+  if (m.length !== 15 || m[0] !== 0xf0 || m[1] !== 0x7e || m[14] !== 0xf7) return null;
+  if (m[2] < 0x10 || m[2] > 0x1f) return null;
+  if (IDENTITY_HEAD.some((b, i) => m[3 + i] !== b)) return null;
+  const revision = m.slice(10, 14);
+  if (revision.some((b) => b > 0x7f)) return null;
+  const printed = revision[1] === 0x03 && revision[2] === 0x00 && revision[3] === 0x00;
+  return { device: m[2], model: printed ? MODEL_BY_REVISION[revision[0]] : undefined, revision };
+}
