@@ -46,7 +46,6 @@ src/
     packs/                    All packs with filters; packs/[slug] is one pack
     compatibility/            Which keyboards each line works on, and install steps
     faq/                      Questions and answers
-    demo/                     Demo player: hear packs and free sounds, swap while a phrase loops, A/B
     studio/                   Sound organizer: order DX7 cartridges, MODX M Live Sets, FANTOM-0 scenes (see docs/STUDIO.md)
     login/, account/          Sign in with a social account; my orders
     api/auth/                 Sign-in endpoints the platforms call back to
@@ -66,7 +65,7 @@ src/
                               opens DX7 .syx files) and poly/ (eight-voice analog-style polysynth)
   worklets/                   AudioWorklet code; scripts/build-worklets.mjs bundles it into public/worklets/
   config/site.ts              Brand name, site address, contact, sample-data switch
-  content/                    Page text that is not product data (FAQ); demos.ts lists the owner's recorded demo clips
+  content/                    Page text that is not product data (FAQ); demos.ts lists the owner's recorded demo clips (played on pack pages and in organizer demo banks)
   lib/
     catalog/                  Product data and lookups  ← add packs here
     auth/                     Sign-in setup and the list of platforms

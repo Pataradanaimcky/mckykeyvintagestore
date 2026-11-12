@@ -36,6 +36,7 @@ Read this before changing the interface. Add new entries at the bottom of Histor
 - 2026-11-12, owner request: use open source to let people hear MODX M sounds on the site where possible. The real sounds cannot be emulated (Yamaha samples, undocumented files), so slots preview with openly licensed General MIDI samples of the same type, clearly labelled as close matches.
 - 2026-11-12, owner request: a demo page where people hear sample sounds and patches, can swap between them, and cannot download them. /demo, menu "ฟังเดโม".
 - 2026-11-12, owner clarification: "demo" means demo banks in the organizer: a store pack's sounds load onto the keyboard face, each slot plays its own demo, people can swap and arrange, but nothing from a demo bank can be downloaded, saved or shared.
+- 2026-11-12, owner request (replaces the /demo page entry above): no separate demo page; demos live inside each feature (▶ on every sound in a pack page, demo banks in the organizer). Navigation must be easy: the menu shows the three parts in the landing page order, numbered 01 เล่นซินธ์ (/#play), 02 จัดเรียงเสียง (/studio), 03 แพ็กเสียง (/packs), then บัญชี; รุ่นที่ใช้ได้ and คำถาม move to the footer. On a phone the menu is one row that scrolls sideways under the name, with the cart beside the name.
 
 ## Open questions
 
@@ -45,7 +46,7 @@ Read this before changing the interface. Add new entries at the bottom of Histor
 - Real cover images: the owner can supply his own photos of his own keyboards to replace the drawn covers.
 - "Keyboard icon look more modern": the key strip on pack covers was redrawn with rounded keys. Should the brand mark (logo, site icon, social profile picture) be redrawn too? Recommended: no, keep it; it already matches.
 - Should the rack also appear on other pages? Recommended: home page only, so it does not pull attention from buying.
-- Demo audio: /demo is ready for the owner's own recordings (see src/content/demos.ts). Until a pack has them, its patches play a clearly labelled close-match preview. Recommended: record the first pack's 8 patches as 15–30 second loops.
+- Demo audio: pack pages and organizer demo banks are ready for the owner's own recordings (see src/content/demos.ts). Until a pack has them, its patches play a clearly labelled close-match preview. Recommended: record the first pack's 8 patches as 15–30 second loops.
 
 ## History
 
@@ -73,3 +74,4 @@ Read this before changing the interface. Add new entries at the bottom of Histor
 - 2026-11-12: Organizer can receive a DX7's 32 internal voices over USB-MIDI (read only, nothing is sent to the keyboard); the dump is checked (header, length, checksum) before it becomes the cartridge, and the panel steps from the DX7 manual are shown while waiting.
 - 2026-11-12: Added /demo: collections (free FM, free POLY, every store pack), a deck screen with the patch name, how real the sound is (recorded demo / real engine sound / close match), a beat display and scope, play/stop, tap a patch to swap while the phrase keeps looping, A ↔ B swap, phrase choice (auto by patch type, city pop chords, ballad arpeggio, bass line, melody), and a keyboard to play the sound. Audio plays through Web Audio only: no audio elements, file links or download controls. Recorded demo clips go in src/content/demos.ts. "ฟังเดโม" link on pack pages and the landing page.
 - 2026-11-12: Organizer demo banks: "ลองกับแบงก์เดโมของร้าน" lists the store packs for the chosen keyboard; opening one keeps the visitor's own work aside ("กลับงานของฉัน" brings it back), fills the first page with the pack's sounds in order, plays the owner's recorded demo of each sound when there is one (screen shows ▶ DEMO) or a close-match preview (▶ PREVIEW), and replaces the save/download/share panel with "ซื้อแพ็ก" and "กลับงานของฉัน".
+- 2026-11-12: Removed /demo. Pack pages: every sound in the list has ▶ (recorded demo when there is one, marked DEMO; otherwise a close-match preview, explained under the list) and a "ลองจัดเรียงในแบงก์เดโม" link that opens /studio?demo=<pack>. New menu (numbered 01–03 + บัญชี, scrolls sideways on phones, no wrapping) and a footer with "ใช้งาน" and "ช่วยเหลือ" link columns.

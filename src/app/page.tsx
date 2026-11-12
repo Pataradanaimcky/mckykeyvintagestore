@@ -82,8 +82,8 @@ export default function HomePage() {
             <p className="font-mono text-sm text-muted">03 · ซื้อเสียง</p>
             <h2 className="section-title">แพ็กเสียงไทยป๊อป และซิตี้ป๊อป</h2>
             <p className="max-w-2xl text-lg text-muted">ทำโดยนักคีย์บอร์ดแบ็กอัพ ตั้งค่าสำหรับเล่นสดไว้แล้ว โหลดลงเครื่องแล้วเล่นได้เลย</p>
-            <Link href="/demo" className="btn btn-dark self-start">
-              ▶ ฟังเดโมทุกแพ็ก <span aria-hidden="true" className="btn-arrow">→</span>
+            <Link href="/packs" className="btn btn-dark self-start">
+              ▶ ฟังเสียงในทุกแพ็ก <span aria-hidden="true" className="btn-arrow">→</span>
             </Link>
           </div>
           <div className="grid gap-4 md:grid-cols-2">

@@ -8,15 +8,16 @@ import { NavLinks } from "./NavLinks";
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-20 bg-canvas/80 backdrop-blur-md">
-      <Container className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-4">
-        <Link href="/" className="flex items-center gap-2.5 text-xl font-bold tracking-tight">
+      <Container className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-3 sm:py-4">
+        <Link href="/" className="flex shrink-0 items-center gap-2.5 text-xl font-bold tracking-tight">
           <BrandMark className="h-8 w-8" />
           {site.name}
         </Link>
-        <div className="flex flex-wrap items-center gap-2">
+        {/* On a phone the menu takes its own row under the name; the cart stays beside the name. */}
+        <div className="order-last w-full min-w-0 md:order-none md:w-auto">
           <NavLinks />
-          <CartLink />
         </div>
+        <CartLink />
       </Container>
     </header>
   );

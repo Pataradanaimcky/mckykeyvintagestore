@@ -6,6 +6,7 @@ import { CompatibilityTable } from "@/components/catalog/CompatibilityTable";
 import { InstrumentChip } from "@/components/catalog/InstrumentChip";
 import { PackCover } from "@/components/catalog/PackCover";
 import { PatchList } from "@/components/catalog/PatchList";
+import { clipFor } from "@/content/demos";
 import { PriceTag } from "@/components/catalog/PriceTag";
 import { Container } from "@/components/layout/Container";
 import { getCartSlugs } from "@/lib/cart";
@@ -81,13 +82,12 @@ export default async function PackPage({ params }: PageProps<"/packs/[slug]">) {
 
       <section className="grid gap-8 md:grid-cols-2">
         <div className="flex min-w-0 flex-col gap-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-xl font-semibold">เสียงในแพ็ก</h2>
-            <Link href={`/demo?pack=${product.slug}`} className="btn btn-light">
-              ▶ ฟังเดโม
-            </Link>
-          </div>
-          <PatchList product={product} />
+          <h2 className="text-xl font-semibold">เสียงในแพ็ก · กด ▶ เพื่อฟัง</h2>
+          <PatchList
+            slug={product.slug}
+            soundCount={product.soundCount}
+            patches={product.patches.map((p) => ({ tag: p.tag, name: p.name, clip: clipFor(product.slug, p.name) }))}
+          />
         </div>
         <div className="flex min-w-0 flex-col gap-3">
           <h2 className="text-xl font-semibold">วิธีติดตั้ง</h2>

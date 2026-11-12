@@ -96,7 +96,21 @@ const same = (a: Place | null, b: Place) =>
  * then download the file or an order sheet to follow on the keyboard.
  */
 export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
-  const [layout, setLayout] = useState<Layout>(initial);
+  // A link such as /studio?demo=<pack> opens that pack's demo bank, keeping the visitor's own work aside.
+  const [layout, setLayout] = useState<Layout>(() => {
+    try {
+      const slug = new URLSearchParams(window.location.search).get("demo");
+      const pack = packs.find((p) => p.slug === slug);
+      if (pack) {
+        const own = load(pack.target);
+        if (!demoOf(own)) window.localStorage.setItem(`${KEY(pack.target)}-mine`, layoutToJson(own));
+        return demoBank(pack, guessSound);
+      }
+    } catch {
+      // Storage blocked: fall back to the usual start.
+    }
+    return initial();
+  });
   const [page, setPage] = useState(0);
   const [picked, setPicked] = useState<Place | null>(null);
   // Bumped on each pick so the chosen button and the screen replay their animation.

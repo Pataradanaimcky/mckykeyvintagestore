@@ -3,29 +3,29 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+/** The site's three parts, numbered as on the landing page, then the account. */
 const links = [
-  { href: "/packs", label: "แพ็กเสียง" },
-  { href: "/demo", label: "ฟังเดโม" },
-  { href: "/studio", label: "จัดเรียงเสียง" },
-  { href: "/compatibility", label: "รุ่นที่ใช้ได้" },
-  { href: "/faq", label: "คำถาม" },
-  { href: "/account", label: "บัญชี" },
+  { href: "/#play", match: "/", label: "เล่นซินธ์", num: "01" },
+  { href: "/studio", match: "/studio", label: "จัดเรียงเสียง", num: "02" },
+  { href: "/packs", match: "/packs", label: "แพ็กเสียง", num: "03" },
+  { href: "/account", match: "/account", label: "บัญชี" },
 ];
 
-/** Main menu. The link for the current section is highlighted. */
+/** Main menu. One row that scrolls sideways on a phone instead of wrapping. */
 export function NavLinks() {
   const pathname = usePathname();
   return (
-    <nav aria-label="เมนูหลัก" className="flex items-center gap-1 text-sm font-medium">
+    <nav aria-label="เมนูหลัก" className="nav-scroll -mx-1 flex items-center gap-1 overflow-x-auto px-1 text-sm font-medium">
       {links.map((link) => {
-        const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
+        const active = link.match === "/" ? pathname === "/" : pathname === link.match || pathname.startsWith(`${link.match}/`);
         return (
           <Link
             key={link.href}
             href={link.href}
             aria-current={active ? "page" : undefined}
-            className={`rounded-full px-3 py-2 transition-colors ${active ? "bg-surface" : "hover:bg-surface"}`}
+            className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 transition-colors ${active ? "bg-surface" : "hover:bg-surface"}`}
           >
+            {link.num && <span className="font-mono text-[0.65rem] text-muted">{link.num}</span>}
             {link.label}
           </Link>
         );
