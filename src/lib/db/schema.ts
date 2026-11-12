@@ -1,4 +1,5 @@
-import { index, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { index, integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import type { OrderItem } from "@/lib/orders/types";
 
 /** One row per checkout attempt. Amounts are in satang. */
 export const orders = pgTable(
@@ -7,6 +8,7 @@ export const orders = pgTable(
     id: text("id").primaryKey(),
     productSlug: text("product_slug").notNull(),
     productName: text("product_name").notNull(),
+    items: jsonb("items").$type<OrderItem[]>().notNull().default([]),
     amountSatang: integer("amount_satang").notNull(),
     currency: text("currency").notNull().default("THB"),
     email: text("email").notNull(),

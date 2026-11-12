@@ -15,6 +15,13 @@
       "when": 1794438797882,
       "tag": "0001_elite_squirrel_girl",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794452409321,
+      "tag": "0002_freezing_roughhouse",
+      "breakpoints": true
     }
   ]
 }

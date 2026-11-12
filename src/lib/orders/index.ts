@@ -4,9 +4,9 @@ import { isDemoMode } from "@/lib/env";
 import { getProvider, type PaymentEvent } from "@/lib/payments";
 import { postgresOrderRepository } from "./postgres-repository";
 import { signedLinkOrderRepository } from "./signed-link-repository";
-import type { Order, OrderRepository } from "./types";
+import type { Order, OrderItem, OrderRepository } from "./types";
 
-export type { Order, OrderStatus } from "./types";
+export type { Order, OrderItem, OrderStatus } from "./types";
 
 function repository(): OrderRepository {
   return isDemoMode ? signedLinkOrderRepository : postgresOrderRepository;
@@ -14,26 +14,40 @@ function repository(): OrderRepository {
 
 export class OrderError extends Error {}
 
-/** Create a pending order and its payment charge. The price always comes from the catalog. */
+/** "Pack A" or "Pack A และอีก 2 แพ็ก" */
+function describe(items: OrderItem[]): string {
+  return items.length === 1 ? items[0].name : `${items[0].name} และอีก ${items.length - 1} แพ็ก`;
+}
+
+/**
+ * Create a pending order for one or more packs, and its payment charge.
+ * Prices always come from the catalog, never from the browser.
+ */
 export async function createOrder(input: {
-  productSlug: string;
+  productSlugs: string[];
   email: string;
   userId?: string | null;
 }): Promise<Order> {
-  const product = getProduct(input.productSlug);
-  if (!product) throw new OrderError("ไม่พบสินค้านี้");
-  if (product.status !== "available") throw new OrderError("สินค้านี้ยังไม่เปิดขาย");
+  const slugs = [...new Set(input.productSlugs)];
+  if (slugs.length === 0) throw new OrderError("ตะกร้าว่างอยู่");
+
+  const items: OrderItem[] = slugs.map((slug) => {
+    const product = getProduct(slug);
+    if (!product) throw new OrderError("มีแพ็กที่ไม่พบในร้าน กรุณาตรวจตะกร้าอีกครั้ง");
+    if (product.status !== "available") throw new OrderError(`${product.name} ยังไม่เปิดขาย`);
+    return { slug: product.slug, name: product.name, priceSatang: product.priceSatang };
+  });
+  const amountSatang = items.reduce((sum, item) => sum + item.priceSatang, 0);
+  const summary = describe(items);
 
   const provider = getProvider();
-  const charge = await provider.createCharge({
-    amountSatang: product.priceSatang,
-    description: product.name,
-  });
+  const charge = await provider.createCharge({ amountSatang, description: summary });
 
   return repository().create({
-    productSlug: product.slug,
-    productName: product.name,
-    amountSatang: product.priceSatang,
+    items,
+    productSlug: items[0].slug,
+    productName: summary,
+    amountSatang,
     currency: "THB",
     email: input.email,
     userId: input.userId ?? null,

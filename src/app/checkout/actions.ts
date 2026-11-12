@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { currentUser } from "@/lib/auth";
+import { getCartSlugs, saveCart } from "@/lib/cart";
 import { createOrder, OrderError } from "@/lib/orders";
 
 export interface CheckoutState {
@@ -10,15 +11,10 @@ export interface CheckoutState {
   email?: string;
 }
 
-const checkoutSchema = z.object({
-  productSlug: z.string().min(1).max(100),
-  email: z.email().max(254),
-});
+const emailSchema = z.email().max(254);
 
-export async function startCheckout(
-  _previous: CheckoutState,
-  formData: FormData,
-): Promise<CheckoutState> {
+/** Turn the cart into one order and show its payment page. */
+export async function startCheckout(_previous: CheckoutState, formData: FormData): Promise<CheckoutState> {
   const email = String(formData.get("email") ?? "").trim();
 
   // Hidden field that real buyers never fill in. Bots usually do.
@@ -26,18 +22,20 @@ export async function startCheckout(
     return { error: "ส่งแบบฟอร์มไม่สำเร็จ กรุณาลองใหม่", email };
   }
 
-  const parsed = checkoutSchema.safeParse({
-    productSlug: formData.get("productSlug"),
-    email,
-  });
-  if (!parsed.success) {
+  if (!emailSchema.safeParse(email).success) {
     return { error: "กรุณากรอกอีเมลให้ถูกต้อง เช่น name@example.com", email };
+  }
+
+  // The cart is read on the server. Nothing the browser sends can change what is bought or the price.
+  const slugs = await getCartSlugs();
+  if (slugs.length === 0) {
+    return { error: "ตะกร้าว่างอยู่ กรุณาเลือกแพ็กก่อน", email };
   }
 
   let orderId: string;
   try {
     const user = await currentUser();
-    const order = await createOrder({ ...parsed.data, userId: user?.id });
+    const order = await createOrder({ productSlugs: slugs, email, userId: user?.id });
     orderId = order.id;
   } catch (error) {
     if (error instanceof OrderError) return { error: error.message, email };
@@ -45,5 +43,6 @@ export async function startCheckout(
     return { error: "สร้างคำสั่งซื้อไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", email };
   }
 
+  await saveCart([]);
   redirect(`/orders/${orderId}`);
 }

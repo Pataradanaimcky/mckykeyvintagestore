@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CartLink } from "@/components/cart/CartLink";
 import { site } from "@/config/site";
 import { BrandMark } from "./BrandMark";
 import { Container } from "./Container";
@@ -12,7 +13,10 @@ export function SiteHeader() {
           <BrandMark className="h-8 w-8" />
           {site.name}
         </Link>
-        <NavLinks />
+        <div className="flex flex-wrap items-center gap-2">
+          <NavLinks />
+          <CartLink />
+        </div>
       </Container>
     </header>
   );

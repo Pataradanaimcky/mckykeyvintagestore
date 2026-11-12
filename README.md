@@ -48,19 +48,22 @@ src/
     faq/                      Questions and answers
     login/, account/          Sign in with a social account; my orders
     api/auth/                 Sign-in endpoints the platforms call back to
-    checkout/[slug]/          Checkout form and its server action
+    cart/                     Cart page and the add/remove actions
+    checkout/                 Checkout for everything in the cart
     orders/[id]/              Payment QR, order status, test buttons
     icon.svg, apple-icon.png, opengraph-image.png   Site icon and link preview image
     api/payments/webhook/     URL that payment gateways call
   components/
     layout/                   Header, footer, announcement bar, container
     catalog/                  Product card, cover art, tabs, banner, patch list
+    cart/                     Add-to-cart buttons, cart rows, header cart link, order summary
     checkout/                 Checkout form, QR code, test panel
   config/site.ts              Brand name, site address, contact, sample-data switch
   content/                    Page text that is not product data (FAQ)
   lib/
     catalog/                  Product data and lookups  ← add packs here
     auth/                     Sign-in setup and the list of platforms
+    cart/                     Cart cookie: read, write, clean up
     orders/                   Order rules and the two storage back ends
     payments/                 Provider interface, simulator, PromptPay QR builder
     db/                       Database schema and connection
@@ -85,7 +88,7 @@ tests/                        Unit tests
 
 ## What is built in for safety
 
-- Prices are always read from the server-side catalog, never from the browser.
+- Prices are always read from the server-side catalog, never from the browser. The cart cookie holds pack names only, and unknown or unavailable packs in it are dropped.
 - Order ids are random and unguessable. Demo-mode links are signed and reject any tampering.
 - Webhooks are rejected unless the provider's signature checks out, and applying the same webhook twice changes nothing.
 - A real payment provider refuses to start without `DATABASE_URL` and a real `ORDER_SECRET`.

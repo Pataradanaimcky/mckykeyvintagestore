@@ -10,6 +10,11 @@ function toOrder(row: OrderRow): Order {
     id: row.id,
     productSlug: row.productSlug,
     productName: row.productName,
+    // Orders made before the cart existed held one pack and no item list.
+    items:
+      row.items.length > 0
+        ? row.items
+        : [{ slug: row.productSlug, name: row.productName, priceSatang: row.amountSatang }],
     amountSatang: row.amountSatang,
     currency: "THB",
     email: row.email,

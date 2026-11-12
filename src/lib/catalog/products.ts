@@ -50,7 +50,7 @@ export const products: Product[] = [
     priceSatang: 49000,
     soundCount: 24,
     engines: "FM-X + AWM2",
-    status: "coming_soon",
+    status: "available",
     cover: { label: "EP" },
     patches: [
       { tag: "Key", name: "Neon Avenue Tine" },
@@ -172,7 +172,7 @@ export const products: Product[] = [
     priceSatang: 59000,
     soundCount: 32,
     engines: "ZEN-Core + SuperNATURAL",
-    status: "coming_soon",
+    status: "available",
     cover: { label: "KEYS" },
     patches: [
       { tag: "Pf", name: "Siam Square Grand" },

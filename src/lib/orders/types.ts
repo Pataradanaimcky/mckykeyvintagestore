@@ -1,10 +1,22 @@
 export type OrderStatus = "pending" | "paid" | "failed" | "expired";
 
+/** One pack in an order, with the price it was sold at. */
+export interface OrderItem {
+  slug: string;
+  name: string;
+  priceSatang: number;
+}
+
 export interface Order {
   /** Unguessable identifier used in the order page URL. */
   id: string;
+  /** Every pack in the order. */
+  items: OrderItem[];
+  /** First pack's slug. */
   productSlug: string;
+  /** Short description for lists, e.g. "Thai Pop Keys Vol.1 และอีก 1 แพ็ก". */
   productName: string;
+  /** Total of all items. */
   amountSatang: number;
   currency: "THB";
   email: string;

@@ -1,17 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AddToCart } from "@/components/cart/AddToCart";
 import { CompatibilityTable } from "@/components/catalog/CompatibilityTable";
 import { InstrumentChip } from "@/components/catalog/InstrumentChip";
 import { PackCover } from "@/components/catalog/PackCover";
 import { PatchList } from "@/components/catalog/PatchList";
 import { PriceTag } from "@/components/catalog/PriceTag";
 import { Container } from "@/components/layout/Container";
-import { getInstrument, getProduct, listProducts } from "@/lib/catalog";
-
-export function generateStaticParams() {
-  return listProducts().map((product) => ({ slug: product.slug }));
-}
+import { getCartSlugs } from "@/lib/cart";
+import { getInstrument, getProduct } from "@/lib/catalog";
 
 export async function generateMetadata({ params }: PageProps<"/packs/[slug]">): Promise<Metadata> {
   const { slug } = await params;
@@ -26,6 +24,7 @@ export default async function PackPage({ params }: PageProps<"/packs/[slug]">) {
 
   const instrument = getInstrument(product.instrument);
   const available = product.status === "available";
+  const inCart = available && (await getCartSlugs()).includes(product.slug);
 
   return (
     <Container className="flex flex-col gap-12 py-6 sm:py-10">
@@ -70,12 +69,7 @@ export default async function PackPage({ params }: PageProps<"/packs/[slug]">) {
           </dl>
           <PriceTag product={product} size="lg" />
           {available ? (
-            <Link
-              href={`/checkout/${product.slug}`}
-              className="rounded-full bg-ink px-6 py-3 text-center font-semibold text-canvas transition hover:bg-brand-dark"
-            >
-              ซื้อแพ็กนี้
-            </Link>
+            <AddToCart slug={product.slug} inCart={inCart} />
           ) : (
             <p className="rounded-full bg-surface px-6 py-3 text-center font-semibold text-muted">
               ยังไม่เปิดขาย

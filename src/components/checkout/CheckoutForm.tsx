@@ -1,16 +1,14 @@
 "use client";
 
 import { useActionState } from "react";
-import { startCheckout, type CheckoutState } from "@/app/checkout/[slug]/actions";
+import { startCheckout, type CheckoutState } from "@/app/checkout/actions";
 
 const initialState: CheckoutState = {};
 
 export function CheckoutForm({
-  productSlug,
   paymentLabel,
   defaultEmail,
 }: {
-  productSlug: string;
   paymentLabel: string;
   /** Email of the signed-in buyer, used to fill the field in advance. */
   defaultEmail?: string;
@@ -19,7 +17,6 @@ export function CheckoutForm({
 
   return (
     <form action={formAction} className="flex flex-col gap-5" noValidate>
-      <input type="hidden" name="productSlug" value={productSlug} />
       {/* Honeypot: hidden from people, visible to bots. */}
       <div aria-hidden="true" className="hidden">
         <label htmlFor="company">Company</label>

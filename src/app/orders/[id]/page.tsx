@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { restoreCartFromOrder } from "@/app/cart/actions";
 import { MockPaymentPanel } from "@/components/checkout/MockPaymentPanel";
 import { OrderStatusPoller } from "@/components/checkout/OrderStatusPoller";
 import { QrCode } from "@/components/checkout/QrCode";
@@ -25,7 +25,16 @@ function Summary({ order }: { order: Order }) {
   return (
     <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-6 gap-y-2 rounded-2xl border border-line p-5 text-sm">
       <dt className="text-muted">สินค้า</dt>
-      <dd className="text-right font-medium">{order.productName}</dd>
+      <dd>
+        <ul className="flex flex-col gap-1">
+          {order.items.map((item) => (
+            <li key={item.slug} className="flex justify-between gap-4">
+              <span className="min-w-0 truncate font-medium">{item.name}</span>
+              <span className="shrink-0 tabular-nums text-muted">{formatTHB(item.priceSatang)}</span>
+            </li>
+          ))}
+        </ul>
+      </dd>
       <dt className="text-muted">ยอดชำระ</dt>
       <dd className="text-right font-semibold tabular-nums">{formatTHB(order.amountSatang)}</dd>
       <dt className="text-muted">ส่งไฟล์ไปที่</dt>
@@ -109,12 +118,12 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
             {order.status === "failed" ? "การชำระเงินไม่สำเร็จ" : "QR นี้หมดอายุแล้ว"}
           </h2>
           <p className="text-muted">ยังไม่มีการตัดเงิน คุณสร้างคำสั่งซื้อใหม่เพื่อรับ QR อันใหม่ได้</p>
-          <Link
-            href={`/checkout/${order.productSlug}`}
-            className="rounded-full bg-ink px-5 py-2.5 font-semibold text-canvas hover:bg-brand-dark"
-          >
-            สั่งซื้ออีกครั้ง
-          </Link>
+          <form action={restoreCartFromOrder}>
+            <input type="hidden" name="orderId" value={order.id} />
+            <button type="submit" className="btn btn-dark">
+              สั่งซื้ออีกครั้ง <span aria-hidden="true" className="btn-arrow">→</span>
+            </button>
+          </form>
         </section>
       ) : null}
 
