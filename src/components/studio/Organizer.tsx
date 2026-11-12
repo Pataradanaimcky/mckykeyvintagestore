@@ -5,6 +5,8 @@ import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEv
 import { FM_PRESETS } from "@/components/rack/fm/presets";
 import { OctaveSwitch, RackKeys } from "@/components/rack/RackKeys";
 import { bankSysex, voiceSysex } from "@/lib/studio/dx7";
+import { getSound, guessSound, PREVIEW_SOUNDS } from "@/lib/studio/sounds";
+import { GmPreview } from "./gmPreview";
 import {
   decodeLayout,
   emptyLayout,
@@ -129,7 +131,29 @@ export function Organizer() {
     }
   }, [layout]);
 
-  useEffect(() => () => void engine.current?.ctx.close(), []);
+  // Open-sample previews for keyboards whose sounds are not in a file (MODX M, FANTOM-0).
+  const gm = useRef<GmPreview | null>(null);
+  const [gmState, setGmState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const soundOf = (item: Item) => getSound(item.sound ?? guessSound(item.name));
+  const auditionGm = async (item: Item) => {
+    gm.current ??= new GmPreview();
+    setGmState("loading");
+    try {
+      await gm.current.chord(soundOf(item).gm);
+      setGmState("ready");
+    } catch (error) {
+      console.warn("Preview sound could not load", error);
+      setGmState("error");
+    }
+  };
+
+  useEffect(
+    () => () => {
+      void engine.current?.ctx.close();
+      gm.current?.close();
+    },
+    [],
+  );
 
   const switchTarget = (id: TargetId) => {
     if (id === layout.target) return;
@@ -177,6 +201,7 @@ export function Organizer() {
     // Choosing a DX7 voice plays it, like pressing a voice button on the keyboard.
     const item = at.kind === "slot" ? layout.pages[at.page]?.[at.slot] : layout.pool[at.index];
     if (item?.patch) void preview(item);
+    else if (item) void auditionGm(item);
   };
 
   const onDragStart = (at: Place) => (event: DragEvent) => {
@@ -224,6 +249,11 @@ export function Organizer() {
 
   const noteOn = async (note: number) => {
     setHeld((h) => new Set(h).add(note));
+    if (pickedItem && !pickedPatch) {
+      gm.current ??= new GmPreview();
+      void gm.current.noteOn(soundOf(pickedItem).gm, note).catch(() => setGmState("error"));
+      return;
+    }
     if (!pickedPatch) return;
     const fresh = !engine.current;
     await ensureEngine();
@@ -239,6 +269,7 @@ export function Organizer() {
       return next;
     });
     engine.current?.node.port.postMessage({ type: "off", note });
+    if (pickedItem && !pickedPatch) gm.current?.noteOff(soundOf(pickedItem).gm, note);
   };
   const preview = async (item: Item) => {
     if (!item.patch) return;
@@ -618,8 +649,8 @@ export function Organizer() {
                     <span>โน้ต (เช่น เพลงที่ใช้)</span>
                     <input className="studio-input" value={pickedItem.note} maxLength={60} onChange={(e) => setLayout((l) => updateItem(l, pickedItem.id, { note: e.target.value }))} />
                   </label>
-                  {pickedItem.patch && (
-                    <button type="button" className="studio-btn" onClick={() => void preview(pickedItem)}>
+                  {(pickedItem.patch || !t.usesFile) && (
+                    <button type="button" className="studio-btn" onClick={() => void (pickedItem.patch ? preview(pickedItem) : auditionGm(pickedItem))}>
                       ▶ ฟังอีกครั้ง
                     </button>
                   )}
@@ -634,6 +665,26 @@ export function Organizer() {
                     ลบ
                   </button>
                 </div>
+                {!t.usesFile && (
+                  <label className="studio-field">
+                    <span>เสียงตัวอย่างในเว็บ (ใกล้เคียงตามประเภท)</span>
+                    <select
+                      className="studio-input"
+                      value={pickedItem.sound ?? guessSound(pickedItem.name)}
+                      onChange={(e) => {
+                        const sound = e.target.value;
+                        setLayout((l) => updateItem(l, pickedItem.id, { sound }));
+                        void auditionGm({ ...pickedItem, sound });
+                      }}
+                    >
+                      {PREVIEW_SOUNDS.map((x) => (
+                        <option key={x.key} value={x.key}>
+                          {x.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
                 {t.colors.length > 0 && (
                   <div className="flex flex-col gap-1.5">
                     <span className="text-xs text-muted">Color</span>
@@ -705,21 +756,36 @@ export function Organizer() {
                 )}
               </div>
             ) : (
-              <p className="text-sm text-muted">แตะปุ่มบนเครื่องเพื่อเลือกเสียง{t.usesFile ? " (จะได้ยินเสียงทันที)" : ""} แล้วแตะปุ่มอื่นเพื่อย้าย · ใส่แล้ว {placed} เสียง</p>
+              <p className="text-sm text-muted">แตะปุ่มบนเครื่องเพื่อเลือกเสียง (จะได้ยินเสียงทันที{t.usesFile ? "" : " เป็นเสียงตัวอย่างใกล้เคียง"}) แล้วแตะปุ่มอื่นเพื่อย้าย · ใส่แล้ว {placed} เสียง</p>
             )}
           </div>
 
-          {t.usesFile && (
-            <div className="studio-panel">
-              <div className="flex items-center justify-between gap-2">
-                <h2 className="font-bold">เล่นเสียงที่เลือก</h2>
-                <OctaveSwitch octave={octave} onChange={setOctave} />
-              </div>
-              <div className="rack-skin-fm rounded-xl bg-case p-1.5">
-                <RackKeys active={!!pickedPatch} held={held} octave={octave} onNoteOn={(n) => void noteOn(n)} onNoteOff={noteOff} />
-              </div>
+          <div className="studio-panel">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="font-bold">
+                เล่นเสียงที่เลือก
+                {!t.usesFile && pickedItem && <span className="ml-2 text-sm font-normal text-muted">({soundOf(pickedItem).label})</span>}
+              </h2>
+              <OctaveSwitch octave={octave} onChange={setOctave} />
             </div>
-          )}
+            <div className="rack-skin-fm rounded-xl bg-case p-1.5">
+              <RackKeys active={!!pickedItem} held={held} octave={octave} onNoteOn={(n) => void noteOn(n)} onNoteOff={noteOff} />
+            </div>
+            {!t.usesFile && (
+              <p className="text-xs text-muted">
+                {gmState === "loading"
+                  ? "กำลังโหลดเสียง…"
+                  : gmState === "error"
+                    ? "โหลดเสียงตัวอย่างไม่ได้ ลองใหม่อีกครั้ง หรือเช็กอินเทอร์เน็ต"
+                    : "เสียงตัวอย่างใกล้เคียงตามประเภท ไม่ใช่เสียงจริงของเครื่อง"}{" "}
+                · เสียงจาก FluidR3_GM โดย Frank Wen (CC BY 3.0) ผ่าน{" "}
+                <a className="underline underline-offset-2" href="https://github.com/gleitz/midi-js-soundfonts">
+                  midi-js-soundfonts
+                </a>{" "}
+                และ smplr (MIT)
+              </p>
+            )}
+          </div>
 
           <div className="flex flex-wrap gap-2">
             <button type="button" className="studio-btn" onClick={() => setLayout((l) => sortPage(l, current))}>

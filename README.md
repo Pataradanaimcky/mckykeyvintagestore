@@ -110,4 +110,6 @@ tests/                        Unit tests
 
 The FM page runs [@audio/synth-dx7](https://www.npmjs.com/package/@audio/synth-dx7) (Apache-2.0), a JavaScript port of the Music Synthesizer for Android engine (Copyright 2012-2013 Google Inc.), the same engine Dexed builds on. Its LICENSE and NOTICE are published with the site at `/vendor/synth-dx7/`. The FM voices in `src/components/rack/fm/presets.ts` were written for this store; Yamaha's factory voices are not included. Dexed itself and other GPL synth code are not used, so the store's code stays under its own licence.
 
+The sound organizer previews MODX M and FANTOM-0 slots with open General MIDI samples: FluidR3_GM by Frank Wen (Creative Commons Attribution 3.0), loaded in the visitor's browser from the [midi-js-soundfonts](https://github.com/gleitz/midi-js-soundfonts) project and played with [smplr](https://www.npmjs.com/package/smplr) (MIT). They are close matches by type of sound, not the keyboard's own sounds; the credit is shown under the preview keyboard.
+
 Not built yet: file delivery after payment, order emails, rate limiting, and an admin view.

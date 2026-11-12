@@ -6,6 +6,8 @@
  * Pure data and rules, shared by the page and the tests.
  */
 
+import { PREVIEW_SOUNDS } from "./sounds.ts";
+
 export type TargetId = "dx7" | "modx-m" | "fantom-0";
 
 export interface Target {
@@ -116,6 +118,8 @@ export interface Item {
   color: string;
   /** 0..127, for keyboards with a volume per slot. */
   volume?: number;
+  /** Preview sound type (see sounds.ts) chosen for this slot; guessed from the name when unset. */
+  sound?: string;
   /** DX7 only: the voice data (155 bytes), base64. */
   patch?: string;
 }
@@ -304,7 +308,8 @@ function parseItem(raw: unknown, t: Target): Item | null {
   const color = t.colors.includes(r.color as string) ? (r.color as string) : "";
   const volume = t.hasVolume && typeof r.volume === "number" && Number.isFinite(r.volume) ? Math.min(127, Math.max(0, Math.round(r.volume))) : undefined;
   const patch = allowPatch && typeof r.patch === "string" && /^[A-Za-z0-9+/]{206}[A-Za-z0-9+/=]{2}$/.test(r.patch) ? r.patch : undefined;
-  return { id: newId(), name: name.slice(0, t.nameMax), note: clean(r.note, 60), color, ...(volume !== undefined ? { volume } : {}), ...(patch ? { patch } : {}) };
+  const sound = typeof r.sound === "string" && PREVIEW_SOUNDS.some((x) => x.key === r.sound) ? r.sound : undefined;
+  return { id: newId(), name: name.slice(0, t.nameMax), note: clean(r.note, 60), color, ...(sound ? { sound } : {}), ...(volume !== undefined ? { volume } : {}), ...(patch ? { patch } : {}) };
 }
 
 /** Reads a layout from a file or link, rejecting anything malformed. */

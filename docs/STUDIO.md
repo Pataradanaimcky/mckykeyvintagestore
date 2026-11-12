@@ -12,6 +12,12 @@ Order of work set by the owner: DX7 first (to learn the whole loop on a fully do
 
 Work is kept in the visitor's browser per keyboard, in a downloaded work file, or in a share link. Nothing is uploaded.
 
+## Preview sounds
+
+- DX7: the real voice, through the site's FM engine.
+- MODX M and FANTOM-0: the keyboards' own sounds are Yamaha/Roland samples and undocumented files, so they cannot play on the site. Each slot gets an open sample of the same type instead (Piano, E.Piano, Strings, Pad, Brass, Organ, Bass, Lead, Bell, Choir...), guessed from the name and changeable per slot. Samples: FluidR3_GM (CC BY 3.0) from midi-js-soundfonts, played by smplr (MIT), loaded from gleitz.github.io in the visitor's browser. Other open sample sets were not used because their licences could not be confirmed. Credit stays visible under the preview keyboard.
+- Best match of all: the owner's own recordings of his packs, as audio demos.
+
 ## Where things live
 
 - src/lib/studio/library.ts: keyboard targets (words, grid size, verified flag, sources), layout data, move/swap, fill, sort, order sheet, share links, import checks. Tests: tests/library.test.ts.
