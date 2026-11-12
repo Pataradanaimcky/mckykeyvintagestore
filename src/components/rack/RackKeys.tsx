@@ -171,4 +171,4 @@ export function OctaveSwitch({ octave, onChange }: { octave: number; onChange: (
   );
 }
 
-export const midiToHz = (note: number) => 440 * 2 ** ((note - 69) / 12);
+export { midiToHz } from "./midi";
