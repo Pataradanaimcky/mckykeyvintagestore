@@ -120,6 +120,10 @@ export interface Item {
   volume?: number;
   /** Preview sound type (see sounds.ts) chosen for this slot; guessed from the name when unset. */
   sound?: string;
+  /** Set on sounds from a store pack's demo bank (the pack's slug). Demo banks can be played and arranged, not exported. */
+  demo?: string;
+  /** The owner's recorded demo of this sound, e.g. "/demos/<pack>/<file>.m4a". */
+  clip?: string;
   /** DX7 only: the voice data (155 bytes), base64. */
   patch?: string;
 }
@@ -309,7 +313,9 @@ function parseItem(raw: unknown, t: Target): Item | null {
   const volume = t.hasVolume && typeof r.volume === "number" && Number.isFinite(r.volume) ? Math.min(127, Math.max(0, Math.round(r.volume))) : undefined;
   const patch = allowPatch && typeof r.patch === "string" && /^[A-Za-z0-9+/]{206}[A-Za-z0-9+/=]{2}$/.test(r.patch) ? r.patch : undefined;
   const sound = typeof r.sound === "string" && PREVIEW_SOUNDS.some((x) => x.key === r.sound) ? r.sound : undefined;
-  return { id: newId(), name: name.slice(0, t.nameMax), note: clean(r.note, 60), color, ...(sound ? { sound } : {}), ...(volume !== undefined ? { volume } : {}), ...(patch ? { patch } : {}) };
+  const demo = typeof r.demo === "string" && /^[a-z0-9-]{1,60}$/.test(r.demo) ? r.demo : undefined;
+  const clip = demo && typeof r.clip === "string" && /^\/demos\/[\w./-]{1,160}$/.test(r.clip) && !r.clip.includes("..") ? r.clip : undefined;
+  return { id: newId(), name: name.slice(0, t.nameMax), note: clean(r.note, 60), color, ...(sound ? { sound } : {}), ...(demo ? { demo } : {}), ...(clip ? { clip } : {}), ...(volume !== undefined ? { volume } : {}), ...(patch ? { patch } : {}) };
 }
 
 /** Reads a layout from a file or link, rejecting anything malformed. */
@@ -365,4 +371,39 @@ export function decodeLayout(code: string): Layout | null {
   } catch {
     return null;
   }
+}
+
+/** A store pack, as the organizer's demo banks need it. */
+export interface DemoPackInfo {
+  slug: string;
+  name: string;
+  target: TargetId;
+  patches: { tag: string; name: string; clip?: string }[];
+}
+
+/**
+ * A demo bank: the pack's sounds placed in order on the first page, each with
+ * its demo. People can play and arrange it; it cannot be exported.
+ */
+export function demoBank(pack: DemoPackInfo, guess: (name: string) => string): Layout {
+  const t = getTarget(pack.target);
+  const slots = emptyPage(t).map((_, i) => {
+    const p = pack.patches[i];
+    if (!p) return null;
+    return { ...newItem(p.name.slice(0, t.nameMax)), sound: guess(`${p.tag} ${p.name}`), demo: pack.slug, ...(p.clip ? { clip: p.clip } : {}) };
+  });
+  const rest = pack.patches.slice(t.slotsPerPage).map((p) => ({ ...newItem(p.name), sound: guess(`${p.tag} ${p.name}`), demo: pack.slug, ...(p.clip ? { clip: p.clip } : {}) }));
+  return {
+    version: 1,
+    target: t.id,
+    title: `${pack.name} (เดโม)`.slice(0, 40),
+    pages: [slots],
+    pool: rest,
+    ...(t.pageNameMax ? { pageNames: ["DEMO"] } : {}),
+  };
+}
+
+/** The demo pack in a layout, if it holds any demo sounds. */
+export function demoOf(layout: Layout): string | undefined {
+  return [...layout.pages.flat(), ...layout.pool].find((x) => x?.demo)?.demo ?? undefined;
 }

@@ -54,6 +54,48 @@ export class GmPreview {
     void this.cache.get(gm)?.then((inst) => inst.stop(note));
   }
 
+  private clips = new Map<string, Promise<AudioBuffer>>();
+  private clipNode: { node: AudioBufferSourceNode; gain: GainNode } | null = null;
+
+  /** Plays the start of a recorded demo through Web Audio (no file link on the page). */
+  async clip(url: string, seconds = 8) {
+    const ctx = this.start();
+    let entry = this.clips.get(url);
+    if (!entry) {
+      entry = fetch(url)
+        .then((r) => {
+          if (!r.ok) throw new Error(`demo ${r.status}`);
+          return r.arrayBuffer();
+        })
+        .then((b) => ctx.decodeAudioData(b));
+      entry.catch(() => this.clips.delete(url));
+      this.clips.set(url, entry);
+    }
+    const buffer = await entry;
+    this.stopClip();
+    const node = ctx.createBufferSource();
+    node.buffer = buffer;
+    const gain = ctx.createGain();
+    const t = ctx.currentTime;
+    const end = t + Math.min(seconds, buffer.duration);
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(1, t + 0.04);
+    gain.gain.setValueAtTime(1, end - 0.4);
+    gain.gain.linearRampToValueAtTime(0, end);
+    node.connect(gain).connect(this.out!);
+    node.start(t);
+    node.stop(end + 0.05);
+    this.clipNode = { node, gain };
+  }
+
+  stopClip() {
+    const c = this.clipNode;
+    if (!c || !this.ctx) return;
+    c.gain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.03);
+    c.node.stop(this.ctx.currentTime + 0.15);
+    this.clipNode = null;
+  }
+
   close() {
     void this.ctx?.close();
     this.ctx = null;

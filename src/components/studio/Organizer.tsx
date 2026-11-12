@@ -1,6 +1,7 @@
 "use client";
 
 import { INIT, parse } from "@audio/synth-dx7";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { FM_PRESETS } from "@/components/rack/fm/presets";
 import { OctaveSwitch, RackKeys } from "@/components/rack/RackKeys";
@@ -25,6 +26,9 @@ import {
   sortPage,
   bankPage,
   copyItem,
+  demoBank,
+  demoOf,
+  type DemoPackInfo,
   deleteAndMove,
   TARGETS,
   updateItem,
@@ -91,7 +95,7 @@ const same = (a: Place | null, b: Place) =>
  * Live Set, or FANTOM-0 scenes. Drag (or tap one, then tap where it goes),
  * then download the file or an order sheet to follow on the keyboard.
  */
-export function Organizer() {
+export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
   const [layout, setLayout] = useState<Layout>(initial);
   const [page, setPage] = useState(0);
   const [picked, setPicked] = useState<Place | null>(null);
@@ -139,12 +143,43 @@ export function Organizer() {
     gm.current ??= new GmPreview();
     setGmState("loading");
     try {
-      await gm.current.chord(soundOf(item).gm);
+      if (item.clip) await gm.current.clip(item.clip);
+      else await gm.current.chord(soundOf(item).gm);
       setGmState("ready");
     } catch (error) {
       console.warn("Preview sound could not load", error);
       setGmState("error");
     }
+  };
+
+  // Demo banks: a store pack's sounds to play and arrange. The visitor's own work is kept aside meanwhile.
+  const demoSlug = demoOf(layout);
+  const demoPack = packs.find((p) => p.slug === demoSlug);
+  const demoPacks = packs.filter((p) => p.target === layout.target);
+  const MINE = (target: TargetId) => `${KEY(target)}-mine`;
+  const openDemo = (pack: DemoPackInfo) => {
+    try {
+      if (!demoOf(layout)) window.localStorage.setItem(MINE(layout.target), layoutToJson(layout));
+    } catch {
+      // Storage blocked: the demo still opens.
+    }
+    setLayout(demoBank(pack, guessSound));
+    setPage(0);
+    setPicked(null);
+    setMessage(`เปิดแบงก์เดโม ${pack.name} แล้ว แตะแต่ละช่องเพื่อฟังเดโม ลองสลับลองจัดได้เลย`);
+  };
+  const backToMine = () => {
+    let mine: Layout | null = null;
+    try {
+      const saved = window.localStorage.getItem(MINE(layout.target));
+      mine = saved ? parseLayout(JSON.parse(saved)) : null;
+    } catch {
+      mine = null;
+    }
+    setLayout(mine ?? emptyLayout(layout.target));
+    setPage(0);
+    setPicked(null);
+    setMessage("กลับมาที่งานของคุณแล้ว");
   };
 
   useEffect(
@@ -418,7 +453,7 @@ export function Organizer() {
         : pickedNo
           ? `SCENE ${pickedNo}`
           : `SCENE ${slotLabel(t, current, 0)}–${slotLabel(t, current, 15)}`;
-  const lcdName = (pickedItem?.name ?? layout.title).toUpperCase();
+  const lcdName = (pickedItem?.name ?? layout.title).toUpperCase() + (pickedItem?.demo ? (pickedItem.clip ? "  ▶ DEMO" : "  ▶ PREVIEW") : "");
   const lcdKey = `${pickCount}-${current}-${layout.target}`;
 
   return (
@@ -459,6 +494,28 @@ export function Organizer() {
           <b>3</b> {t.usesFile ? "ดาวน์โหลดตลับที่เรียงแล้ว (.syx)" : "ดาวน์โหลดใบจัดเรียงไปทำตามบนเครื่อง"}
         </li>
       </ol>
+
+      {/* Demo banks of the store's packs */}
+      {demoPacks.length > 0 && (
+        <section className="organizer-demo" aria-label="แบงก์เดโม">
+          <div className="flex flex-col gap-1">
+            <h2 className="font-bold">ลองกับแบงก์เดโมของร้าน</h2>
+            <p className="text-xs text-muted">โหลดเสียงในแพ็กลงเครื่อง แตะแต่ละช่องเพื่อฟังเดโม ลองสลับลองจัดได้ แต่ดาวน์โหลดไม่ได้</p>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {demoPacks.map((p) => (
+              <button key={p.slug} type="button" aria-pressed={demoSlug === p.slug} onClick={() => openDemo(p)} className={`studio-pill ${demoSlug === p.slug ? "is-on" : ""}`}>
+                ▶ {p.name}
+              </button>
+            ))}
+            {demoSlug && (
+              <button type="button" className="studio-pill" onClick={backToMine}>
+                ← กลับงานของฉัน
+              </button>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* The machine face */}
       <section className={`face face-${t.id}`} aria-label={`หน้าเครื่อง ${t.name}`}>
@@ -898,6 +955,25 @@ export function Organizer() {
         </section>
       </div>
 
+      {demoSlug ? (
+        <section className="studio-panel" aria-label="แบงก์เดโม">
+          <h2 className="font-bold">นี่คือแบงก์เดโม</h2>
+          <p className="text-sm text-muted">
+            ฟังและลองจัดได้ แต่ดาวน์โหลด บันทึก หรือแชร์ไม่ได้
+            {demoPack && demoPack.patches.every((p) => !p.clip) ? " · เสียงตอนนี้เป็นเสียงใกล้เคียงตามประเภท รอเดโมที่อัดจากเครื่อง" : ""}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {demoPack && (
+              <Link href={`/packs/${demoPack.slug}`} className="studio-btn is-primary">
+                ซื้อแพ็ก {demoPack.name}
+              </Link>
+            )}
+            <button type="button" className="studio-btn" onClick={backToMine}>
+              กลับงานของฉัน
+            </button>
+          </div>
+        </section>
+      ) : (
       <section className="studio-panel" aria-label="บันทึกและนำไปใช้">
         <h2 className="font-bold">บันทึกและนำไปใช้</h2>
         <p className="text-sm text-muted">{t.howTo}</p>
@@ -947,6 +1023,7 @@ export function Organizer() {
           <pre className="studio-sheet mt-2">{sheet}</pre>
         </details>
       </section>
+      )}
 
       <p className="min-h-5 text-sm text-muted" aria-live="polite">
         {message}

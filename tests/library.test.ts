@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
+  demoBank,
+  demoOf,
   bankPage,
   copyItem,
   deleteAndMove,
@@ -123,4 +125,27 @@ test("slot colors and volume follow the keyboard's own list and range", () => {
   assert.equal(l.pages[0][0]?.volume, 127);
   assert.equal(l.pages[0][1]?.color, "");
   assert.match(orderSheet(l), /Slot 1: Grand {2}\(Color: Sakura · Volume: 127\)/);
+});
+
+test("a demo bank holds a pack's sounds in order and is marked as a demo", () => {
+  const pack = {
+    slug: "thai-pop-keys-vol-1",
+    name: "Thai Pop Keys Vol.1",
+    target: "modx-m" as const,
+    patches: [
+      { tag: "Key", name: "Sukhumvit EP", clip: "/demos/thai-pop-keys-vol-1/sukhumvit-ep.m4a" },
+      { tag: "Bass", name: "City Slap FM" },
+    ],
+  };
+  const l = demoBank(pack, (n) => (n.includes("Bass") ? "bass" : "epiano"));
+  assert.deepEqual(names(l).slice(0, 3), ["Sukhumvit EP", "City Slap FM", "-"]);
+  assert.equal(l.pages[0][0]?.sound, "epiano");
+  assert.equal(l.pages[0][1]?.sound, "bass");
+  assert.equal(demoOf(l), "thai-pop-keys-vol-1");
+  assert.equal(demoOf(emptyLayout("modx-m")), undefined);
+  // Survives saving and reopening, but only safe clip paths are kept.
+  const back = parseLayout(JSON.parse(JSON.stringify(l)));
+  assert.equal(back?.pages[0][0]?.clip, "/demos/thai-pop-keys-vol-1/sukhumvit-ep.m4a");
+  const bad = parseLayout({ ...JSON.parse(JSON.stringify(l)), pages: [[{ name: "x", demo: "p", clip: "https://evil.example/a.mp3" }]] });
+  assert.equal(bad?.pages[0][0]?.clip, undefined);
 });

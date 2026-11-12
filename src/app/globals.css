@@ -1439,6 +1439,18 @@ h3 {
   background: #1d1d22;
 }
 
+.organizer-demo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: 1.25rem;
+  padding: 0.9rem 1rem;
+  background: var(--color-surface);
+  box-shadow: inset 0 0 0 1px var(--color-line);
+}
+
 /* MODX M Live Set face */
 .slot-c-black { --slot: var(--color-slot-black); }
 .slot-c-red { --slot: var(--color-slot-red); }

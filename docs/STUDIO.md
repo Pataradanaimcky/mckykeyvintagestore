@@ -18,6 +18,10 @@ Work is kept in the visitor's browser per keyboard, in a downloaded work file, o
 - MODX M and FANTOM-0: the keyboards' own sounds are Yamaha/Roland samples and undocumented files, so they cannot play on the site. Each slot gets an open sample of the same type instead (Piano, E.Piano, Strings, Pad, Brass, Organ, Bass, Lead, Bell, Choir...), guessed from the name and changeable per slot. Samples: FluidR3_GM (CC BY 3.0) from midi-js-soundfonts, played by smplr (MIT), loaded from gleitz.github.io in the visitor's browser. Other open sample sets were not used because their licences could not be confirmed. Credit stays visible under the preview keyboard.
 - Best match of all: the owner's own recordings of his packs, as audio demos.
 
+## Demo banks
+
+Every store pack opens as a demo bank on its keyboard (MODX M or FANTOM-0). Each slot plays the owner's recorded demo of that sound from `src/content/demos.ts` (first 8 seconds, through Web Audio, no file link), or a close-match preview until a recording exists. Demo banks can be played and rearranged but not downloaded, saved to a file or shared; the visitor's own work is kept aside and comes back with "กลับงานของฉัน".
+
 ## Where things live
 
 - src/lib/studio/library.ts: keyboard targets (words, grid size, verified flag, sources), layout data, move/swap, fill, sort, order sheet, share links, import checks. Tests: tests/library.test.ts.
