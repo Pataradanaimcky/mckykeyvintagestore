@@ -24,6 +24,16 @@
   --color-cable: #26262b;
   --color-screen: #0b0f14;
   --color-trace: #7fa2ff;
+  /* Rack page finishes: the FM page is a cool graphite digital panel, the POLY page a black panel with wooden ends. */
+  --color-fm-panel: #2c2e33;
+  --color-fm-ink: #e2e4e9;
+  --color-fm-line: #41444c;
+  --color-fm-metal: #5d616a;
+  --color-poly-panel: #1c1b1a;
+  --color-poly-ink: #ede6d3;
+  --color-poly-line: #353330;
+  --color-wood: #5e361d;
+  --color-wood-light: #8d5a36;
 
   --font-sans: "Anuphan", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: "Anuphan", system-ui, sans-serif;
@@ -461,6 +471,8 @@ h3 {
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
+  overflow-y: hidden;
+  transition: height 0.5s var(--ease-out-soft);
 }
 .rack-track::-webkit-scrollbar,
 .rack-tabs::-webkit-scrollbar {
@@ -566,11 +578,146 @@ h3 {
 }
 @media (prefers-reduced-motion: reduce) {
   .rack-page,
+  .rack-track,
   .rack-dot,
   .rack-tab,
   .rack-nav {
     transition: none;
   }
+}
+
+/* Vertical slider (Fader.tsx). */
+.rack-fader {
+  position: relative;
+  width: 1.9rem;
+  height: 7rem;
+  cursor: ns-resize;
+  touch-action: none;
+  /* Printed scale marks either side of the slot. */
+  background:
+    repeating-linear-gradient(180deg, color-mix(in srgb, var(--color-panel-ink) 35%, transparent) 0 1px, transparent 1px 0.7rem) left / 0.35rem 100% no-repeat,
+    repeating-linear-gradient(180deg, color-mix(in srgb, var(--color-panel-ink) 35%, transparent) 0 1px, transparent 1px 0.7rem) right / 0.35rem 100% no-repeat;
+}
+.rack-fader::before {
+  content: "";
+  position: absolute;
+  top: 0.2rem;
+  bottom: 0.2rem;
+  left: 50%;
+  width: 4px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: var(--color-case);
+  box-shadow: 0 0 0 1px var(--color-panel-line);
+}
+.rack-fader-cap {
+  position: absolute;
+  left: 0.15rem;
+  right: 0.15rem;
+  height: 0.9rem;
+  border-radius: 0.2rem;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-panel-ink) 75%, white), var(--color-panel-ink) 55%, color-mix(in srgb, var(--color-panel-ink) 80%, black));
+  box-shadow: 0 3px 5px -1px rgb(0 0 0 / 0.5);
+  transition: transform 0.12s ease-out;
+}
+.rack-fader-cap::after {
+  content: "";
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  background: var(--color-panel);
+}
+.rack-fader:active .rack-fader-cap {
+  transform: scaleX(1.08);
+}
+.rack-fader:focus-visible {
+  outline-color: var(--color-blue);
+}
+
+/* FM page: cool graphite digital panel with a thin blue line, flat keys. */
+.rack-skin-fm {
+  --color-panel: var(--color-fm-panel);
+  --color-panel-ink: var(--color-fm-ink);
+  --color-panel-line: var(--color-fm-line);
+  --color-metal: var(--color-fm-metal);
+}
+.rack-skin-fm .rack-panel {
+  border-radius: 0.35rem;
+  background:
+    linear-gradient(90deg, var(--color-blue), var(--color-blue)) top 0.45rem left 0.75rem / 1.4rem 2px no-repeat,
+    linear-gradient(180deg, color-mix(in srgb, var(--color-fm-panel) 88%, white), var(--color-fm-panel) 30%, color-mix(in srgb, var(--color-fm-panel) 92%, black));
+}
+.rack-skin-fm .rack-title {
+  text-align: left;
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  font-weight: 600;
+}
+.rack-skin-fm .rack-preset,
+.rack-skin-fm .rack-mini {
+  border-radius: 0.15rem;
+  background: color-mix(in srgb, var(--color-fm-panel) 80%, black);
+  box-shadow:
+    inset 0 0 0 1px var(--color-fm-line),
+    0 2px 0 black;
+}
+.rack-skin-fm .rack-preset[aria-pressed="true"] {
+  background: var(--color-blue);
+  color: #fff;
+}
+.rack-skin-fm .rack-keybed {
+  gap: 2px;
+  background: #050506;
+}
+.rack-skin-fm .rack-key-white {
+  border-radius: 0 0 0.15rem 0.15rem;
+  background: linear-gradient(180deg, #f3f4f6, #e2e4e8);
+  box-shadow: inset 0 -3px 0 #c5c8ce;
+}
+.rack-skin-fm .rack-key-black {
+  height: 55%;
+  border-radius: 0 0 0.15rem 0.15rem;
+  background: #1a1b1e;
+  box-shadow: inset 0 -3px 0 #000;
+}
+
+/* POLY page: black panel, cream print, wooden end cheeks, red lamps. */
+.rack-skin-poly {
+  --color-panel: var(--color-poly-panel);
+  --color-panel-ink: var(--color-poly-ink);
+  --color-panel-line: var(--color-poly-line);
+  padding-inline: 1.35rem;
+  background:
+    repeating-linear-gradient(176deg, transparent 0 5px, rgb(0 0 0 / 0.13) 5px 6px, transparent 6px 11px) left / 1.1rem 100% no-repeat,
+    repeating-linear-gradient(184deg, transparent 0 4px, rgb(0 0 0 / 0.13) 4px 5px, transparent 5px 12px) right / 1.1rem 100% no-repeat,
+    linear-gradient(90deg, var(--color-wood-light), var(--color-wood)) left / 1.1rem 100% no-repeat,
+    linear-gradient(270deg, var(--color-wood-light), var(--color-wood)) right / 1.1rem 100% no-repeat,
+    var(--color-case);
+}
+.rack-skin-poly .rack-panel {
+  border-radius: 0.3rem;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-poly-panel) 90%, white), var(--color-poly-panel) 25%);
+}
+.rack-skin-poly .rack-title {
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-poly-ink) 35%, transparent);
+}
+.rack-skin-poly .rack-preset,
+.rack-skin-poly .rack-mini {
+  background: color-mix(in srgb, var(--color-poly-panel) 75%, var(--color-poly-ink));
+  box-shadow:
+    inset 0 0 0 1px var(--color-poly-line),
+    0 2px 0 black;
+}
+.rack-skin-poly .rack-preset[aria-pressed="true"] {
+  background: var(--color-red);
+  color: #fff;
+}
+.rack-skin-poly .rack-key-black {
+  height: 62%;
 }
 
 /* Three small level bars that bounce, used beside short labels. */

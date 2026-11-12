@@ -2,6 +2,7 @@
 
 import { parse } from "@audio/synth-dx7";
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
+import { Fader } from "../Fader";
 import { Knob } from "../Knob";
 import { LiveScope } from "../LiveScope";
 import { OctaveSwitch, RackKeys } from "../RackKeys";
@@ -15,12 +16,20 @@ interface FmVoice {
   patch: Uint8Array;
 }
 
+/** Byte offset of operator `op` (0 = OP1) in a VCED voice, which stores OP6 first. */
+const opBase = (op: number) => (5 - op) * 21;
+
+const levelsOf = (patch: Uint8Array) => Array.from({ length: 6 }, (_, op) => patch[opBase(op) + 16] / 99);
+
 /**
- * Applies the page's knobs to a voice: vibrato depth (LFO pitch depth and
- * sensitivity) and release time (R4 of every operator).
+ * Applies the page's controls to a voice: operator output levels, vibrato depth
+ * (LFO pitch depth and sensitivity) and release time (R4 of every operator).
  */
-function tweak(base: Uint8Array, vibrato: number, release: number) {
+function tweak(base: Uint8Array, levels: number[], vibrato: number, release: number) {
   const p = Uint8Array.from(base);
+  levels.forEach((level, op) => {
+    p[opBase(op) + 16] = Math.round(level * 99);
+  });
   p[139] = Math.round(vibrato * 40);
   if (vibrato > 0) p[143] = Math.max(p[143], 3);
   // 0.5 keeps the voice as written; lower is a longer release, higher a shorter one.
@@ -64,7 +73,14 @@ export function FmPage({ active }: { active: boolean }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const voice = bank[Math.min(index, bank.length - 1)];
-  const patch = useMemo(() => tweak(voice.patch, vibrato, release), [voice, vibrato, release]);
+  // Operator levels start from the voice as written, and reset when the voice changes.
+  const [levels, setLevels] = useState(() => levelsOf(voice.patch));
+  const [levelsFor, setLevelsFor] = useState(voice);
+  if (levelsFor !== voice) {
+    setLevelsFor(voice);
+    setLevels(levelsOf(voice.patch));
+  }
+  const patch = useMemo(() => tweak(voice.patch, levels, vibrato, release), [voice, levels, vibrato, release]);
   const patchRef = useRef(patch);
   useEffect(() => {
     patchRef.current = patch;
@@ -182,7 +198,7 @@ export function FmPage({ active }: { active: boolean }) {
   return (
     <section aria-label="ซินธ์ FM 6 ออปเปอเรเตอร์" className="flex flex-col gap-3">
       <div
-        className={`rack-case relative select-none rounded-3xl p-2 sm:p-3 ${dragging ? "rack-drop" : ""}`}
+        className={`rack-case rack-skin-fm relative select-none rounded-3xl p-2 sm:p-3 ${dragging ? "rack-drop" : ""}`}
         onDragOver={(event) => {
           if (!event.dataTransfer.types.includes("Files")) return;
           event.preventDefault();
@@ -202,6 +218,11 @@ export function FmPage({ active }: { active: boolean }) {
               <span className="rack-lcd-row rack-lcd-small">
                 <span>{bankName ? bankName.slice(0, 18) : "MCKY BANK"}</span>
                 <span>{status === "loading" ? "LOADING" : `${index + 1}/${bank.length}`}</span>
+              </span>
+              <span className="rack-lcd-row rack-lcd-small">
+                <span>ALG {String(voice.patch[134] + 1).padStart(2, "0")}</span>
+                <span>FB {voice.patch[135]}</span>
+                <span>OP {levels.map((l) => (l > 0 ? "■" : "□")).join("")}</span>
               </span>
             </div>
             <div className="mt-auto flex items-center justify-between gap-2">
@@ -276,16 +297,6 @@ export function FmPage({ active }: { active: boolean }) {
                 </button>
               </div>
             )}
-            <div className="mt-auto flex items-end justify-around gap-2">
-              <Knob label="VOLUME" hint={`${Math.round(volume * 100)}%`} value={volume} onChange={setVolume} />
-              <Knob label="VIBRATO" hint={`${Math.round(vibrato * 100)}%`} value={vibrato} onChange={setVibrato} />
-              <Knob
-                label="RELEASE"
-                hint={release < 0.45 ? "ยาว" : release > 0.55 ? "สั้น" : "ตามเสียง"}
-                value={release}
-                onChange={setRelease}
-              />
-            </div>
           </div>
 
           <div className="rack-panel col-span-6 md:col-span-3">
@@ -294,6 +305,40 @@ export function FmPage({ active }: { active: boolean }) {
             <div className="mt-auto flex items-center justify-between gap-2">
               <OctaveSwitch octave={octave} onChange={setOctave} />
               <span className={`rack-led ${held.size > 0 ? "is-on" : ""}`} aria-hidden="true" />
+            </div>
+          </div>
+
+          <div className="rack-panel col-span-6 md:col-span-8">
+            <div className="flex items-center justify-between gap-3">
+              <p className="rack-title">OPERATORS</p>
+              <p className="rack-hint">ระดับเสียงของแต่ละออปเปอเรเตอร์</p>
+            </div>
+            <div className="mt-auto grid grid-cols-6 gap-1">
+              {levels.map((level, op) => (
+                <div key={op} className="flex flex-col items-center gap-1.5">
+                  <span className={`rack-led ${held.size > 0 && level > 0 ? "is-on" : ""}`} aria-hidden="true" />
+                  <Fader
+                    label={`OP${op + 1}`}
+                    hint={String(Math.round(level * 99))}
+                    value={level}
+                    onChange={(v) => setLevels((current) => current.map((x, i) => (i === op ? v : x)))}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rack-panel col-span-6 md:col-span-4">
+            <p className="rack-title">CONTROL</p>
+            <div className="mt-auto flex items-end justify-around gap-2 pb-2">
+              <Knob label="VOLUME" hint={`${Math.round(volume * 100)}%`} value={volume} onChange={setVolume} />
+              <Knob label="VIBRATO" hint={`${Math.round(vibrato * 100)}%`} value={vibrato} onChange={setVibrato} />
+              <Knob
+                label="RELEASE"
+                hint={release < 0.45 ? "ยาว" : release > 0.55 ? "สั้น" : "ตามเสียง"}
+                value={release}
+                onChange={setRelease}
+              />
             </div>
           </div>
 

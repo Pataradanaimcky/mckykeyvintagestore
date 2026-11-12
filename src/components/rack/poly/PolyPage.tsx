@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Knob } from "../Knob";
+import { Fader } from "../Fader";
 import { LiveScope } from "../LiveScope";
 import { midiToHz, OctaveSwitch, RackKeys } from "../RackKeys";
 
@@ -9,6 +9,8 @@ const MAX_VOICES = 8;
 const CHORUS = ["OFF", "I", "II"] as const;
 
 interface Settings {
+  saw: number;
+  pulse: number;
   cutoff: number;
   res: number;
   env: number;
@@ -33,6 +35,15 @@ interface Engine {
   chorusDepth: GainNode;
 }
 
+/** The store's own starting sounds for this page. */
+const PROGRAMS: { name: string; chorus: number; settings: Settings }[] = [
+  { name: "STRINGS", chorus: 2, settings: { saw: 0.85, pulse: 0, sub: 0.15, cutoff: 0.55, res: 0.1, env: 0.2, attack: 0.45, release: 0.5 } },
+  { name: "BRASS", chorus: 1, settings: { saw: 0.9, pulse: 0.2, sub: 0.3, cutoff: 0.35, res: 0.2, env: 0.7, attack: 0.15, release: 0.25 } },
+  { name: "PAD", chorus: 2, settings: { saw: 0.5, pulse: 0.6, sub: 0.3, cutoff: 0.45, res: 0.3, env: 0.3, attack: 0.6, release: 0.7 } },
+  { name: "STAB", chorus: 1, settings: { saw: 0.7, pulse: 0.5, sub: 0.5, cutoff: 0.3, res: 0.45, env: 0.8, attack: 0, release: 0.15 } },
+  { name: "BASS", chorus: 0, settings: { saw: 0.6, pulse: 0.35, sub: 1, cutoff: 0.25, res: 0.35, env: 0.55, attack: 0, release: 0.1 } },
+];
+
 const cutoffHz = (v: number) => 80 * 2 ** (v * 7.5);
 const attackS = (v: number) => 0.003 + v * v * 2;
 const releaseS = (v: number) => 0.05 + v * v * 4;
@@ -43,15 +54,9 @@ const releaseS = (v: number) => 0.05 + v * v * 4;
  * into a low-pass filter with its own envelope, then a chorus on the mix.
  */
 export function PolyPage({ active }: { active: boolean }) {
-  const [settings, setSettings] = useState<Settings>({
-    cutoff: 0.55,
-    res: 0.25,
-    env: 0.45,
-    attack: 0.05,
-    release: 0.35,
-    sub: 0.4,
-  });
-  const [chorus, setChorus] = useState(1);
+  const [settings, setSettings] = useState<Settings>(PROGRAMS[0].settings);
+  const [program, setProgram] = useState<number | null>(0);
+  const [chorus, setChorus] = useState(PROGRAMS[0].chorus);
   const [octave, setOctave] = useState(0);
   const [held, setHeld] = useState<ReadonlySet<number>>(new Set());
   const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
@@ -69,7 +74,10 @@ export function PolyPage({ active }: { active: boolean }) {
     }
   }, [settings]);
 
-  const set = (key: keyof Settings) => (value: number) => setSettings((s) => ({ ...s, [key]: value }));
+  const set = (key: keyof Settings) => (value: number) => {
+    setProgram(null);
+    setSettings((s) => ({ ...s, [key]: value }));
+  };
 
   const ensure = useCallback(() => {
     if (engine.current) {
@@ -149,7 +157,7 @@ export function PolyPage({ active }: { active: boolean }) {
         osc.start(t);
         return osc;
       };
-      const oscs = [make("sawtooth", hz, 0.55, -4), make("square", hz, 0.3, 4), make("square", hz / 2, s.sub * 0.6)];
+      const oscs = [make("sawtooth", hz, s.saw * 0.6, -4), make("square", hz, s.pulse * 0.45, 4), make("square", hz / 2, s.sub * 0.6)];
 
       const filter = ctx.createBiquadFilter();
       filter.type = "lowpass";
@@ -211,31 +219,31 @@ export function PolyPage({ active }: { active: boolean }) {
 
   return (
     <section aria-label="โพลีซินธ์แบบอนาล็อก" className="flex flex-col gap-3">
-      <div className="rack-case relative select-none rounded-3xl p-2 sm:p-3">
+      <div className="rack-case rack-skin-poly relative select-none rounded-3xl p-2 sm:p-3">
         <div className="grid grid-cols-6 gap-1.5 md:grid-cols-12 md:gap-2">
-          <div className="rack-panel col-span-6 md:col-span-5">
-            <p className="rack-title">VCF</p>
-            <div className="mt-auto flex items-end justify-around gap-2">
-              <Knob label="CUTOFF" hint={`${Math.round(cutoffHz(settings.cutoff))} Hz`} value={settings.cutoff} onChange={set("cutoff")} />
-              <Knob label="RES" hint={pct(settings.res)} value={settings.res} onChange={set("res")} />
-              <Knob label="ENV" hint={pct(settings.env)} value={settings.env} onChange={set("env")} />
-            </div>
-          </div>
-
           <div className="rack-panel col-span-6 md:col-span-4">
-            <p className="rack-title">ENV · SUB</p>
-            <div className="mt-auto flex items-end justify-around gap-2">
-              <Knob label="ATTACK" hint={`${attackS(settings.attack).toFixed(2)} s`} value={settings.attack} onChange={set("attack")} />
-              <Knob label="RELEASE" hint={`${releaseS(settings.release).toFixed(2)} s`} value={settings.release} onChange={set("release")} />
-              <Knob label="SUB" hint={pct(settings.sub)} value={settings.sub} onChange={set("sub")} />
-            </div>
-          </div>
-
-          <div className="rack-panel col-span-6 md:col-span-3">
-            <p className="rack-title">CHORUS</p>
+            <p className="rack-title">PROGRAM</p>
             <LiveScope analyser={analyser} />
+            <div className="grid grid-cols-5 gap-1" role="group" aria-label="เสียงของร้าน">
+              {PROGRAMS.map((p, i) => (
+                <button
+                  key={p.name}
+                  type="button"
+                  aria-pressed={program === i}
+                  onClick={() => {
+                    setProgram(i);
+                    setSettings(p.settings);
+                    setChorus(p.chorus);
+                  }}
+                  className="rack-preset px-0 text-[0.6rem]"
+                >
+                  {p.name}
+                </button>
+              ))}
+            </div>
             <div className="mt-auto flex items-center justify-between gap-2">
-              <div className="flex gap-1" role="group" aria-label="คอรัส">
+              <div className="flex items-center gap-1" role="group" aria-label="คอรัส">
+                <span className="rack-hint mr-1">CHORUS</span>
                 {CHORUS.map((label, i) => (
                   <button
                     key={label}
@@ -249,6 +257,32 @@ export function PolyPage({ active }: { active: boolean }) {
                 ))}
               </div>
               <OctaveSwitch octave={octave} onChange={setOctave} />
+            </div>
+          </div>
+
+          <div className="rack-panel col-span-3 md:col-span-3">
+            <p className="rack-title">DCO</p>
+            <div className="mt-auto flex items-end justify-around gap-1">
+              <Fader label="SAW" hint={pct(settings.saw)} value={settings.saw} onChange={set("saw")} />
+              <Fader label="PULSE" hint={pct(settings.pulse)} value={settings.pulse} onChange={set("pulse")} />
+              <Fader label="SUB" hint={pct(settings.sub)} value={settings.sub} onChange={set("sub")} />
+            </div>
+          </div>
+
+          <div className="rack-panel col-span-3 md:col-span-3">
+            <p className="rack-title">VCF</p>
+            <div className="mt-auto flex items-end justify-around gap-1">
+              <Fader label="FREQ" hint={`${Math.round(cutoffHz(settings.cutoff))} Hz`} value={settings.cutoff} onChange={set("cutoff")} />
+              <Fader label="RES" hint={pct(settings.res)} value={settings.res} onChange={set("res")} />
+              <Fader label="ENV" hint={pct(settings.env)} value={settings.env} onChange={set("env")} />
+            </div>
+          </div>
+
+          <div className="rack-panel col-span-6 md:col-span-2">
+            <p className="rack-title">ENV</p>
+            <div className="mt-auto flex items-end justify-around gap-1">
+              <Fader label="ATK" hint={`${attackS(settings.attack).toFixed(2)} s`} value={settings.attack} onChange={set("attack")} />
+              <Fader label="REL" hint={`${releaseS(settings.release).toFixed(2)} s`} value={settings.release} onChange={set("release")} />
             </div>
           </div>
 

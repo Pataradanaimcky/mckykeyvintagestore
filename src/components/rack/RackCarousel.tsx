@@ -40,6 +40,16 @@ export function RackCarousel() {
     };
   }, []);
 
+  // The track takes the height of the page in view, so a short page leaves no gap below it.
+  const [height, setHeight] = useState<number | null>(null);
+  useEffect(() => {
+    const el = track.current?.children[page] as HTMLElement | undefined;
+    if (!el) return;
+    const observer = new ResizeObserver(() => setHeight(el.offsetHeight));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [page]);
+
   const go = (index: number, focus = false) => {
     const el = track.current;
     const next = (index + PAGES.length) % PAGES.length;
@@ -94,7 +104,7 @@ export function RackCarousel() {
         </div>
       </div>
 
-      <div ref={track} className="rack-track">
+      <div ref={track} className="rack-track" style={height ? { height } : undefined}>
         {PAGES.map((p, i) => (
           <div
             key={p.id}
