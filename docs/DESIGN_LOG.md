@@ -34,6 +34,7 @@ Read this before changing the interface. Add new entries at the bottom of Histor
 - 2026-11-12, owner request: the organizer shows each keyboard as a machine face in the store's own style (screen, voice buttons or pads, a cartridge slot for DX7), not a copy of the maker's panel. Choosing a sound must feel like choosing it on the instrument: the button lights and bounces, the screen updates, and DX7 voices play at once. The DX7 cartridge starts loaded with the store's free MCKY FM bank.
 - 2026-11-12, owner request: make the MODX M organizer work like the keyboard's Live Set. The owner offered to allow copying the MODX M design; that permission is not his to give (Yamaha's design), so the face stays the store's own drawing, but the workflow, words, numbers, colors and jobs follow the keyboard exactly.
 - 2026-11-12, owner request: use open source to let people hear MODX M sounds on the site where possible. The real sounds cannot be emulated (Yamaha samples, undocumented files), so slots preview with openly licensed General MIDI samples of the same type, clearly labelled as close matches.
+- 2026-11-12, owner request: a demo page where people hear sample sounds and patches, can swap between them, and cannot download them. /demo, menu "ฟังเดโม".
 
 ## Open questions
 
@@ -43,7 +44,7 @@ Read this before changing the interface. Add new entries at the bottom of Histor
 - Real cover images: the owner can supply his own photos of his own keyboards to replace the drawn covers.
 - "Keyboard icon look more modern": the key strip on pack covers was redrawn with rounded keys. Should the brand mark (logo, site icon, social profile picture) be redrawn too? Recommended: no, keep it; it already matches.
 - Should the rack also appear on other pages? Recommended: home page only, so it does not pull attention from buying.
-- Demo audio: a "ฟังตัวอย่าง" player on each pack card and pack page is the feature most likely to raise sales. It needs the owner's own audio files.
+- Demo audio: /demo is ready for the owner's own recordings (see src/content/demos.ts). Until a pack has them, its patches play a clearly labelled close-match preview. Recommended: record the first pack's 8 patches as 15–30 second loops.
 
 ## History
 
@@ -69,3 +70,4 @@ Read this before changing the interface. Add new entries at the bottom of Histor
 - 2026-11-12: MODX M Live Set made faithful to the keyboard: USER 1–8 banks of 16 pages (bank and page steppers, Bank Name and Page Name), 16 slots with a color stripe from the keyboard's 16 color names, Slot Name up to 20 characters, Volume per slot, jobs Exchange, Copy, Delete, Delete & Move, the chosen slot outlined in orange, and an order sheet with bank and page names, color and volume, plus the [SHIFT] + [LIVE SET] steps.
 - 2026-11-12: Organizer previews for MODX M and FANTOM-0: choosing a slot plays a short chord with an open sample of its type (guessed from the name, e.g. "City Pop EP" → E.Piano; changeable per slot), the preview keyboard plays it, and the credit line names FluidR3_GM (CC BY 3.0), midi-js-soundfonts and smplr (MIT).
 - 2026-11-12: Organizer can receive a DX7's 32 internal voices over USB-MIDI (read only, nothing is sent to the keyboard); the dump is checked (header, length, checksum) before it becomes the cartridge, and the panel steps from the DX7 manual are shown while waiting.
+- 2026-11-12: Added /demo: collections (free FM, free POLY, every store pack), a deck screen with the patch name, how real the sound is (recorded demo / real engine sound / close match), a beat display and scope, play/stop, tap a patch to swap while the phrase keeps looping, A ↔ B swap, phrase choice (auto by patch type, city pop chords, ballad arpeggio, bass line, melody), and a keyboard to play the sound. Audio plays through Web Audio only: no audio elements, file links or download controls. Recorded demo clips go in src/content/demos.ts. "ฟังเดโม" link on pack pages and the landing page.

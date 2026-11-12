@@ -81,7 +81,12 @@ export default async function PackPage({ params }: PageProps<"/packs/[slug]">) {
 
       <section className="grid gap-8 md:grid-cols-2">
         <div className="flex min-w-0 flex-col gap-3">
-          <h2 className="text-xl font-semibold">เสียงในแพ็ก</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-xl font-semibold">เสียงในแพ็ก</h2>
+            <Link href={`/demo?pack=${product.slug}`} className="btn btn-light">
+              ▶ ฟังเดโม
+            </Link>
+          </div>
           <PatchList product={product} />
         </div>
         <div className="flex min-w-0 flex-col gap-3">

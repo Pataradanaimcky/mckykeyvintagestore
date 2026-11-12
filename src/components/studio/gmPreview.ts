@@ -28,7 +28,7 @@ export class GmPreview {
     let entry = this.cache.get(gm);
     if (!entry) {
       entry = import("smplr").then(async ({ Soundfont }) => {
-        const inst = new Soundfont(ctx, { instrument: gm, kit: "FluidR3_GM", destination: this.out!, loadLoopData: false });
+        const inst = new Soundfont(ctx, { instrument: gm, kit: "FluidR3_GM", destination: this.out!, loadLoopData: false, extraGain: 1, volume: 90 });
         await inst.load;
         return inst;
       });

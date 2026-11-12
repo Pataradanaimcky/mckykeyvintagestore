@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const links = [
   { href: "/packs", label: "แพ็กเสียง" },
+  { href: "/demo", label: "ฟังเดโม" },
   { href: "/studio", label: "จัดเรียงเสียง" },
   { href: "/compatibility", label: "รุ่นที่ใช้ได้" },
   { href: "/faq", label: "คำถาม" },
