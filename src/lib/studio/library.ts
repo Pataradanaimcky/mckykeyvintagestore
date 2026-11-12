@@ -456,3 +456,24 @@ export function swapHalves(layout: Layout, page: number): Layout {
   const next = [...row.slice(h), ...row.slice(0, h)];
   return { ...layout, pages: layout.pages.map((p, i) => (i === page ? next : p)) };
 }
+
+/**
+ * Merging two cartridges (DX7): puts up to `count` shelf sounds, starting at shelf
+ * position `from`, into slots `start`.. of a page. The sounds they replace go to the
+ * end of the shelf, so nothing is lost. With swapHalves this picks any 16 of each.
+ */
+export function shelfIntoSlots(layout: Layout, page: number, start: number, from: number, count = 16): Layout {
+  const row = layout.pages[page];
+  if (!row || start < 0 || from < 0 || start >= row.length) return layout;
+  const take = layout.pool.slice(from, from + Math.min(count, row.length - start));
+  if (!take.length) return layout;
+  const next = [...row];
+  const out: Item[] = [];
+  take.forEach((item, i) => {
+    const old = next[start + i];
+    if (old) out.push(old);
+    next[start + i] = item;
+  });
+  const pool = [...layout.pool.slice(0, from), ...layout.pool.slice(from + take.length), ...out];
+  return { ...layout, pages: layout.pages.map((p, i) => (i === page ? next : p)), pool };
+}

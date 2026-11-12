@@ -26,6 +26,7 @@ import {
   sortPage,
   bankPage,
   duplicateVoices,
+  shelfIntoSlots,
   shelveDuplicates,
   swapHalves,
   copyItem,
@@ -129,6 +130,8 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
   const starting = useRef<Promise<void> | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const openMode = useRef<"cartridge" | "shelf">("shelf");
+  // Merging cartridges: which 16 shelf voices go into slots 17–32.
+  const [mergeFrom, setMergeFrom] = useState(0);
   const [landed, setLanded] = useState<{ id: string; n: number } | null>(null);
   // What the next tap does with the chosen slot, like the keyboard's edit jobs.
   const [job, setJob] = useState<"exchange" | "copy">("exchange");
@@ -957,6 +960,28 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
               <button type="button" className="studio-btn" onClick={() => setLayout((l) => swapHalves(l, current))}>
                 สลับครึ่ง 1–16 ↔ 17–32
               </button>
+            )}
+            {t.usesFile && layout.pool.length > 0 && (
+              <span className="inline-flex flex-wrap items-center gap-1.5">
+                <label>
+                  <span className="sr-only">เลือกเสียงจากชั้นวาง</span>
+                  <select className="studio-input w-auto" value={mergeFrom} onChange={(e) => setMergeFrom(Number(e.target.value))}>
+                    <option value={0}>ชั้นวาง 1–16</option>
+                    {layout.pool.length > 16 && <option value={16}>ชั้นวาง 17–32</option>}
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  className="studio-btn"
+                  onClick={() => {
+                    const from = layout.pool.length > mergeFrom ? mergeFrom : 0;
+                    setLayout((l) => shelfIntoSlots(l, current, 16, from));
+                    setMessage("รวมตลับแล้ว เสียงที่เคยอยู่ช่อง 17–32 ย้ายไปท้ายชั้นวาง");
+                  }}
+                >
+                  วางแทนช่อง 17–32
+                </button>
+              </span>
             )}
             {t.usesFile && dupesInCart.length > 0 && (
               <button type="button" className="studio-btn" onClick={() => setLayout((l) => shelveDuplicates(l))}>
