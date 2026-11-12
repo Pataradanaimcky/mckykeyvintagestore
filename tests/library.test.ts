@@ -149,3 +149,12 @@ test("a demo bank holds a pack's sounds in order and is marked as a demo", () =>
   const bad = parseLayout({ ...JSON.parse(JSON.stringify(l)), pages: [[{ name: "x", demo: "p", clip: "https://evil.example/a.mp3" }]] });
   assert.equal(bad?.pages[0][0]?.clip, undefined);
 });
+
+test("DX7 order sheet is the plain voice list: Voice 1–32 in cartridge order, then the shelf", () => {
+  let l = { ...emptyLayout("dx7"), title: "My Cart", pool: itemsFromText("E.PIANO 1\nBRASS 2\nSPARE") };
+  l = moveItem(l, { kind: "pool", index: 0 }, { kind: "slot", page: 0, slot: 0 });
+  l = moveItem(l, { kind: "pool", index: 0 }, { kind: "slot", page: 0, slot: 31 });
+  const sheet = orderSheet(l);
+  assert.match(sheet, /^My Cart\nYamaha DX7 · Cartridge\n\n {2}Voice 1: E\.PIANO 1\n {2}Voice 32: BRASS 2\n/);
+  assert.match(sheet, /ยังไม่ได้วาง: SPARE/);
+});
