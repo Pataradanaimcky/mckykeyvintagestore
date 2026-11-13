@@ -203,6 +203,15 @@ test("DX7 says what the screen shows after receiving the file (manual p. 56)", (
   assert.ok(t.sources.some((s) => s.includes("dx7-man.pdf")));
 });
 
+test("DX7 says how to keep the old voices on a RAM cartridge before receiving (manual p. 49)", () => {
+  const t = getTarget("dx7");
+  for (const text of ["RAM cartridge", "[FUNCTION] → [SAVE]", "SAVE MEMORY ALL OF MEMORY?", "ARE YOU SURE?", "UNDER WRITING!"]) {
+    assert.ok(t.howTo.includes(text), text);
+  }
+  assert.ok(t.howTo.indexOf("[SAVE]") < t.howTo.indexOf("ยังไม่ได้ทดสอบกับ DX7 จริง"));
+  assert.ok(t.sources.some((s) => s.includes("416114?page=54")));
+});
+
 test("DX7 lists the file types MODX M can load, from Yamaha's compatibility page and MONTAGE M manual", () => {
   const t = getTarget("dx7");
   for (const ext of [".Y2U", ".Y2L", ".Y2A", ".X7U", ".X7L", ".X7A", ".X8U", ".X8L", ".X8A"]) {
