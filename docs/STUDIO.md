@@ -36,6 +36,47 @@ Every store pack opens as a demo bank on its keyboard (MODX M or FANTOM-0). Each
 - No maker logos, product photos or copies of a keyboard's screen design. Never ship factory sound data from any maker.
 - Sending anything to a keyboard over USB that would overwrite its memory must be behind a clear confirmation, off by default, and labelled as needing a real-keyboard test.
 
+## ทดสอบกับเครื่องจริง (ประมาณ 10 นาที)
+
+สำหรับเจ้าของร้าน ทดสอบปุ่มรับข้อมูลทาง USB ทั้ง 3 ปุ่ม ทุกปุ่มอ่านอย่างเดียว ไม่เขียนอะไรลงเครื่อง ทำเฉพาะเครื่องที่มี
+
+ก่อนเริ่ม: ใช้ Chrome หรือ Edge บนคอมพิวเตอร์ เปิด /studio (เมนู "จัดเรียงเสียง") ต่อเครื่องก่อนเปิดหน้า เมื่อเบราว์เซอร์ถามเรื่อง MIDI / อุปกรณ์ MIDI ให้กดอนุญาต ปิดโปรแกรมเพลงอื่นที่อาจจับพอร์ต MIDI ไว้
+
+### DX7 (ข้อ 1a)
+
+1. ต่อสายอินเทอร์เฟซ USB-MIDI จากช่อง MIDI OUT ของ DX7 เข้าคอมพิวเตอร์ (DX7 ไม่มีช่อง USB)
+2. บนหน้าเว็บ เลือกแท็บ DX7 กด "รับเสียง 32 เสียงจาก DX7 ทาง USB-MIDI" (หน้าเว็บจะรอ 2 นาที)
+3. บน DX7 กด FUNCTION → ปุ่ม 8 (MIDI) จนจอขึ้น SYS INFO AVAIL → กดปุ่ม 8 อีกครั้ง → จอถามว่าจะส่ง → กด YES
+4. ที่ควรเห็น: ตลับบนหน้าเว็บเปลี่ยนเป็น 32 ชื่อเรียงเหมือน INTERNAL 1–32 บนเครื่อง ตลับเดิมย้ายลงชั้นวาง กด ▶ ฟัง 2–3 เสียงเทียบกับเครื่อง
+5. กด "ดาวน์โหลดตลับที่เรียงแล้ว (.syx)" แล้วลองเปิดไฟล์ใน Dexed หรือส่งกลับเข้า DX7 ด้วยโปรแกรมที่ใช้อยู่ (ถ้าสะดวก)
+
+แจ้งกลับ: ข้อความบนจอ DX7 ตอนถามว่าจะส่ง (ตัวอักษรตรงตามจอ) · หน้าเว็บขึ้นข้อความอะไร · ชื่อครบ 32 และเรียงตรงไหม · เสียงที่ ▶ ใกล้เคียงไหม · ไฟล์เปิดใน Dexed/DX7 ได้ไหม
+
+### MODX M (ข้อ 4f)
+
+1. ต่อสาย USB จากช่อง USB TO HOST ของ MODX M เข้าคอมพิวเตอร์ บนเครื่องตั้ง Device Number เป็น All หรือ 1 ([UTILITY] → Settings → Advanced)
+2. บนเครื่องเปิด Live Set ที่มีชื่อช่องอยู่แล้ว จำเลขหน้า (Page) ที่เปิดอยู่
+3. บนหน้าเว็บ เลือกแท็บ MODX M เปิดหน้าเลขเดียวกัน กด "รับชื่อช่องจาก MODX M ทาง USB (ยังไม่ได้ทดสอบกับเครื่องจริง)" → กด OK ในกล่องยืนยัน → รอประมาณ 8 วินาที
+4. ที่ควรเห็น: 16 ช่องของหน้านั้นมีชื่อตรงกับบนเครื่อง ช่องเดิมบนหน้าเว็บย้ายลงชั้นวาง
+5. ลองครั้งที่ 2: บนเครื่องเปลี่ยนไป Live Set Bank อื่น (หน้าเลขเดิม) แล้วกดอีกครั้ง
+
+แจ้งกลับ: หน้าเว็บขึ้นข้อความอะไร (ได้กี่ช่อง กี่ช่องไม่ครบ) · ชื่อที่ได้ตรงกับ Bank ที่เปิดบนจอ หรือเป็นของ Bank อื่น · ครั้งที่ 2 ได้ชื่อของ Bank ใหม่ไหม · ชื่อตัวอักษรเพี้ยนหรือขาดไหม
+
+### FANTOM-0 (ข้อ 5e, 5h)
+
+1. ต่อสาย USB จากช่อง USB COMPUTER ของ FANTOM-0 เข้าคอมพิวเตอร์ บนเครื่องเปิด Receive Exclusive (หน้า SYSTEM: MIDI) และจดค่า Device ID ที่เห็น
+2. บนเครื่องเปิด Scene ที่รู้ชื่อ
+3. บนหน้าเว็บ เลือกแท็บ FANTOM-0 กด "รับชื่อ Scene ที่เปิดอยู่จาก FANTOM-0 ทาง USB (ยังไม่ได้ทดสอบกับเครื่องจริง)" → กด OK
+4. ที่ควรเห็น: ชื่อ Scene บนจอไปอยู่ท้ายชั้นวาง ช่องที่จัดไว้ไม่เปลี่ยน และ Scene บนเครื่องไม่เปลี่ยน
+5. เปลี่ยน Scene บนเครื่องแล้วกดอีกครั้ง ควรได้ชื่อ Scene ใหม่
+6. ลองครั้งที่ 3: ปิด Receive Exclusive แล้วกดอีกครั้ง (คาดว่าจะไม่ได้ชื่อ) แล้วเปิดกลับคืน
+
+แจ้งกลับ: หน้าเว็บขึ้นข้อความอะไรแต่ละครั้ง · ชื่อตรงกับบนจอไหม · ค่าเริ่มต้นของ Receive Exclusive (เปิดหรือปิดอยู่ตอนแรก) · ชื่อและช่วงค่าของ Device ID ที่จอแสดง · ชื่อพอร์ต FANTOM ที่คอมพิวเตอร์เห็น (ถ้าดูได้) · รุ่น 06, 07 หรือ 08
+
+ที่มาของชื่อช่องต่อ: MODX M "[USB TO HOST]" (MODX M6 Operation Manual p. 63, สำเนา Kraft Music), FANTOM-0 "USB COMPUTER" (Roland Support, FANTOM-06/07/08 connecting to a computer) ขั้นตอนอื่นเป็นขั้นตอนเดียวกับข้อความบนหน้า /studio
+
+ส่งผลให้ project manager agent หรือจดลงใต้ข้อ 1a, 4f, 5e, 5h ด้านล่าง ถ้าปุ่มไหนทำให้บนเครื่องเปลี่ยนอะไร ให้หยุดทดสอบและแจ้งทันที
+
 ## Checklist for the hourly research agent
 
 One small, tested change per run, top to bottom.
@@ -64,4 +105,5 @@ One small, tested change per run, top to bottom.
 5f. [x] FANTOM-0: read-only Identity Request / Identity Reply rules, done 2026-11-13 (`identityRequest`, `readIdentityReply` in src/lib/studio/fantom.ts, tests/fantom.test.ts; not used by the page yet). From the MIDI Implementation v1.00 (Kraft Music copy): Identity Request F0 7E dev 06 01 F7 (dev 10H–1FH, 7FH), "When this message is received, Identity Reply message will be transmitted"; Identity Reply F0 7E dev 06 02 41 5B 03 00 01 rr 03 00 00 F7 with software revision 00/01/02 03 00 00 for FANTOM-06/07/08. A reply from family 5B 03 / 00 01 is treated as a FANTOM-0; the model is named only for the revision values printed in the manual. Also found this run: the System Common table names Scene Control Channel (1–16, OFF), Receive Program Change and Receive Bank Select (OFF, ON), but no Device ID or Receive Exclusive address; the Bank Select table shows only the A and B scene rows (085 000, 085 001) and then ":", so the C and D rows are still not printed. The Parameter Guide PDF (static.roland.com FANTOM-06_07_08_Parameter_eng01_W.pdf) covers tone, effect and system effect parameters only, no SYSTEM: MIDI page.
 5g. [x] FANTOM-0: the "รับชื่อ Scene" button finds the port first, done 2026-11-13 (`FantomPortFinder` in src/lib/studio/fantom.ts, tests/fantom.test.ts). It sends one Identity Request (F0 7E 7F 06 01 F7) to each USB output in turn, 400 ms apart; the output during whose turn a FANTOM-0 Identity Reply arrives gets the RQ1, with the Device ID from the reply. If no output answers, it falls back to ports named FANTOM (or all ports) and Device ID 17 as before. The confirmation and help text say it asks the model first. Source: FANTOM-06/07/08 MIDI Implementation v1.00 (Kraft Music copy): Identity Request "When this message is received, Identity Reply message will be transmitted"; no Receive Exclusive condition is printed for it (only RQ1 and DT1 carry that note). Not tested on a real keyboard.
 5h. FANTOM-0: still to confirm on a real keyboard: whether the Identity Reply comes back within 400 ms, whether it is answered with Receive Exclusive OFF, and whether a late reply can be counted for the next port.
+5i. [x] Thai real-keyboard test script for the three read-only USB buttons (DX7 receive, MODX M Slot Names, FANTOM-0 Scene Name), done 2026-11-13 (PM Next item 1): section "ทดสอบกับเครื่องจริง" above, covering 1a, 4f, 5e, 5h. Port names checked: MODX M [USB TO HOST] (operation manual p. 63), FANTOM-0 USB COMPUTER (Roland Support). Still unknown: the USB MIDI port name each keyboard shows on the computer.
 6. Later: other keyboards' sound lists (XPS, D-50 patch banks, Juno banks) once the three above are done.
