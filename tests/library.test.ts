@@ -195,6 +195,14 @@ test("DX7 gives the receive settings from the DX7 manual before sending the file
   assert.ok(t.sources.some((s) => s.includes("manualowl.com/m/Yamaha/DX7")));
 });
 
+test("DX7 says what the screen shows after receiving the file (manual p. 56)", () => {
+  const t = getTarget("dx7");
+  assert.ok(t.howTo.includes("FUNCTION CONTROL / MIDI RECEIVED"));
+  assert.ok(t.howTo.indexOf("MIDI RECEIVED") > t.howTo.indexOf("MEMORY PROTECT"));
+  assert.ok(t.howTo.indexOf("MIDI RECEIVED") < t.howTo.indexOf("FM Converter"));
+  assert.ok(t.sources.some((s) => s.includes("dx7-man.pdf")));
+});
+
 test("DX7 lists the file types MODX M can load, from Yamaha's compatibility page and MONTAGE M manual", () => {
   const t = getTarget("dx7");
   for (const ext of [".Y2U", ".Y2L", ".Y2A", ".X7U", ".X7L", ".X7A", ".X8U", ".X8L", ".X8A"]) {

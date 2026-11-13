@@ -76,7 +76,7 @@ export const TARGETS: Target[] = [
     hasVolume: false,
     about: "เปิดไฟล์ .syx (แบงก์ 32 เสียงหรือเสียงเดี่ยว) ลากเรียงใหม่ ฟังได้ แล้วดาวน์โหลดแบงก์ที่เรียงแล้ว",
     howTo:
-      "ส่งไฟล์ .syx เข้าเครื่องด้วยโปรแกรม MIDI ที่ใช้อยู่ หรือเปิดใน Dexed · ก่อนส่งเข้า DX7 (ตามคู่มือ DX7 หน้า 20, 56–57): ตั้ง DX7 ให้รับ MIDI ช่อง 1 (ไฟล์นี้เขียนไว้ช่อง 1) ตั้งเป็น SYS INFO AVAIL (ถ้าเป็น SYS INFO UNAVAIL เครื่องจะไม่รับข้อมูลเสียง) และปิด MEMORY PROTECT ของ INTERNAL ให้เป็น OFF แล้วเปิดกลับเป็น ON เมื่อเสร็จ · เครื่องต้องปิด Memory Protect เพื่อรับ แปลว่าเสียงเดิมในเครื่องอาจถูกแทน ให้รับเสียงเดิมด้วยปุ่มรับบนหน้านี้แล้วดาวน์โหลดเก็บไว้ก่อน · ยังไม่ได้ทดสอบกับ DX7 จริง · จะเล่นบน MONTAGE หรือ MODX: แปลงไฟล์นี้ด้วย Yamaha FM Converter (Yamaha ระบุว่ารองรับ Montage และ MODX และหน้า Compatibility ของ Yamaha บอกว่าเจ้าของ MONTAGE M / MODX M ใช้แปลงเป็นไฟล์ User ของ MONTAGE ได้ · ยังไม่ได้ทดสอบโหลดบน MODX M จริง) · ก่อนโหลดไฟล์ที่แปลงแล้วเข้าเครื่อง ให้เซฟ Backup ทั้งเครื่องลง USB flash drive ไว้ก่อน เพราะคู่มือ MONTAGE M เตือนว่าการโหลดอาจเขียนทับข้อมูล User เดิม (โหลดที่ [UTILITY] → Contents → Load) · ไฟล์ที่ MODX M โหลดได้ตามหน้า Compatibility และคู่มือของ Yamaha: .Y2U .Y2L .Y2A ของ MONTAGE M / MODX M และไฟล์รุ่นก่อน .X7U .X7L .X7A (MONTAGE รุ่นแรก) .X8U .X8L .X8A (MODX / MODX+) · คู่มือ FM Converter ไม่ได้บอกนามสกุลไฟล์ที่ได้ ให้ดูนามสกุลก่อนโหลด",
+      "ส่งไฟล์ .syx เข้าเครื่องด้วยโปรแกรม MIDI ที่ใช้อยู่ หรือเปิดใน Dexed · ก่อนส่งเข้า DX7 (ตามคู่มือ DX7 หน้า 20, 56–57): ตั้ง DX7 ให้รับ MIDI ช่อง 1 (ไฟล์นี้เขียนไว้ช่อง 1) ตั้งเป็น SYS INFO AVAIL (ถ้าเป็น SYS INFO UNAVAIL เครื่องจะไม่รับข้อมูลเสียง) และปิด MEMORY PROTECT ของ INTERNAL ให้เป็น OFF แล้วเปิดกลับเป็น ON เมื่อเสร็จ · ส่งเสร็จในราว 1 วินาที จอ DX7 จะขึ้น FUNCTION CONTROL / MIDI RECEIVED ถ้าไม่ขึ้น ให้ตรวจว่า MEMORY PROTECT เป็น OFF แล้ว (คู่มือ DX7 หน้า 56) · เครื่องต้องปิด Memory Protect เพื่อรับ แปลว่าเสียงเดิมในเครื่องอาจถูกแทน ให้รับเสียงเดิมด้วยปุ่มรับบนหน้านี้แล้วดาวน์โหลดเก็บไว้ก่อน · ยังไม่ได้ทดสอบกับ DX7 จริง · จะเล่นบน MONTAGE หรือ MODX: แปลงไฟล์นี้ด้วย Yamaha FM Converter (Yamaha ระบุว่ารองรับ Montage และ MODX และหน้า Compatibility ของ Yamaha บอกว่าเจ้าของ MONTAGE M / MODX M ใช้แปลงเป็นไฟล์ User ของ MONTAGE ได้ · ยังไม่ได้ทดสอบโหลดบน MODX M จริง) · ก่อนโหลดไฟล์ที่แปลงแล้วเข้าเครื่อง ให้เซฟ Backup ทั้งเครื่องลง USB flash drive ไว้ก่อน เพราะคู่มือ MONTAGE M เตือนว่าการโหลดอาจเขียนทับข้อมูล User เดิม (โหลดที่ [UTILITY] → Contents → Load) · ไฟล์ที่ MODX M โหลดได้ตามหน้า Compatibility และคู่มือของ Yamaha: .Y2U .Y2L .Y2A ของ MONTAGE M / MODX M และไฟล์รุ่นก่อน .X7U .X7L .X7A (MONTAGE รุ่นแรก) .X8U .X8L .X8A (MODX / MODX+) · คู่มือ FM Converter ไม่ได้บอกนามสกุลไฟล์ที่ได้ ให้ดูนามสกุลก่อนโหลด",
     verified: true,
     sources: [
       // DX7 Owner's Manual p. 20 (FUNCTION, MIDI): "SYS INFO AVAIL" is needed to transfer voices,
@@ -85,6 +85,10 @@ export const TARGETS: Target[] = [
       // its [MEMORY PROTECT] OFF, then back ON (manualowl.com and manualsonline.com copies, 2026-11-14).
       "https://www.manualowl.com/m/Yamaha/DX7/Manual/416114?page=25",
       "https://www.manualowl.com/m/Yamaha/DX7/Manual/416114?page=62",
+      // p. 56, "Transmitting 32 voices from the Master to the Slave": the transfer takes about a second,
+      // then the Slave shows "FUNCTION CONTROL, MIDI RECEIVED"; if not, check its memory protection is OFF
+      // (University of Aberdeen copy of Yamaha's DX7 manual, read 2026-11-14).
+      "https://homepages.abdn.ac.uk/d.j.benson/pages/dx7/manuals/dx7-man.pdf",
       "https://shop.usa.yamaha.com/en/fmconverter/index/converter/",
       "https://www.yamaha.com/us/downloads/FM-Converter-User-Guide-English.pdf",
       "https://uk.yamaha.com/en/musical-instruments/keyboards/explore/montage-portal/essentials/compatibility.html",
