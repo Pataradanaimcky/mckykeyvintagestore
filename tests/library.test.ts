@@ -312,5 +312,7 @@ test("MODX M: rearrange steps say [SHIFT] + [EDIT] copies or exchanges a whole p
   const t = getTarget("modx-m");
   assert.ok(t.rearrange?.includes("ให้เลือกแบงก์ USER แล้วกด [SHIFT] ค้างไว้แล้วกด [EDIT]"));
   assert.ok(t.rearrange?.includes("ทั้งหน้า (Page)"));
+  // MODX M Operation Manual p. 424 (Shortcuts): [SHIFT] + [EDIT] calls up the Exchange/Copy screen.
+  assert.ok(t.rearrange?.endsWith("จะเปิดหน้าจอ Exchange/Copy"));
   assert.ok(t.sources.includes("https://manual.yamaha.com/mi/synth/montage_m/en/om01basicoperation0120.html"));
 });

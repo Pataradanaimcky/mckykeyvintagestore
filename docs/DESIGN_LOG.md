@@ -58,6 +58,7 @@ Delegated by the owner on 2026-11-12. The PM records each decision here with the
 
 ## History
 
+- 2026-11-13: Organizer MODX M: the rearrange step names the screen [SHIFT]+[EDIT] opens, "Exchange/Copy" (MODX M6 Operation Manual Shortcuts, p. 424) (STUDIO.md 4m).
 - 2026-11-13: Organizer MODX M: confirmed slot Volume range 0–127 and that [SHIFT]+[EDIT] needs a USER bank selected, from Yamaha's MODX M6 Operation Manual pp. 356, 360; clamp slot Volume to 0–127 and note the USER-bank step (STUDIO.md 4n).
 - 2026-11-11: First version as a single HTML page.
 - 2026-11-11: Rebuilt as a Next.js store with catalog grid, product pages, checkout, simulated PromptPay payment and optional Postgres storage. Badges moved from the cover into the card body because they covered the cover label at phone width.
