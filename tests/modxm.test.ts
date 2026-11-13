@@ -88,6 +88,13 @@ test("USB help follows the Operation Manual (MIDI I/O → MIDI IN/OUT USB, Advan
   }
 });
 
+test("MIDI IN/OUT default is USB (Data List p. 226) and the help says so", async () => {
+  const { MODX_MIDI_IN_OUT: row, MODX_USB_HELP: help } = await import("../src/lib/studio/modxm.ts");
+  assert.deepEqual([...row.address], [0x00, 0x00, 0x00, 0x22]);
+  assert.equal(row.values[row.defaultValue], "USB");
+  assert.ok(help.includes("ค่าเริ่มต้นของเครื่องคือ USB"));
+});
+
 test("the page only asks: every request is a Parameter Request (3n), so Bulk Receive can stay Protect", async () => {
   const { pageNameRequests, MODX_BULK_NOTE: note } = await import("../src/lib/studio/modxm.ts");
   for (let page = 0; page < 16; page++) {

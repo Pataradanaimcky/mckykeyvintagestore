@@ -22,10 +22,12 @@ export const MODX_NAME_LENGTH = 20;
  * Operation Manual (Kraft Music copy of Yamaha's MODX M6 Operation Manual):
  * [UTILITY] → Settings → MIDI I/O, "MIDI IN/OUT" (USB, MIDI) picks the
  * terminal used to send and receive MIDI (p. 368); [UTILITY] → Settings →
- * Advanced, "Device Number" (Off, All, 16–1) (p. 371). No default is printed.
+ * Advanced, "Device Number" (Off, All, 16–1) (p. 371). The Operation Manual
+ * prints no default; the Data List does for MIDI IN/OUT (see below), not for
+ * Device Number.
  */
 export const MODX_USB_HELP =
-  "บนเครื่องดู [UTILITY] → Settings → MIDI I/O → MIDI IN/OUT ต้องเป็น USB (ถ้าเป็น MIDI เครื่องจะรับส่ง MIDI ทางช่อง MIDI 5 ขาแทน) " +
+  "บนเครื่องดู [UTILITY] → Settings → MIDI I/O → MIDI IN/OUT ต้องเป็น USB (ค่าเริ่มต้นของเครื่องคือ USB ถ้าเคยเปลี่ยนเป็น MIDI เครื่องจะรับส่ง MIDI ทางช่อง MIDI 5 ขาแทน) " +
   "และ [UTILITY] → Settings → Advanced → Device Number เป็น All หรือ 1 (ถ้าเป็น Off เครื่องจะไม่ตอบ)";
 
 /**
@@ -36,6 +38,19 @@ export const MODX_USB_HELP =
  */
 export const MODX_BULK_NOTE =
   "Bulk Receive ([UTILITY] → Settings → Advanced) ปล่อยเป็น Protect ได้ หน้านี้ไม่ส่ง Bulk Dump เข้าเครื่อง";
+
+/**
+ * MIDI IN/OUT as printed in the Data List, MIDI PARAMETER CHANGE TABLE
+ * (SYSTEM), p. 226: "22 2 00 00 – 00 01 MIDI IN/OUT MIDI, USB 00 01"
+ * (address 00 00 00 22, size 2, data 0 = MIDI, 1 = USB, default 00 01 = USB).
+ * Kept for reference only: the organizer never sends a Parameter Change.
+ * The same table has no Device Number row, so its default is still unknown.
+ */
+export const MODX_MIDI_IN_OUT = {
+  address: [0x00, 0x00, 0x00, 0x22],
+  values: ["MIDI", "USB"],
+  defaultValue: 1,
+} as const;
 
 const HEAD = [0x43, 0x7f, 0x1c, 0x0d] as const;
 
