@@ -58,6 +58,7 @@ Delegated by the owner on 2026-11-12. The PM records each decision here with the
 
 ## History
 
+- 2026-11-14: Organizer DX7: "บันทึกและนำไปใช้" gives the DX7's receive settings before sending the downloaded cartridge (MIDI channel 1, SYS INFO AVAIL, MEMORY PROTECT INTERNAL OFF then ON, get the old voices first), from the DX7 Owner's Manual pp. 20, 56–57 (STUDIO.md 1c).
 - 2026-11-13: Organizer MODX M: the rearrange steps add Delete & Move (removes a slot and moves the next ones up; Delete leaves a gap), from the MONTAGE M online manual, Live Set Edit (STUDIO.md 4q).
 - 2026-11-13: Organizer DX7: the waiting message comes from one tested constant and the test script now names the prompt "MIDI TRANSMIT ?", confirmed in a second text copy of the DX7 Owner's Manual (p. 22) (STUDIO.md 1b).
 - 2026-11-13: Organizer research only (STUDIO.md 5e, 3d): FANTOM-0 Reference Manual and Parameter Guide on roland.com need accepting Roland's manual terms, so not opened (legal, owner's call; question for the PM); FM Converter output extension still unconfirmed.
