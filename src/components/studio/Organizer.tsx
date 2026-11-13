@@ -15,7 +15,7 @@ import {
   SceneNameCollector,
   sceneNameRequest,
 } from "@/lib/studio/fantom";
-import { namesOnPage, pageNameRequests, placeNames, readSlotNameReply, SlotNameCollector } from "@/lib/studio/modxm";
+import { MODX_USB_HELP, namesOnPage, pageNameRequests, placeNames, readSlotNameReply, SlotNameCollector } from "@/lib/studio/modxm";
 import { getSound, guessSound, PREVIEW_SOUNDS } from "@/lib/studio/sounds";
 import { GmPreview } from "./gmPreview";
 import {
@@ -467,7 +467,7 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
       `ขอชื่อ 16 ช่องจาก MODX M มาใส่หน้า ${where.page} ที่เปิดอยู่\n\n` +
         "• หน้านี้ส่งแค่คำขอ (Parameter Request) ไม่เขียนอะไรลงเครื่อง\n" +
         "• ยังไม่ได้ทดสอบกับ MODX M จริง ถ้าไม่มีอะไรตอบกลับก็ไม่มีอะไรเปลี่ยน\n" +
-        "• บนเครื่องเปิด Live Set ที่ต้องการไว้ และตั้ง Device Number เป็น All หรือ 1 ([UTILITY] → Settings → Advanced)\n" +
+        "• บนเครื่องเปิด Live Set ที่ต้องการไว้ ตั้ง MIDI IN/OUT เป็น USB ([UTILITY] → Settings → MIDI I/O) และ Device Number เป็น All หรือ 1 ([UTILITY] → Settings → Advanced)\n" +
         "• เสียงที่อยู่ในช่องเดิมจะย้ายลงชั้นวาง\n\nทำต่อไหม",
     );
     if (!ok) return;
@@ -487,7 +487,7 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
     const named = allOut.filter((o) => /modx/i.test(o.name ?? ""));
     const outputs = named.length ? named : allOut;
     if (!inputs.length || !outputs.length) {
-      setMessage("ไม่พบ MODX M ต่อสาย USB จากเครื่องเข้าคอมพิวเตอร์ก่อน");
+      setMessage(`ไม่พบ MODX M ต่อสาย USB จากเครื่องเข้าคอมพิวเตอร์ก่อน ${MODX_USB_HELP}`);
       return;
     }
     const kbPage = where.page - 1;
@@ -503,7 +503,7 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
       const names = namesOnPage(collector, kbPage);
       const missing = names.filter((n) => n === undefined).length;
       if (missing === 16) {
-        setMessage("ไม่ได้รับชื่อจาก MODX M ดูว่าต่อสาย USB แล้ว และตั้ง Device Number เป็น All หรือ 1");
+        setMessage(`ไม่ได้รับชื่อจาก MODX M ดูว่าต่อสาย USB แล้ว ${MODX_USB_HELP}`);
         return;
       }
       let placedCount = 0;

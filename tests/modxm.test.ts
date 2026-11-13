@@ -80,3 +80,10 @@ test("received names fill a page; old sounds go to the shelf; missing and blank 
   assert.deepEqual(r.slots.slice(0, 3), [{ name: "CP80 Stage" }, { name: "Old B" }, null]);
   assert.deepEqual(r.shelved, [{ name: "Old A" }]);
 });
+
+test("USB help follows the Operation Manual (MIDI I/O → MIDI IN/OUT USB, Advanced → Device Number)", async () => {
+  const { MODX_USB_HELP: help } = await import("../src/lib/studio/modxm.ts");
+  for (const word of ["[UTILITY]", "Settings", "MIDI I/O", "MIDI IN/OUT", "USB", "Advanced", "Device Number", "All", "Off"]) {
+    assert.ok(help.includes(word), word);
+  }
+});

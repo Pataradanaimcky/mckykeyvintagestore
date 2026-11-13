@@ -17,6 +17,17 @@
 
 export const MODX_NAME_LENGTH = 20;
 
+/**
+ * Shown when no MODX M port is found or no name comes back. From the MODX M
+ * Operation Manual (Kraft Music copy of Yamaha's MODX M6 Operation Manual):
+ * [UTILITY] → Settings → MIDI I/O, "MIDI IN/OUT" (USB, MIDI) picks the
+ * terminal used to send and receive MIDI (p. 368); [UTILITY] → Settings →
+ * Advanced, "Device Number" (Off, All, 16–1) (p. 371). No default is printed.
+ */
+export const MODX_USB_HELP =
+  "บนเครื่องดู [UTILITY] → Settings → MIDI I/O → MIDI IN/OUT ต้องเป็น USB (ถ้าเป็น MIDI เครื่องจะรับส่ง MIDI ทางช่อง MIDI 5 ขาแทน) " +
+  "และ [UTILITY] → Settings → Advanced → Device Number เป็น All หรือ 1 (ถ้าเป็น Off เครื่องจะไม่ตอบ)";
+
 const HEAD = [0x43, 0x7f, 0x1c, 0x0d] as const;
 
 function inRange(page: number, slot: number) {
