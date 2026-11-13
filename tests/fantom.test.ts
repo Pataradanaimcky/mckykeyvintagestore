@@ -99,3 +99,11 @@ test("port finder finds nothing when no output answers", async () => {
   assert.equal(f.hear([0xf0, 0x7e, 0x10, 0x06, 0x02, 0x41, 0x5b, 0x03, 0x00, 0x01, 0x00, 0x03, 0x00, 0x00, 0xf7]), false);
   assert.equal(f.found(), null);
 });
+
+test("USB Driver help follows the Owner's Manual (MENU → SYSTEM → GENERAL, VENDOR/GENERIC, WRITE, restart)", async () => {
+  const { FANTOM_USB_DRIVER_HELP: help } = await import("../src/lib/studio/fantom.ts");
+  for (const word of ["[MENU]", "SYSTEM", "GENERAL", "USB Driver", "VENDOR", "GENERIC", "[WRITE]", "ปิด-เปิด"]) {
+    assert.ok(help.includes(word), word);
+  }
+  assert.match(help, /แค่ MIDI/);
+});

@@ -18,6 +18,18 @@
  */
 
 export const FANTOM_NAME_LENGTH = 16;
+
+/**
+ * What to check when the computer shows no FANTOM-0 port. From the FANTOM-06/07/08
+ * Owner's Manual p. 32 (static.roland.com FANTOM-06_07_08_eng01_W.pdf): [MENU] →
+ * <SYSTEM> → <GENERAL> tab → "USB Driver": VENDOR (the USB driver downloaded from
+ * the Roland website) or GENERIC (the computer's standard driver; "Only MIDI is
+ * available"); [WRITE] saves, then power off and on. The manual gives no default.
+ */
+export const FANTOM_USB_DRIVER_HELP =
+  "ถ้าคอมพิวเตอร์ไม่เห็น FANTOM-0: บนเครื่องดู [MENU] → SYSTEM → GENERAL → USB Driver " +
+  "ถ้าเป็น VENDOR ต้องติดตั้งไดรเวอร์ USB จากเว็บ Roland ก่อน ถ้าเป็น GENERIC ใช้ไดรเวอร์ของคอมพิวเตอร์ได้เลย (ได้แค่ MIDI ไม่มีเสียงทาง USB) " +
+  "เปลี่ยนแล้วกด [WRITE] และปิด-เปิดเครื่องใหม่";
 export const FANTOM_DEVICE_ID = 0x10;
 
 const MODEL = [0x00, 0x00, 0x00, 0x5b] as const;

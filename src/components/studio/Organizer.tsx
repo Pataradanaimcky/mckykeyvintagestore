@@ -8,6 +8,7 @@ import { OctaveSwitch, RackKeys } from "@/components/rack/RackKeys";
 import { bankSysex, checkCartridgeDump, voiceSysex } from "@/lib/studio/dx7";
 import {
   FANTOM_DEVICE_ID,
+  FANTOM_USB_DRIVER_HELP,
   FantomPortFinder,
   identityRequest,
   readSceneNameReply,
@@ -572,7 +573,7 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
     const inputs = [...access.inputs.values()];
     const allOut = [...access.outputs.values()];
     if (!inputs.length || !allOut.length) {
-      setMessage("ไม่พบ FANTOM-0 ต่อสาย USB จากเครื่องเข้าคอมพิวเตอร์ก่อน");
+      setMessage(`ไม่พบ FANTOM-0 ต่อสาย USB จากเครื่องเข้าคอมพิวเตอร์ก่อน ${FANTOM_USB_DRIVER_HELP}`);
       return;
     }
     // First ask each output in turn "which keyboard are you?" (Identity Request),
@@ -597,7 +598,7 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
       stop();
       const name = collector.name();
       if (name === undefined) {
-        setMessage("ไม่ได้รับชื่อจาก FANTOM-0 ดูว่าต่อสาย USB แล้ว เปิด Receive Exclusive (SYSTEM: MIDI) และ Device ID เป็น 17");
+        setMessage(`ไม่ได้รับชื่อจาก FANTOM-0 ดูว่าต่อสาย USB แล้ว เปิด Receive Exclusive (SYSTEM: MIDI) และ Device ID เป็น 17 ${FANTOM_USB_DRIVER_HELP}`);
         return;
       }
       const label = name || "INIT SCENE";
