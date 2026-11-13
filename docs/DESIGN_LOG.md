@@ -42,6 +42,11 @@ Read this before changing the interface. Add new entries at the bottom of Histor
 
 Delegated by the owner on 2026-11-12. The PM records each decision here with the date and the question it answers. Agents treat these as settled. The PM never decides the matters reserved for the owner in AGENTS.md ("Who decides"), and never edits the owner's Decisions above.
 
+- 2026-11-13: MODX M Live Set slots of type Song, Audio or Pattern: keep option (a), one note on the page; the organizer arranges Perform slots only. Reason: keeps the tool simple and stays a sound organizer, not an editor.
+- 2026-11-13: FANTOM-0 reading from the keyboard: keep option (a), one read-only press per scene on screen, no Bank Select or Program Change from the site. Reason: never changes the keyboard's state or loses unsaved edits.
+- 2026-11-13: The synth rack stays on the home page only (answers the Open question). Reason: it brings players in without pulling attention from buying on the store pages.
+- 2026-11-13: No new features that send MIDI to a keyboard until the owner or a tester has tried the existing read-only MODX M and FANTOM-0 buttons on a real keyboard; researcher work goes to items checkable from manuals and to a short real-keyboard test script for the owner. Reason: untested USB features pile up risk without bringing buyers.
+
 ## Open questions
 
 - Free pack terms: the free FM bank currently has no written licence. Recommended: free to use in any music, including commercial releases; not to be resold or shared as a sound pack.
@@ -49,7 +54,6 @@ Delegated by the owner on 2026-11-12. The PM records each decision here with the
 - Brand name: the site currently says "Mcky Vintage Key" (from the repo name). Confirm or change.
 - Real cover images: the owner can supply his own photos of his own keyboards to replace the drawn covers.
 - "Keyboard icon look more modern": the key strip on pack covers was redrawn with rounded keys. Should the brand mark (logo, site icon, social profile picture) be redrawn too? Recommended: no, keep it; it already matches.
-- Should the rack also appear on other pages? Recommended: home page only, so it does not pull attention from buying.
 - Demo audio: pack pages and organizer demo banks are ready for the owner's own recordings (see src/content/demos.ts). Until a pack has them, its patches play a clearly labelled close-match preview. Recommended: record the first pack's 8 patches as 15–30 second loops.
 
 ## History
