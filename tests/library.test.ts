@@ -186,6 +186,15 @@ test("DX7 tells players to back up before loading a converted file (MONTAGE M ma
   assert.ok(t.sources.some((s) => s.includes("montage_m/en/om01basicoperation0260")));
 });
 
+test("DX7 lists the file types MODX M can load, from Yamaha's compatibility page and MONTAGE M manual", () => {
+  const t = getTarget("dx7");
+  for (const ext of [".Y2U", ".Y2L", ".Y2A", ".X7U", ".X7L", ".X7A", ".X8U", ".X8L", ".X8A"]) {
+    assert.ok(t.howTo.includes(ext), ext);
+  }
+  assert.match(t.howTo, /คู่มือ FM Converter ไม่ได้บอกนามสกุลไฟล์ที่ได้/);
+  assert.ok(t.sources.some((s) => s.includes("montage_m/en/om01basicoperation0240")));
+});
+
 test("MODX M slots keep an SSS Time from the manual's settings (0.0sec–30sec, Hold, System)", () => {
   assert.equal(parseSssTime("Hold"), "Hold");
   assert.equal(parseSssTime("System"), "System");

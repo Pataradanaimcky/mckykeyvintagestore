@@ -76,7 +76,7 @@ export const TARGETS: Target[] = [
     hasVolume: false,
     about: "เปิดไฟล์ .syx (แบงก์ 32 เสียงหรือเสียงเดี่ยว) ลากเรียงใหม่ ฟังได้ แล้วดาวน์โหลดแบงก์ที่เรียงแล้ว",
     howTo:
-      "ส่งไฟล์ .syx เข้าเครื่องด้วยโปรแกรม MIDI ที่ใช้อยู่ หรือเปิดใน Dexed · จะเล่นบน MONTAGE หรือ MODX: แปลงไฟล์นี้ด้วย Yamaha FM Converter (Yamaha ระบุว่ารองรับ Montage และ MODX และหน้า Compatibility ของ Yamaha บอกว่าเจ้าของ MONTAGE M / MODX M ใช้แปลงเป็นไฟล์ User ของ MONTAGE ได้ · ยังไม่ได้ทดสอบโหลดบน MODX M จริง) · ก่อนโหลดไฟล์ที่แปลงแล้วเข้าเครื่อง ให้เซฟ Backup ทั้งเครื่องลง USB flash drive ไว้ก่อน เพราะคู่มือ MONTAGE M เตือนว่าการโหลดอาจเขียนทับข้อมูล User เดิม (โหลดที่ [UTILITY] → Contents → Load)",
+      "ส่งไฟล์ .syx เข้าเครื่องด้วยโปรแกรม MIDI ที่ใช้อยู่ หรือเปิดใน Dexed · จะเล่นบน MONTAGE หรือ MODX: แปลงไฟล์นี้ด้วย Yamaha FM Converter (Yamaha ระบุว่ารองรับ Montage และ MODX และหน้า Compatibility ของ Yamaha บอกว่าเจ้าของ MONTAGE M / MODX M ใช้แปลงเป็นไฟล์ User ของ MONTAGE ได้ · ยังไม่ได้ทดสอบโหลดบน MODX M จริง) · ก่อนโหลดไฟล์ที่แปลงแล้วเข้าเครื่อง ให้เซฟ Backup ทั้งเครื่องลง USB flash drive ไว้ก่อน เพราะคู่มือ MONTAGE M เตือนว่าการโหลดอาจเขียนทับข้อมูล User เดิม (โหลดที่ [UTILITY] → Contents → Load) · ไฟล์ที่ MODX M โหลดได้ตามหน้า Compatibility และคู่มือของ Yamaha: .Y2U .Y2L .Y2A ของ MONTAGE M / MODX M และไฟล์รุ่นก่อน .X7U .X7L .X7A (MONTAGE รุ่นแรก) .X8U .X8L .X8A (MODX / MODX+) · คู่มือ FM Converter ไม่ได้บอกนามสกุลไฟล์ที่ได้ ให้ดูนามสกุลก่อนโหลด",
     verified: true,
     sources: [
       "https://shop.usa.yamaha.com/en/fmconverter/index/converter/",
@@ -86,6 +86,9 @@ export const TARGETS: Target[] = [
       // the instrument will be overwritten and lost" (om01basicoperation0260); Message List:
       // "Current user data will be overwritten by **." (om02screenparameters0470); Backup file
       // covers all User memory (om01basicoperation0240).
+      // File types: .Y2U/.Y2L/.Y2A and older .X7*/.X8* load on MONTAGE M (om01basicoperation0240;
+      // compatibility page sections 1–2: "MONTAGE M (MODX M) can load the following data formats").
+      "https://manual.yamaha.com/mi/synth/montage_m/en/om01basicoperation0240.html",
       "https://manual.yamaha.com/mi/synth/montage_m/en/om01basicoperation0260.html",
       "https://manual.yamaha.com/mi/synth/montage_m/en/om02screenparameters0470.html",
     ],
