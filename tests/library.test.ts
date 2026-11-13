@@ -170,11 +170,13 @@ test("DX7 order sheet is the plain voice list: Voice 1–32 in cartridge order, 
   assert.match(sheet, /ยังไม่ได้วาง: SPARE/);
 });
 
-test("DX7 points to Yamaha FM Converter for MONTAGE/MODX without claiming MODX M", () => {
+test("DX7 points to Yamaha FM Converter, names MODX M from Yamaha's compatibility page but not as tested", () => {
   const t = getTarget("dx7");
   assert.match(t.howTo, /FM Converter/);
-  assert.match(t.howTo, /MODX M ยังไม่ได้ยืนยัน/);
+  assert.match(t.howTo, /MONTAGE M \/ MODX M ใช้แปลงเป็นไฟล์ User ของ MONTAGE/);
+  assert.match(t.howTo, /ยังไม่ได้ทดสอบโหลดบน MODX M จริง/);
   assert.ok(t.sources.some((s) => s.includes("FM-Converter-User-Guide")));
+  assert.ok(t.sources.some((s) => s.includes("montage-portal/essentials/compatibility")));
 });
 
 test("MODX M slots keep an SSS Time from the manual's settings (0.0sec–30sec, Hold, System)", () => {
