@@ -130,7 +130,7 @@ export const TARGETS: Target[] = [
     // the dialog's options are not described. Shortcuts table p. 424: [SHIFT] + [EDIT] "Calls up the
     // Exchange/Copy screen".
     rearrange:
-      "ช่องที่ลงทะเบียนไว้แล้วไม่ต้องลงใหม่: กด [LIVE SET] → [EDIT] (เลือกแบงก์ USER เท่านั้น แบงก์ Preset และ Library แก้ไม่ได้) → แตะ Job ด้านล่างจอ → แตะช่องแรก → แตะ Exchange → แตะช่องที่จะสลับด้วย → Done · ทำทีละคู่ตามใบจัดเรียง ส่วน Copy ใช้ทำสำเนาช่องไปอีกช่อง · ถ้าจะคัดลอกหรือสลับทั้งหน้า (Page) หรือทั้งแบงก์ ให้เลือกแบงก์ USER แล้วกด [SHIFT] ค้างไว้แล้วกด [EDIT] จะเปิดหน้าจอ Exchange/Copy",
+      "ช่องที่ลงทะเบียนไว้แล้วไม่ต้องลงใหม่: กด [LIVE SET] → [EDIT] (เลือกแบงก์ USER เท่านั้น แบงก์ Preset และ Library แก้ไม่ได้) → แตะ Job ด้านล่างจอ → แตะช่องแรก → แตะ Exchange → แตะช่องที่จะสลับด้วย → Done · ทำทีละคู่ตามใบจัดเรียง ส่วน Copy ใช้ทำสำเนาช่องไปอีกช่อง · ถ้าจะเอาช่องที่ย้ายลงชั้นวางออกจากหน้า แล้วให้ช่องถัดไปเลื่อนขึ้นมาแทน ให้แตะช่องนั้นแล้วแตะ Delete & Move (ถ้าแตะ Delete จะเหลือช่องว่างไว้) · ถ้าจะคัดลอกหรือสลับทั้งหน้า (Page) หรือทั้งแบงก์ ให้เลือกแบงก์ USER แล้วกด [SHIFT] ค้างไว้แล้วกด [EDIT] จะเปิดหน้าจอ Exchange/Copy",
     verified: true,
     sources: [
       "https://yamahasynth.com/learn/modx-m/welcome-to-modx-m/",

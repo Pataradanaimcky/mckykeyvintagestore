@@ -326,6 +326,16 @@ test("MODX M: rearrange steps say [SHIFT] + [EDIT] copies or exchanges a whole p
   assert.ok(t.sources.includes("https://manual.yamaha.com/mi/synth/montage_m/en/om01basicoperation0120.html"));
 });
 
+test("MODX M: rearrange steps say Delete & Move closes the gap, Delete leaves it empty (MONTAGE M online manual, Live Set Edit)", () => {
+  const t = getTarget("modx-m");
+  // Live Set Edit: "Delete & Move … delete a Performance and move the subsequent Performance and related settings up to the current slot."
+  assert.ok(t.rearrange?.includes("แตะ Delete & Move"));
+  assert.ok(t.rearrange?.includes("ถ้าแตะ Delete จะเหลือช่องว่างไว้"));
+  assert.ok(t.rearrange!.indexOf("Delete & Move") < t.rearrange!.indexOf("[SHIFT]"));
+  assert.ok(t.rearrange?.endsWith("จะเปิดหน้าจอ Exchange/Copy"));
+  assert.ok(t.sources.includes("https://manual.yamaha.com/mi/synth/montage_m/en/om02screenparameters0310.html"));
+});
+
 test("MODX M: register step names the Live Set Register buttons (MONTAGE M online manual, Live Set Register)", () => {
   const t = getTarget("modx-m");
   for (const w of ["[SHIFT] + [LIVE SET]", "Live Set Register", "USER", "Register", "Store as New Perf. and Register", "Overwrite Current Perf. and Register"])
