@@ -112,12 +112,15 @@ export const TARGETS: Target[] = [
     // MONTAGE M online manual, Live Set Edit (om02screenparameters0310): Job, Copy, Exchange,
     // "Delete & Move", Delete; MODX M operation manual p. 38 "Exchanging Performances Registered to
     // slots" (Kraft Music copy): User bank only, Job → slot → Exchange → second slot → Done.
+    // MONTAGE M online manual, "Creating a Live Set" (om01basicoperation0120) NOTE: to copy or
+    // exchange an entire bank or Live Set page, hold [SHIFT] and press [EDIT]; a dialog opens.
     rearrange:
-      "ช่องที่ลงทะเบียนไว้แล้วไม่ต้องลงใหม่: กด [LIVE SET] → [EDIT] (เลือกแบงก์ USER เท่านั้น แบงก์ Preset และ Library แก้ไม่ได้) → แตะ Job ด้านล่างจอ → แตะช่องแรก → แตะ Exchange → แตะช่องที่จะสลับด้วย → Done · ทำทีละคู่ตามใบจัดเรียง ส่วน Copy ใช้ทำสำเนาช่องไปอีกช่อง",
+      "ช่องที่ลงทะเบียนไว้แล้วไม่ต้องลงใหม่: กด [LIVE SET] → [EDIT] (เลือกแบงก์ USER เท่านั้น แบงก์ Preset และ Library แก้ไม่ได้) → แตะ Job ด้านล่างจอ → แตะช่องแรก → แตะ Exchange → แตะช่องที่จะสลับด้วย → Done · ทำทีละคู่ตามใบจัดเรียง ส่วน Copy ใช้ทำสำเนาช่องไปอีกช่อง · ถ้าจะคัดลอกหรือสลับทั้งหน้า (Page) หรือทั้งแบงก์ ให้กด [SHIFT] ค้างไว้แล้วกด [EDIT] จะมีหน้าต่างให้เลือก",
     verified: true,
     sources: [
       "https://yamahasynth.com/learn/modx-m/welcome-to-modx-m/",
       "https://manual.yamaha.com/mi/synth/montage_m/en/om02screenparameters0310.html",
+      "https://manual.yamaha.com/mi/synth/montage_m/en/om01basicoperation0120.html",
       "https://yamahasynth.com/learn/modx-series-synthesizers/mastering-modx-performance-basics-2/",
       "https://data.yamaha.com/download/files/2584767",
       "https://data.yamaha.com/files/download/other_assets/9/2574209/MODX-M_data_list_En_B0.pdf",

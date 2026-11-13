@@ -107,3 +107,4 @@ Delegated by the owner on 2026-11-12. The PM records each decision here with the
 - 2026-11-13: Organizer MODX M: the "รับชื่อช่อง" confirmation and test script say Bulk Receive can stay at Protect (Operation Manual p. 372), since the page sends only Parameter Requests (now checked by a test for all 16 pages).
 - 2026-11-13: Organizer MODX M: the USB help says the factory setting of MIDI IN/OUT is USB, from the MODX M Data List SYSTEM table (p. 226, default 00 01); Device Number default still not printed.
 - 2026-11-13: Organizer MODX M: "บันทึกและนำไปใช้" and the order sheet now say how to rearrange slots already on the keyboard with Live Set Edit → Job → Exchange (User bank only), from the MONTAGE M online manual and MODX M Operation Manual p. 38.
+- 2026-11-13: Organizer MODX M: rearrange steps add [SHIFT] + [EDIT] to copy or exchange a whole Live Set page or bank (Yamaha MONTAGE M online manual, "Creating a Live Set").

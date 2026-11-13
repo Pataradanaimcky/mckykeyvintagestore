@@ -304,3 +304,10 @@ test("MODX M: order sheet says how to rearrange registered slots with Job → Ex
   assert.equal(getTarget("dx7").rearrange, undefined);
   assert.equal(getTarget("fantom-0").rearrange, undefined);
 });
+
+test("MODX M: rearrange steps say [SHIFT] + [EDIT] copies or exchanges a whole page or bank (MONTAGE M manual)", () => {
+  const t = getTarget("modx-m");
+  assert.ok(t.rearrange?.includes("[SHIFT] ค้างไว้แล้วกด [EDIT]"));
+  assert.ok(t.rearrange?.includes("ทั้งหน้า (Page)"));
+  assert.ok(t.sources.includes("https://manual.yamaha.com/mi/synth/montage_m/en/om01basicoperation0120.html"));
+});
