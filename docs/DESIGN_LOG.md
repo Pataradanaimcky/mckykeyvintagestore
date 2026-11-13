@@ -108,3 +108,4 @@ Delegated by the owner on 2026-11-12. The PM records each decision here with the
 - 2026-11-13: Organizer MODX M: the USB help says the factory setting of MIDI IN/OUT is USB, from the MODX M Data List SYSTEM table (p. 226, default 00 01); Device Number default still not printed.
 - 2026-11-13: Organizer MODX M: "บันทึกและนำไปใช้" and the order sheet now say how to rearrange slots already on the keyboard with Live Set Edit → Job → Exchange (User bank only), from the MONTAGE M online manual and MODX M Operation Manual p. 38.
 - 2026-11-13: Organizer MODX M: rearrange steps add [SHIFT] + [EDIT] to copy or exchange a whole Live Set page or bank (Yamaha MONTAGE M online manual, "Creating a Live Set").
+- 2026-11-13: Organizer research only (STUDIO.md 5e, 4m): FANTOM-0 MIDI Implementation System tables have no Device ID or Receive Exclusive row, so those stay a check on the keyboard; MODX M [SHIFT] + [EDIT] dialog options still not in the online manual.
