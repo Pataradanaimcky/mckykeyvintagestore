@@ -179,6 +179,13 @@ test("DX7 points to Yamaha FM Converter, names MODX M from Yamaha's compatibilit
   assert.ok(t.sources.some((s) => s.includes("montage-portal/essentials/compatibility")));
 });
 
+test("DX7 tells players to back up before loading a converted file (MONTAGE M manual: Load overwrites User data)", () => {
+  const t = getTarget("dx7");
+  assert.match(t.howTo, /เซฟ Backup ทั้งเครื่องลง USB flash drive ไว้ก่อน/);
+  assert.match(t.howTo, /\[UTILITY\] → Contents → Load/);
+  assert.ok(t.sources.some((s) => s.includes("montage_m/en/om01basicoperation0260")));
+});
+
 test("MODX M slots keep an SSS Time from the manual's settings (0.0sec–30sec, Hold, System)", () => {
   assert.equal(parseSssTime("Hold"), "Hold");
   assert.equal(parseSssTime("System"), "System");

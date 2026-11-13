@@ -76,12 +76,18 @@ export const TARGETS: Target[] = [
     hasVolume: false,
     about: "เปิดไฟล์ .syx (แบงก์ 32 เสียงหรือเสียงเดี่ยว) ลากเรียงใหม่ ฟังได้ แล้วดาวน์โหลดแบงก์ที่เรียงแล้ว",
     howTo:
-      "ส่งไฟล์ .syx เข้าเครื่องด้วยโปรแกรม MIDI ที่ใช้อยู่ หรือเปิดใน Dexed · จะเล่นบน MONTAGE หรือ MODX: แปลงไฟล์นี้ด้วย Yamaha FM Converter (Yamaha ระบุว่ารองรับ Montage และ MODX และหน้า Compatibility ของ Yamaha บอกว่าเจ้าของ MONTAGE M / MODX M ใช้แปลงเป็นไฟล์ User ของ MONTAGE ได้ · ยังไม่ได้ทดสอบโหลดบน MODX M จริง)",
+      "ส่งไฟล์ .syx เข้าเครื่องด้วยโปรแกรม MIDI ที่ใช้อยู่ หรือเปิดใน Dexed · จะเล่นบน MONTAGE หรือ MODX: แปลงไฟล์นี้ด้วย Yamaha FM Converter (Yamaha ระบุว่ารองรับ Montage และ MODX และหน้า Compatibility ของ Yamaha บอกว่าเจ้าของ MONTAGE M / MODX M ใช้แปลงเป็นไฟล์ User ของ MONTAGE ได้ · ยังไม่ได้ทดสอบโหลดบน MODX M จริง) · ก่อนโหลดไฟล์ที่แปลงแล้วเข้าเครื่อง ให้เซฟ Backup ทั้งเครื่องลง USB flash drive ไว้ก่อน เพราะคู่มือ MONTAGE M เตือนว่าการโหลดอาจเขียนทับข้อมูล User เดิม (โหลดที่ [UTILITY] → Contents → Load)",
     verified: true,
     sources: [
       "https://shop.usa.yamaha.com/en/fmconverter/index/converter/",
       "https://www.yamaha.com/us/downloads/FM-Converter-User-Guide-English.pdf",
       "https://uk.yamaha.com/en/musical-instruments/keyboards/explore/montage-portal/essentials/compatibility.html",
+      // MONTAGE M online manual: Load is [UTILITY] → Contents → Load and "the existing settings on
+      // the instrument will be overwritten and lost" (om01basicoperation0260); Message List:
+      // "Current user data will be overwritten by **." (om02screenparameters0470); Backup file
+      // covers all User memory (om01basicoperation0240).
+      "https://manual.yamaha.com/mi/synth/montage_m/en/om01basicoperation0260.html",
+      "https://manual.yamaha.com/mi/synth/montage_m/en/om02screenparameters0470.html",
     ],
   },
   {
