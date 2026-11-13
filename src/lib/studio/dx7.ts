@@ -62,6 +62,15 @@ export function bankSysex(voices: ArrayLike<number>[], fill: ArrayLike<number>, 
   return Uint8Array.from([0xf0, 0x43, (channel - 1) & 15, 0x09, 0x20, 0x00, ...data, checksum(data), 0xf7]);
 }
 
+/**
+ * What the page shows while it waits for a DX7 dump. Display text "SYS INFO AVAIL" and
+ * "MIDI TRANSMIT ?" (answered with YES) as printed in the DX7 Owner's Manual, p. 22,
+ * "Transmit Voice Data for All 32 Voices" (archive.org text copy, 2026-11-13); the DX7
+ * transmits on channel 1 (same page). Not yet checked on a real DX7 (STUDIO.md 1a).
+ */
+export const DX7_SEND_STEPS =
+  "กำลังรอ… บน DX7 กด FUNCTION แล้วกดปุ่ม 8 (MIDI) จนจอขึ้น SYS INFO AVAIL กดปุ่ม 8 อีกครั้งจนจอถามว่าจะส่ง (MIDI TRANSMIT ?) แล้วกด YES";
+
 export type DumpCheck = { ok: true; channel: number } | { ok: false; reason: string };
 
 /**

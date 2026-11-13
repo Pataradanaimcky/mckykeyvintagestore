@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { INIT, MAX, parse, unpack } from "@audio/synth-dx7";
-import { bankSysex, checksum, packVoice, setVoiceName, voiceName, voiceSysex } from "../src/lib/studio/dx7.ts";
+import { bankSysex, checksum, DX7_SEND_STEPS, packVoice, setVoiceName, voiceName, voiceSysex } from "../src/lib/studio/dx7.ts";
 
 function randomVoice(seed: number) {
   let s = seed;
@@ -68,4 +68,11 @@ test("a cartridge received from the keyboard is checked before use", async () =>
   assert.equal(checkCartridgeDump([0xf0, 0x41, 0x10, 0x00, 0xf7]).ok, false);
   // A dump request (F0 43 2n ...) is not a dump.
   assert.equal(checkCartridgeDump([0xf0, 0x43, 0x20, 0x09, 0x20, 0x00, 0xf7]).ok, false);
+});
+
+test("DX7 send steps use the display text printed in the owner's manual (p. 22)", () => {
+  assert.ok(DX7_SEND_STEPS.includes("SYS INFO AVAIL"));
+  assert.ok(DX7_SEND_STEPS.includes("MIDI TRANSMIT ?"));
+  assert.ok(DX7_SEND_STEPS.includes("YES"));
+  assert.ok(!DX7_SEND_STEPS.includes("TRANSIT"));
 });

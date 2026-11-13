@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { FM_PRESETS } from "@/components/rack/fm/presets";
 import { OctaveSwitch, RackKeys } from "@/components/rack/RackKeys";
-import { bankSysex, checkCartridgeDump, voiceSysex } from "@/lib/studio/dx7";
+import { bankSysex, checkCartridgeDump, DX7_SEND_STEPS, voiceSysex } from "@/lib/studio/dx7";
 import {
   FANTOM_DEVICE_ID,
   FANTOM_USB_DRIVER_HELP,
@@ -447,7 +447,7 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
     inputs.forEach((i) => i.addEventListener("midimessage", onMessage));
     stopListen.current = stop;
     setListening(true);
-    setMessage("กำลังรอ… บน DX7 กด FUNCTION แล้วกดปุ่ม 8 (MIDI) จนจอขึ้น SYS INFO AVAIL กดปุ่ม 8 อีกครั้งจนจอถามว่าจะส่ง (MIDI TRANSMIT ?) แล้วกด YES");
+    setMessage(DX7_SEND_STEPS);
   };
 
   // Asking a MODX M for the Slot Names of one Live Set page: read only. Only

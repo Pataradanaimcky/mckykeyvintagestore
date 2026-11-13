@@ -46,7 +46,7 @@ Every store pack opens as a demo bank on its keyboard (MODX M or FANTOM-0). Each
 
 1. ต่อสายอินเทอร์เฟซ USB-MIDI จากช่อง MIDI OUT ของ DX7 เข้าคอมพิวเตอร์ (DX7 ไม่มีช่อง USB)
 2. บนหน้าเว็บ เลือกแท็บ DX7 กด "รับเสียง 32 เสียงจาก DX7 ทาง USB-MIDI" (หน้าเว็บจะรอ 2 นาที)
-3. บน DX7 กด FUNCTION → ปุ่ม 8 (MIDI) จนจอขึ้น SYS INFO AVAIL → กดปุ่ม 8 อีกครั้ง → จอถามว่าจะส่ง → กด YES
+3. บน DX7 กด FUNCTION → ปุ่ม 8 (MIDI) จนจอขึ้น SYS INFO AVAIL → กดปุ่ม 8 อีกครั้ง → จอขึ้น MIDI TRANSMIT ? → กด YES
 4. ที่ควรเห็น: ตลับบนหน้าเว็บเปลี่ยนเป็น 32 ชื่อเรียงเหมือน INTERNAL 1–32 บนเครื่อง ตลับเดิมย้ายลงชั้นวาง กด ▶ ฟัง 2–3 เสียงเทียบกับเครื่อง
 5. กด "ดาวน์โหลดตลับที่เรียงแล้ว (.syx)" แล้วลองเปิดไฟล์ใน Dexed หรือส่งกลับเข้า DX7 ด้วยโปรแกรมที่ใช้อยู่ (ถ้าสะดวก)
 
@@ -83,7 +83,8 @@ Every store pack opens as a demo bank on its keyboard (MODX M or FANTOM-0). Each
 One small, tested change per run, top to bottom.
 
 1. [x] DX7: receive a cartridge from the keyboard over USB (read only), done 2026-11-12.
-1a. DX7: still open: confirm the exact transmit prompt text on the display (the online copy of the manual is OCR and reads "MIDI TRANSIT?"/"MIT?"; the page now writes "MIDI TRANSMIT ?") and test a real DX7 dump and a downloaded cartridge in Dexed and on a DX7. Yamaha's own DX7 PDF (data.yamaha.com DX7E1.pdf) is a scan with no text, so the transmission data table could not be quoted this run.
+1a. DX7: still open: test a real DX7 dump and a downloaded cartridge in Dexed and on a DX7. Yamaha's own DX7 PDF (data.yamaha.com DX7E1.pdf) is a scan with no text, so the transmission data table could not be quoted this run.
+1b. [x] DX7: transmit prompt text confirmed from a second copy of the manual, done 2026-11-13 (`DX7_SEND_STEPS` in src/lib/studio/dx7.ts, used by the page while it waits; test in tests/dx7.test.ts). DX7 Owner's Manual p. 22, "Transmit Voice Data for All 32 Voices" (archive.org text copy "synthmanual-yamaha-dx-7-owners-manual-alternate-copy"): the display reads "FUNCTION CONTROL / MIDI TRANSMIT ?", YES sends all 32 voices "from ch. 1"; "SYS INFO AVAIL" on the same page; p. 27 lists "MIDI TRANSMIT". The key printed before the prompt is garbled in that copy, so "button 8 again" is still to confirm on a real DX7 (1a). Also this run: 4o searched in the MONTAGE M online manual (Live Set screen om02screenparameters0290, Live Set Edit 0310, Live Set Register 0300): it only says [SHIFT] + [EDIT] with a User bank shows "a dialog … then you can copy or exchange pages or banks"; Live Set Edit's Copy and Exchange are On/Off switches. The dialog's options are still not described there. The older MODX (not MODX M) Reference Manual has a "Copying or Exchanging Live Sets" screen (p. 215), not used because it is a different model.
 2. [x] DX7: find duplicate voices (same 145 parameter bytes, names ignored; "ย้ายเสียงซ้ำลงชั้นวาง" keeps the first copy) and swap halves 1–16 ↔ 17–32, done 2026-11-12 (`duplicateVoices`, `shelveDuplicates`, `swapHalves`, tests/dx7-helpers.test.ts).
 2a. [x] DX7: merge two cartridges, done 2026-11-12: put cartridge B in (A moves to the shelf), choose shelf 1–16 or 17–32 and press "วางแทนช่อง 17–32"; the replaced voices go to the end of the shelf. With "สลับครึ่ง" any 16 of each can be combined (`shelfIntoSlots`, tests/dx7-merge.test.ts).
 2b. [x] DX7: plain voice list, decided 2026-11-12: no separate export. "ดาวน์โหลดใบจัดเรียง" already gives a .txt with the cartridge name, "Voice 1–32: NAME" in cartridge order and the shelf; now covered by a test in tests/library.test.ts. 1a (real DX7 test, exact prompt text) still needs the owner's keyboard; a ManualsLib copy checked 2026-11-12 did not show the display text.
