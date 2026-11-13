@@ -294,3 +294,13 @@ test("FANTOM-0 Scene Chain: order sheet lists placed scenes in grid order, 16 pe
   assert.deepEqual(chainLines(emptyLayout("modx-m")), []);
   assert.ok(!orderSheet(emptyLayout("dx7")).includes("Scene Chain"));
 });
+
+test("MODX M: order sheet says how to rearrange registered slots with Job → Exchange (manual p. 38)", () => {
+  const t = getTarget("modx-m");
+  for (const w of ["[LIVE SET]", "[EDIT]", "USER", "Job", "Exchange", "Done", "Copy"]) assert.ok(t.rearrange?.includes(w), w);
+  const sheet = orderSheet(emptyLayout("modx-m"));
+  assert.ok(sheet.includes(t.rearrange!));
+  assert.ok(sheet.indexOf(t.howTo) < sheet.indexOf(t.rearrange!));
+  assert.equal(getTarget("dx7").rearrange, undefined);
+  assert.equal(getTarget("fantom-0").rearrange, undefined);
+});

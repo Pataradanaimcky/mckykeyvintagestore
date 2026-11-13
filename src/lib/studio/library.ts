@@ -48,6 +48,11 @@ export interface Target {
    * Reference Manual pp. 74–77). Steps in the keyboard's own words, and how many it holds.
    */
   chain?: { howTo: string; max: number };
+  /**
+   * How to move sounds that are already in place on the keyboard, with the keyboard's own
+   * copy or exchange job (MODX M Live Set Edit: Job → Exchange / Copy), in its own words.
+   */
+  rearrange?: string;
   about: string;
   /** How to put the result on the keyboard. */
   howTo: string;
@@ -104,6 +109,11 @@ export const TARGETS: Target[] = [
     about: "Live Set แบบ USER 8 แบงก์ แบงก์ละ 16 หน้า หน้าละ 16 ช่อง ตั้งชื่อช่อง สี Volume และ SSS Time ได้เหมือนบนเครื่อง",
     howTo:
       "บนเครื่อง: เลือก Performance แล้วกด [SHIFT] + [LIVE SET] เพื่อลงทะเบียน แตะช่องตามใบจัดเรียง จากนั้นกด Edit เพื่อตั้ง Slot Name, Color, Volume และ SSS Time แล้วกด Done",
+    // MONTAGE M online manual, Live Set Edit (om02screenparameters0310): Job, Copy, Exchange,
+    // "Delete & Move", Delete; MODX M operation manual p. 38 "Exchanging Performances Registered to
+    // slots" (Kraft Music copy): User bank only, Job → slot → Exchange → second slot → Done.
+    rearrange:
+      "ช่องที่ลงทะเบียนไว้แล้วไม่ต้องลงใหม่: กด [LIVE SET] → [EDIT] (เลือกแบงก์ USER เท่านั้น แบงก์ Preset และ Library แก้ไม่ได้) → แตะ Job ด้านล่างจอ → แตะช่องแรก → แตะ Exchange → แตะช่องที่จะสลับด้วย → Done · ทำทีละคู่ตามใบจัดเรียง ส่วน Copy ใช้ทำสำเนาช่องไปอีกช่อง",
     verified: true,
     sources: [
       "https://yamahasynth.com/learn/modx-m/welcome-to-modx-m/",
@@ -447,6 +457,7 @@ export function orderSheet(layout: Layout): string {
   const bad = nameProblemLines(t, layout);
   if (bad.length) lines.push(`ชื่อที่ ${t.short} พิมพ์ไม่ได้ (แก้เป็นตัวอักษรอังกฤษก่อนตั้งชื่อบนเครื่อง):`, ...bad.map((x) => `  ${x}`), "");
   lines.push(t.howTo, "");
+  if (t.rearrange) lines.push(t.rearrange, "");
   const chain = chainLines(layout);
   if (t.chain && chain.length) lines.push(t.chain.howTo, "ลำดับสำหรับ Scene Chain:", ...chain, "");
   lines.push("จัดบน Mcky Vintage Key");
