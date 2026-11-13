@@ -6,7 +6,14 @@ import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEv
 import { FM_PRESETS } from "@/components/rack/fm/presets";
 import { OctaveSwitch, RackKeys } from "@/components/rack/RackKeys";
 import { bankSysex, checkCartridgeDump, voiceSysex } from "@/lib/studio/dx7";
-import { readSceneNameReply, SceneNameCollector, sceneNameRequest } from "@/lib/studio/fantom";
+import {
+  FANTOM_DEVICE_ID,
+  FantomPortFinder,
+  identityRequest,
+  readSceneNameReply,
+  SceneNameCollector,
+  sceneNameRequest,
+} from "@/lib/studio/fantom";
 import { namesOnPage, pageNameRequests, placeNames, readSlotNameReply, SlotNameCollector } from "@/lib/studio/modxm";
 import { getSound, guessSound, PREVIEW_SOUNDS } from "@/lib/studio/sounds";
 import { GmPreview } from "./gmPreview";
@@ -545,9 +552,9 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
     }
     const ok = window.confirm(
       "ขอชื่อ Scene ที่เปิดอยู่บนจอ FANTOM-0 มาวางบนชั้นวาง\n\n" +
-        "• หน้านี้ส่งแค่คำขอ (Data Request RQ1) 1 ครั้ง ไม่เขียนอะไรลงเครื่อง และไม่เปลี่ยน Scene บนเครื่อง\n" +
+        "• หน้านี้ถามทีละพอร์ตว่าเป็นเครื่องรุ่นไหน (Identity Request) แล้วส่งคำขอชื่อ (Data Request RQ1) 1 ครั้ง ไม่เขียนอะไรลงเครื่อง และไม่เปลี่ยน Scene บนเครื่อง\n" +
         "• ยังไม่ได้ทดสอบกับ FANTOM-0 จริง ถ้าไม่มีอะไรตอบกลับก็ไม่มีอะไรเปลี่ยน\n" +
-        "• เครื่องจะตอบก็ต่อเมื่อเปิด Receive Exclusive ไว้ (SYSTEM: MIDI) และ Device ID ตรงกับ 17\n" +
+        "• เครื่องจะตอบคำขอชื่อก็ต่อเมื่อเปิด Receive Exclusive ไว้ (SYSTEM: MIDI) ถ้าเครื่องไม่ตอบว่าเป็นรุ่นไหน หน้านี้จะใช้ Device ID 17\n" +
         "• ช่องที่จัดไว้ไม่เปลี่ยน ชื่อที่ได้จะไปอยู่ท้ายชั้นวาง\n\nทำต่อไหม",
     );
     if (!ok) return;
@@ -564,15 +571,24 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
     }
     const inputs = [...access.inputs.values()];
     const allOut = [...access.outputs.values()];
-    const named = allOut.filter((o) => /fantom/i.test(o.name ?? ""));
-    const outputs = named.length ? named : allOut;
-    if (!inputs.length || !outputs.length) {
+    if (!inputs.length || !allOut.length) {
       setMessage("ไม่พบ FANTOM-0 ต่อสาย USB จากเครื่องเข้าคอมพิวเตอร์ก่อน");
       return;
     }
+    // First ask each output in turn "which keyboard are you?" (Identity Request),
+    // so the RQ1 goes only to the port that answers as a FANTOM-0, with its Device ID.
+    // If none answers, fall back to ports named FANTOM (or all ports) and Device ID 17.
+    const finder = new FantomPortFinder(allOut.map((o) => o.id));
     const collector = new SceneNameCollector();
+    let phase: "identity" | "name" = "identity";
+    let timer = 0;
     const onMessage = (event: MIDIMessageEvent) => {
-      const reply = event.data ? readSceneNameReply(event.data) : null;
+      if (!event.data) return;
+      if (phase === "identity") {
+        if (finder.hear(event.data)) askName();
+        return;
+      }
+      const reply = readSceneNameReply(event.data);
       if (!reply) return;
       collector.add(reply);
       if (collector.name() !== undefined) finish();
@@ -588,24 +604,53 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
       setLayout((l) => ({ ...l, pool: [...l.pool, newItem(label)].slice(0, 512) }));
       setMessage(`รับชื่อ Scene “${label}” จาก FANTOM-0 วางท้ายชั้นวางแล้ว ลากไปวางบนช่องที่ต้องการ`);
     };
-    const timer = window.setTimeout(finish, 3000);
     const stop = () => {
       window.clearTimeout(timer);
       inputs.forEach((i) => i.removeEventListener("midimessage", onMessage));
       stopAsk.current = null;
       setAsking(false);
     };
+    const askName = () => {
+      window.clearTimeout(timer);
+      phase = "name";
+      const hit = finder.found();
+      const named = allOut.filter((o) => /fantom/i.test(o.name ?? ""));
+      const outputs = hit ? allOut.filter((o) => o.id === hit.output) : named.length ? named : allOut;
+      try {
+        sendPaced(outputs, [sceneNameRequest(hit ? hit.identity.device : FANTOM_DEVICE_ID)], 0);
+      } catch {
+        stop();
+        setMessage("ส่งคำขอไม่ได้ ลองถอดสาย USB แล้วต่อใหม่");
+        return;
+      }
+      setMessage(
+        hit
+          ? `พบ ${hit.identity.model ?? "FANTOM-0"} ที่พอร์ต “${outputs[0]?.name ?? ""}” (Device ID ${hit.identity.device + 1}) กำลังขอชื่อ Scene…`
+          : "ไม่มีพอร์ตไหนตอบว่าเป็น FANTOM-0 ลองขอชื่อ Scene ทางพอร์ตที่ชื่อ FANTOM (หรือทุกพอร์ต)…",
+      );
+      timer = window.setTimeout(finish, 3000);
+    };
+    const probe = () => {
+      const id = finder.current();
+      if (id === undefined) {
+        askName();
+        return;
+      }
+      try {
+        access.outputs.get(id)?.send(identityRequest());
+      } catch {
+        // a port that cannot send is skipped
+      }
+      timer = window.setTimeout(() => {
+        finder.next();
+        probe();
+      }, 400);
+    };
     inputs.forEach((i) => i.addEventListener("midimessage", onMessage));
-    try {
-      sendPaced(outputs, [sceneNameRequest()], 0);
-    } catch {
-      stop();
-      setMessage("ส่งคำขอไม่ได้ ลองถอดสาย USB แล้วต่อใหม่");
-      return;
-    }
     stopAsk.current = stop;
     setAsking(true);
-    setMessage("กำลังขอชื่อ Scene ที่เปิดอยู่จาก FANTOM-0…");
+    setMessage("กำลังถามทีละพอร์ตว่าพอร์ตไหนเป็น FANTOM-0…");
+    probe();
   };
 
   const addNames = () => {
@@ -929,7 +974,7 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
                     {asking ? "กำลังขอชื่อจาก FANTOM-0… (แตะเพื่อหยุด)" : "รับชื่อ Scene ที่เปิดอยู่จาก FANTOM-0 ทาง USB (ยังไม่ได้ทดสอบกับเครื่องจริง)"}
                   </button>
                   <p className="text-xs text-muted">
-                    อ่านอย่างเดียว ส่งแค่คำขอชื่อ ไม่เขียนอะไรลงเครื่อง ได้ทีละ 1 Scene (Scene ที่อยู่บนจอ) เปลี่ยน Scene บนเครื่องแล้วกดอีกครั้ง ชื่อจะไปอยู่ท้ายชั้นวาง ใช้ได้บน Chrome หรือ Edge
+                    อ่านอย่างเดียว ถามรุ่นเครื่องแล้วส่งคำขอชื่อ ไม่เขียนอะไรลงเครื่อง ได้ทีละ 1 Scene (Scene ที่อยู่บนจอ) เปลี่ยน Scene บนเครื่องแล้วกดอีกครั้ง ชื่อจะไปอยู่ท้ายชั้นวาง ใช้ได้บน Chrome หรือ Edge
                   </p>
                 </>
               )}

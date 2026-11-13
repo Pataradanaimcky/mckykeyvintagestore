@@ -72,3 +72,30 @@ test("Identity Reply names the FANTOM-0 model from the manual's revision bytes",
   assert.equal(readIdentityReply([0xf0, 0x7e, 0x10, 0x06, 0x02, 0x43, 0x5b, 0x03, 0x00, 0x01, 0, 3, 0, 0, 0xf7]), null);
   assert.equal(readIdentityReply(reply(0x10, [0x00, 0x03, 0x00])), null);
 });
+
+test("port finder marks the output that answered with a FANTOM-0 Identity Reply", async () => {
+  const { FantomPortFinder } = await import("../src/lib/studio/fantom.ts");
+  const reply07 = [0xf0, 0x7e, 0x10, 0x06, 0x02, 0x41, 0x5b, 0x03, 0x00, 0x01, 0x01, 0x03, 0x00, 0x00, 0xf7];
+  const f = new FantomPortFinder(["a", "b", "c"]);
+  assert.equal(f.current(), "a");
+  assert.equal(f.hear([0xf0, 0x7e, 0x10, 0x06, 0x02, 0x43, 0x00, 0x41, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xf7]), false);
+  assert.equal(f.hear([0x90, 60, 100]), false);
+  f.next();
+  assert.equal(f.current(), "b");
+  assert.equal(f.hear(reply07), true);
+  assert.equal(f.found()?.output, "b");
+  assert.equal(f.found()?.identity.model, "FANTOM-07");
+  assert.equal(f.found()?.identity.device, 0x10);
+  assert.equal(f.current(), undefined);
+  f.next();
+  assert.equal(f.found()?.output, "b");
+});
+
+test("port finder finds nothing when no output answers", async () => {
+  const { FantomPortFinder } = await import("../src/lib/studio/fantom.ts");
+  const f = new FantomPortFinder(["a"]);
+  f.next();
+  assert.equal(f.current(), undefined);
+  assert.equal(f.hear([0xf0, 0x7e, 0x10, 0x06, 0x02, 0x41, 0x5b, 0x03, 0x00, 0x01, 0x00, 0x03, 0x00, 0x00, 0xf7]), false);
+  assert.equal(f.found(), null);
+});

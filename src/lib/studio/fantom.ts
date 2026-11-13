@@ -131,3 +131,46 @@ export function readIdentityReply(msg: ArrayLike<number>): FantomIdentity | null
   const printed = revision[1] === 0x03 && revision[2] === 0x00 && revision[3] === 0x00;
   return { device: m[2], model: printed ? MODEL_BY_REVISION[revision[0]] : undefined, revision };
 }
+
+/**
+ * Finds which USB output is a FANTOM-0: the page sends one Identity Request
+ * (7FH) to each output in turn and calls `hear` with every message that comes
+ * back while that output is being asked. The first FANTOM-0 Identity Reply
+ * marks the output; its Device ID is then used for the RQ1. Read only, not
+ * tested on a real keyboard (a reply may arrive late and be counted for the
+ * next output; the page leaves a gap between outputs for that reason).
+ */
+export class FantomPortFinder {
+  private index = 0;
+  private hit: { output: string; identity: FantomIdentity } | null = null;
+  private readonly outputs: readonly string[];
+
+  constructor(outputs: readonly string[]) {
+    this.outputs = outputs;
+  }
+
+  /** The output being asked now, or undefined when all have been asked. */
+  current(): string | undefined {
+    return this.hit ? undefined : this.outputs[this.index];
+  }
+
+  /** Moves on to the next output. */
+  next() {
+    if (!this.hit) this.index++;
+  }
+
+  /** Reads a message heard while `current()` was asked; true once a FANTOM-0 is found. */
+  hear(msg: ArrayLike<number>): boolean {
+    if (this.hit) return true;
+    const output = this.outputs[this.index];
+    const identity = output === undefined ? null : readIdentityReply(msg);
+    if (!identity) return false;
+    this.hit = { output, identity };
+    return true;
+  }
+
+  /** The output that answered as a FANTOM-0 and its identity, or null. */
+  found() {
+    return this.hit;
+  }
+}
