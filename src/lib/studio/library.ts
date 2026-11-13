@@ -97,6 +97,8 @@ export const TARGETS: Target[] = [
     usesFile: false,
     colors: ["Black", "Red", "Yellow", "Green", "Blue", "Azure", "Pink", "Orange", "Purple", "Sakura", "Cream", "Lime", "Aqua", "Beige", "Mint", "Lilac"],
     nameMax: 20,
+    // MODX M Operation Manual p. 360 (Kraft Music copy of Yamaha's MODX M6 manual), Live Set Edit:
+    // slot Volume "Settings: 0–127" (no default printed).
     hasVolume: true,
     // MODX M operation manual p. 361: "SSS Time ... Instellingen: 0.0sec – 30sec, Hold, System".
     hasSssTime: true,
@@ -114,8 +116,10 @@ export const TARGETS: Target[] = [
     // slots" (Kraft Music copy): User bank only, Job → slot → Exchange → second slot → Done.
     // MONTAGE M online manual, "Creating a Live Set" (om01basicoperation0120) NOTE: to copy or
     // exchange an entire bank or Live Set page, hold [SHIFT] and press [EDIT]; a dialog opens.
+    // MODX M Operation Manual p. 356 (Kraft Music copy): this works while a User bank is selected;
+    // the dialog's options are not described.
     rearrange:
-      "ช่องที่ลงทะเบียนไว้แล้วไม่ต้องลงใหม่: กด [LIVE SET] → [EDIT] (เลือกแบงก์ USER เท่านั้น แบงก์ Preset และ Library แก้ไม่ได้) → แตะ Job ด้านล่างจอ → แตะช่องแรก → แตะ Exchange → แตะช่องที่จะสลับด้วย → Done · ทำทีละคู่ตามใบจัดเรียง ส่วน Copy ใช้ทำสำเนาช่องไปอีกช่อง · ถ้าจะคัดลอกหรือสลับทั้งหน้า (Page) หรือทั้งแบงก์ ให้กด [SHIFT] ค้างไว้แล้วกด [EDIT] จะมีหน้าต่างให้เลือก",
+      "ช่องที่ลงทะเบียนไว้แล้วไม่ต้องลงใหม่: กด [LIVE SET] → [EDIT] (เลือกแบงก์ USER เท่านั้น แบงก์ Preset และ Library แก้ไม่ได้) → แตะ Job ด้านล่างจอ → แตะช่องแรก → แตะ Exchange → แตะช่องที่จะสลับด้วย → Done · ทำทีละคู่ตามใบจัดเรียง ส่วน Copy ใช้ทำสำเนาช่องไปอีกช่อง · ถ้าจะคัดลอกหรือสลับทั้งหน้า (Page) หรือทั้งแบงก์ ให้เลือกแบงก์ USER แล้วกด [SHIFT] ค้างไว้แล้วกด [EDIT] จะมีหน้าต่างให้เลือก",
     verified: true,
     sources: [
       "https://yamahasynth.com/learn/modx-m/welcome-to-modx-m/",

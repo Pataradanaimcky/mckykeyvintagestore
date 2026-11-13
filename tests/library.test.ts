@@ -125,12 +125,15 @@ test("slot colors and volume follow the keyboard's own list and range", () => {
     version: 1,
     target: "modx-m",
     title: "t",
-    pages: [[{ name: "Grand", color: "Sakura", volume: 300 }, { name: "Pad", color: "Neon" }]],
+    pages: [[{ name: "Grand", color: "Sakura", volume: 300 }, { name: "Pad", color: "Neon", volume: -5 }, { name: "EP", volume: 63.6 }]],
     pool: [],
   });
   assert.ok(l);
   assert.equal(l.pages[0][0]?.color, "Sakura");
+  // MODX M Operation Manual p. 360: slot Volume 0–127.
   assert.equal(l.pages[0][0]?.volume, 127);
+  assert.equal(l.pages[0][1]?.volume, 0);
+  assert.equal(l.pages[0][2]?.volume, 64);
   assert.equal(l.pages[0][1]?.color, "");
   assert.match(orderSheet(l), /Slot 1: Grand {2}\(Color: Sakura · Volume: 127\)/);
 });
@@ -307,7 +310,7 @@ test("MODX M: order sheet says how to rearrange registered slots with Job → Ex
 
 test("MODX M: rearrange steps say [SHIFT] + [EDIT] copies or exchanges a whole page or bank (MONTAGE M manual)", () => {
   const t = getTarget("modx-m");
-  assert.ok(t.rearrange?.includes("[SHIFT] ค้างไว้แล้วกด [EDIT]"));
+  assert.ok(t.rearrange?.includes("ให้เลือกแบงก์ USER แล้วกด [SHIFT] ค้างไว้แล้วกด [EDIT]"));
   assert.ok(t.rearrange?.includes("ทั้งหน้า (Page)"));
   assert.ok(t.sources.includes("https://manual.yamaha.com/mi/synth/montage_m/en/om01basicoperation0120.html"));
 });
