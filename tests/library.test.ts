@@ -318,3 +318,11 @@ test("MODX M: rearrange steps say [SHIFT] + [EDIT] copies or exchanges a whole p
   assert.ok(t.rearrange?.endsWith("จะเปิดหน้าจอ Exchange/Copy"));
   assert.ok(t.sources.includes("https://manual.yamaha.com/mi/synth/montage_m/en/om01basicoperation0120.html"));
 });
+
+test("MODX M: register step names the Live Set Register buttons (MONTAGE M online manual, Live Set Register)", () => {
+  const t = getTarget("modx-m");
+  for (const w of ["[SHIFT] + [LIVE SET]", "Live Set Register", "USER", "Register", "Store as New Perf. and Register", "Overwrite Current Perf. and Register"])
+    assert.ok(t.howTo.includes(w), w);
+  assert.ok(t.sources.some((s) => s.endsWith("om02screenparameters0300.html")));
+  assert.ok(orderSheet(emptyLayout("modx-m")).includes("Store as New Perf. and Register"));
+});

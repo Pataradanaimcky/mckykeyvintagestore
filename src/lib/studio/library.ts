@@ -110,8 +110,11 @@ export const TARGETS: Target[] = [
     // "Perform, Song, Audio, Pattern"; Slot Name is shown only when the Slot Type is Perform.
     slotTypes: ["Perform", "Song", "Audio", "Pattern"],
     about: "Live Set แบบ USER 8 แบงก์ แบงก์ละ 16 หน้า หน้าละ 16 ช่อง ตั้งชื่อช่อง สี Volume และ SSS Time ได้เหมือนบนเครื่อง",
+    // MONTAGE M online manual, Live Set Register (om02screenparameters0300): opened with
+    // [SHIFT] + [LIVE SET]; registers Performances to User Live Set slots; buttons "Register",
+    // "Store as New Perf. and Register" and "Overwrite Current Perf. and Register".
     howTo:
-      "บนเครื่อง: เลือก Performance แล้วกด [SHIFT] + [LIVE SET] เพื่อลงทะเบียน แตะช่องตามใบจัดเรียง จากนั้นกด Edit เพื่อตั้ง Slot Name, Color, Volume และ SSS Time แล้วกด Done",
+      "บนเครื่อง: เลือก Performance แล้วกด [SHIFT] + [LIVE SET] (หน้าจอ Live Set Register ลงได้เฉพาะช่องของแบงก์ USER) แตะช่องตามใบจัดเรียง → แตะ Register · ถ้าแก้เสียงไว้แต่ยังไม่ได้เก็บ ให้แตะ Store as New Perf. and Register แทน จะเก็บเป็น Performance ใหม่แล้วลงช่องเลย (ส่วน Overwrite Current Perf. and Register จะเขียนทับ Performance เดิม) จากนั้นกด Edit เพื่อตั้ง Slot Name, Color, Volume และ SSS Time แล้วกด Done",
     // MONTAGE M online manual, Live Set Edit (om02screenparameters0310): Job, Copy, Exchange,
     // "Delete & Move", Delete; MODX M operation manual p. 38 "Exchanging Performances Registered to
     // slots" (Kraft Music copy): User bank only, Job → slot → Exchange → second slot → Done.
@@ -125,6 +128,7 @@ export const TARGETS: Target[] = [
     verified: true,
     sources: [
       "https://yamahasynth.com/learn/modx-m/welcome-to-modx-m/",
+      "https://manual.yamaha.com/mi/synth/montage_m/en/om02screenparameters0300.html",
       "https://manual.yamaha.com/mi/synth/montage_m/en/om02screenparameters0310.html",
       "https://manual.yamaha.com/mi/synth/montage_m/en/om01basicoperation0120.html",
       "https://yamahasynth.com/learn/modx-series-synthesizers/mastering-modx-performance-basics-2/",
