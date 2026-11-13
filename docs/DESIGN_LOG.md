@@ -58,6 +58,7 @@ Delegated by the owner on 2026-11-12. The PM records each decision here with the
 
 ## History
 
+- 2026-11-13: Organizer research only (STUDIO.md 5e, 3d): FANTOM-0 Reference Manual and Parameter Guide on roland.com need accepting Roland's manual terms, so not opened (legal, owner's call; question for the PM); FM Converter output extension still unconfirmed.
 - 2026-11-13: Organizer DX7: the FM Converter text tells MODX M owners to save a Backup to USB before loading a converted file, since loading can overwrite User data ([UTILITY] → Contents → Load, MONTAGE M online manual Load and Message List) (STUDIO.md 3e).
 - 2026-11-13: Organizer MODX M: the register step names the Live Set Register buttons (Register, Store as New Perf. and Register, Overwrite Current Perf. and Register) and says it registers to USER slots only (MONTAGE M online manual, Live Set Register) (STUDIO.md 4p).
 - 2026-11-13: Organizer MODX M: the rearrange step names the screen [SHIFT]+[EDIT] opens, "Exchange/Copy" (MODX M6 Operation Manual Shortcuts, p. 424) (STUDIO.md 4m).

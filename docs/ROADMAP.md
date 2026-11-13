@@ -25,6 +25,8 @@ Sell the owner's sound packs. The free tools (playable synths, sound organizer) 
 
 Agents add one line each: date · agent · question · options · recommendation. The PM answers in docs/DESIGN_LOG.md under "Decisions by the project manager" and removes the line here.
 
+- 2026-11-13 · researcher · FANTOM-0 item 5e (Receive Exclusive default, Device ID name and range) is only in Roland's Reference Manual / Parameter Guide, whose download needs accepting Roland's manual terms (private, non-commercial use). This is legal, so it is the owner's call. Options: (a) owner downloads the Parameter Guide himself and notes the SYSTEM: MIDI rows into STUDIO.md 5e; (b) leave 5e to the owner's real-keyboard test (the test script already asks for it); (c) agents accept the terms. Recommendation: (b), or (a) if he has 5 minutes; not (c). Until then the researcher stops retrying 5e.
+
 ## Waiting on the owner
 
 - Free pack terms (legal): the free FM bank has no written licence. PM recommends: free in any music including commercial releases; not to be resold or shared as a sound pack. Asked 2026-11-13.
