@@ -87,3 +87,17 @@ test("USB help follows the Operation Manual (MIDI I/O → MIDI IN/OUT USB, Advan
     assert.ok(help.includes(word), word);
   }
 });
+
+test("the page only asks: every request is a Parameter Request (3n), so Bulk Receive can stay Protect", async () => {
+  const { pageNameRequests, MODX_BULK_NOTE: note } = await import("../src/lib/studio/modxm.ts");
+  for (let page = 0; page < 16; page++) {
+    for (const m of pageNameRequests(page)) {
+      assert.equal(m[0], 0xf0);
+      assert.equal(m[1], 0x43);
+      assert.equal(m[2] & 0xf0, 0x30, "Parameter Request, not Bulk Dump (0n) or Parameter Change (1n)");
+      assert.equal(m.length, 11);
+      assert.equal(m[m.length - 1], 0xf7);
+    }
+  }
+  for (const word of ["Bulk Receive", "[UTILITY]", "Advanced", "Protect", "Bulk Dump"]) assert.ok(note.includes(word), word);
+});

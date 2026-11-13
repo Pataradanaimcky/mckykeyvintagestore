@@ -15,7 +15,7 @@ import {
   SceneNameCollector,
   sceneNameRequest,
 } from "@/lib/studio/fantom";
-import { MODX_USB_HELP, namesOnPage, pageNameRequests, placeNames, readSlotNameReply, SlotNameCollector } from "@/lib/studio/modxm";
+import { MODX_BULK_NOTE, MODX_USB_HELP, namesOnPage, pageNameRequests, placeNames, readSlotNameReply, SlotNameCollector } from "@/lib/studio/modxm";
 import { getSound, guessSound, PREVIEW_SOUNDS } from "@/lib/studio/sounds";
 import { GmPreview } from "./gmPreview";
 import {
@@ -468,6 +468,7 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
         "• หน้านี้ส่งแค่คำขอ (Parameter Request) ไม่เขียนอะไรลงเครื่อง\n" +
         "• ยังไม่ได้ทดสอบกับ MODX M จริง ถ้าไม่มีอะไรตอบกลับก็ไม่มีอะไรเปลี่ยน\n" +
         "• บนเครื่องเปิด Live Set ที่ต้องการไว้ ตั้ง MIDI IN/OUT เป็น USB ([UTILITY] → Settings → MIDI I/O) และ Device Number เป็น All หรือ 1 ([UTILITY] → Settings → Advanced)\n" +
+        `• ${MODX_BULK_NOTE}\n` +
         "• เสียงที่อยู่ในช่องเดิมจะย้ายลงชั้นวาง\n\nทำต่อไหม",
     );
     if (!ok) return;

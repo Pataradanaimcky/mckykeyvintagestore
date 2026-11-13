@@ -28,6 +28,15 @@ export const MODX_USB_HELP =
   "บนเครื่องดู [UTILITY] → Settings → MIDI I/O → MIDI IN/OUT ต้องเป็น USB (ถ้าเป็น MIDI เครื่องจะรับส่ง MIDI ทางช่อง MIDI 5 ขาแทน) " +
   "และ [UTILITY] → Settings → Advanced → Device Number เป็น All หรือ 1 (ถ้าเป็น Off เครื่องจะไม่ตอบ)";
 
+/**
+ * Advanced → "Bulk Receive" (Protect, On) only decides whether the keyboard
+ * takes Bulk Dump messages (Operation Manual p. 372). The organizer sends only
+ * Parameter Requests, so Bulk Receive can stay at Protect: one more guard that
+ * nothing is written to the keyboard.
+ */
+export const MODX_BULK_NOTE =
+  "Bulk Receive ([UTILITY] → Settings → Advanced) ปล่อยเป็น Protect ได้ หน้านี้ไม่ส่ง Bulk Dump เข้าเครื่อง";
+
 const HEAD = [0x43, 0x7f, 0x1c, 0x0d] as const;
 
 function inRange(page: number, slot: number) {
