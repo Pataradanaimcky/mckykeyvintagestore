@@ -10,6 +10,7 @@ import {
   unsupportedNameChars,
   slotTypeNote,
   howToSteps,
+  sheetStepLines,
   splitSteps,
   chainLines,
   bankPageNameProblems,
@@ -352,8 +353,9 @@ test("MODX M: order sheet says how to rearrange registered slots with Job → Ex
   const t = getTarget("modx-m");
   for (const w of ["[LIVE SET]", "[EDIT]", "USER", "Job", "Exchange", "Done", "Copy"]) assert.ok(t.rearrange?.includes(w), w);
   const sheet = orderSheet(emptyLayout("modx-m"));
-  assert.ok(sheet.includes(t.rearrange!));
-  assert.ok(sheet.indexOf(t.howTo) < sheet.indexOf(t.rearrange!));
+  const r = splitSteps(t.rearrange!);
+  for (const part of r) assert.ok(sheet.includes(part), part);
+  assert.ok(sheet.indexOf(splitSteps(t.howTo)[0]) < sheet.indexOf(r[0]));
   assert.equal(getTarget("dx7").rearrange, undefined);
   assert.equal(getTarget("fantom-0").rearrange, undefined);
 });
@@ -400,7 +402,7 @@ test("save-and-use: steps come first, longer manual notes are separate and follo
     const sheet = orderSheet(emptyLayout(id));
     assert.ok(sheet.includes("หมายเหตุจากคู่มือ:"));
     for (const n of t.notes!) assert.ok(sheet.includes(`- ${n}`), n);
-    assert.ok(sheet.indexOf(t.howTo) < sheet.indexOf("หมายเหตุจากคู่มือ:"));
+    assert.ok(sheet.indexOf("บันทึกและนำไปใช้:") < sheet.indexOf("หมายเหตุจากคู่มือ:"));
   }
   assert.ok(!orderSheet(emptyLayout("fantom-0")).includes("หมายเหตุจากคู่มือ:"));
 });
@@ -412,7 +414,10 @@ test("save-and-use steps split into a numbered list, warnings kept apart, nothin
     assert.ok(steps.length >= 1, id);
     for (const part of [...steps, ...warnings]) assert.ok(t.howTo.includes(part), part);
     assert.equal(steps.length + warnings.length, t.howTo.split(" · ").length, id);
-    assert.ok(orderSheet(emptyLayout(id)).includes(t.howTo), id);
+    const sheet = orderSheet(emptyLayout(id));
+    // The order sheet prints the same steps, numbered one per line, warnings after (STUDIO.md 7e).
+    steps.forEach((st, i) => assert.ok(sheet.includes(`\n${steps.length > 1 ? `${i + 1}. ` : ""}${st}\n`), `${id} ${i + 1}`));
+    for (const w of warnings) assert.ok(sheet.includes(`\n${w}\n`), w);
   }
   const dx7 = howToSteps(getTarget("dx7"));
   assert.ok(dx7.steps.length >= 3);
@@ -464,4 +469,20 @@ test("folded rearrange and Scene Chain texts split into steps in order, text unc
   assert.match(c[0], /\[CHAIN\]/);
   assert.equal(c.join(" · "), fantom.chain.howTo);
   assert.deepEqual(splitSteps(" a ·  · b "), ["a", "b"]);
+});
+
+test("order sheet numbers the steps like /studio, folded steps too, nothing lost (STUDIO.md 7e)", () => {
+  assert.deepEqual(sheetStepLines("a · ระวัง x · b"), ["1. a", "2. b", "ระวัง x"]);
+  assert.deepEqual(sheetStepLines("only one"), ["only one"]);
+  const modx = getTarget("modx-m");
+  const sheet = orderSheet(emptyLayout("modx-m")).split("\n");
+  const at = sheet.indexOf("บันทึกและนำไปใช้:");
+  assert.ok(at >= 0);
+  assert.deepEqual(sheet.slice(at + 1, at + 4), splitSteps(modx.howTo).map((s, i) => `${i + 1}. ${s}`));
+  for (const [i, s] of splitSteps(modx.rearrange!).entries()) assert.ok(sheet.includes(`${i + 1}. ${s}`), s);
+  const fantom = getTarget("fantom-0");
+  let l = { ...emptyLayout("fantom-0"), pool: itemsFromText("S1") };
+  l = moveItem(l, { kind: "pool", index: 0 }, { kind: "slot", page: 0, slot: 0 });
+  const fs = orderSheet(l);
+  for (const [i, s] of splitSteps(fantom.chain!.howTo).entries()) assert.ok(fs.includes(`\n${i + 1}. ${s}\n`), s);
 });

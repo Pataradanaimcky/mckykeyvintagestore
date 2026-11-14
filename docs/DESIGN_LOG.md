@@ -55,6 +55,7 @@ None for the agents. Questions only the owner can answer (free pack terms, brand
 
 ## History
 
+- 2026-11-14: Organizer: the order sheet (download and print) lists "บันทึกและนำไปใช้" as numbered steps, one per line, like the page; MODX M Exchange and FANTOM-0 Scene Chain steps too; text unchanged (STUDIO.md 7e).
 - 2026-11-14: Organizer research (STUDIO.md 5k): FANTOM-0 IMPORT SCENE ([E6] SELECT → IMPORT SCENE (SELECT SOURCE)) and EXPORT SCENE ([E1] RENAME for the file name) confirmed in a text copy of the FANTOM-06 Reference Manual pp. 154, 156; owner test step 7 updated; destination choice, overwrite and file type still unknown, /studio unchanged.
 - 2026-11-14: Organizer MODX M: the protect setting is named "Receive Bulk" as Yamaha prints it (MONTAGE M online manual, Utility → Advanced), not "Bulk Receive"; confirmation text and test script updated (STUDIO.md 4s).
 - 2026-11-14: Organizer: "บันทึกและนำไปใช้" shows the steps as a numbered list (DX7 1–4), with "ระวัง" and "ยังไม่ได้ทดสอบ" lines kept after the list; same text, order sheet unchanged (STUDIO.md 7a).

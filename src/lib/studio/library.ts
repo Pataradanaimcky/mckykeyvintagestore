@@ -232,7 +232,7 @@ export function slotTypeNote(t: Target): string {
 /**
  * The "บันทึกและนำไปใช้" steps split at " · " for a numbered list on /studio (STUDIO.md 7a).
  * Parts that are warnings ("ระวัง", "ยังไม่ได้ทดสอบ") are not numbered; they follow the list.
- * The text itself is unchanged, and the order sheet still prints it whole.
+ * The text itself is unchanged; the order sheet prints the same numbered steps (`sheetStepLines`).
  */
 /** Splits a help text at " · " into its parts, in order (used for the folded rearrange and chain steps). */
 export function splitSteps(text: string): string[] {
@@ -243,6 +243,18 @@ export function howToSteps(t: Target): { steps: string[]; warnings: string[] } {
   const parts = splitSteps(t.howTo);
   const isWarning = (s: string) => s.startsWith("ระวัง") || s.startsWith("ยังไม่ได้ทดสอบ");
   return { steps: parts.filter((s) => !isWarning(s)), warnings: parts.filter(isWarning) };
+}
+
+/**
+ * Steps as order-sheet lines, numbered like the list on /studio ("1. …"), one step per line, so a
+ * printed sheet reads the same as the page (STUDIO.md 7e). Warnings follow unnumbered; text unchanged.
+ */
+export function sheetStepLines(text: string): string[] {
+  const parts = splitSteps(text);
+  const isWarning = (s: string) => s.startsWith("ระวัง") || s.startsWith("ยังไม่ได้ทดสอบ");
+  const steps = parts.filter((s) => !isWarning(s));
+  if (steps.length < 2) return parts;
+  return [...steps.map((s, i) => `${i + 1}. ${s}`), ...parts.filter(isWarning)];
 }
 
 /** Characters in a name the keyboard cannot show (each listed once), or [] when all fit. */
@@ -533,11 +545,11 @@ export function orderSheet(layout: Layout): string {
   if (layout.pool.length) lines.push(`ยังไม่ได้วาง: ${layout.pool.map((x) => x.name).join(", ")}`, "");
   const bad = nameProblemLines(t, layout);
   if (bad.length) lines.push(`ชื่อที่ ${t.short} พิมพ์ไม่ได้ (แก้เป็นตัวอักษรอังกฤษก่อนตั้งชื่อบนเครื่อง):`, ...bad.map((x) => `  ${x}`), "");
-  lines.push(t.howTo, "");
+  lines.push("บันทึกและนำไปใช้:", ...sheetStepLines(t.howTo), "");
   if (t.notes?.length) lines.push("หมายเหตุจากคู่มือ:", ...t.notes.map((n) => `- ${n}`), "");
-  if (t.rearrange) lines.push(t.rearrange, "");
+  if (t.rearrange) lines.push(...sheetStepLines(t.rearrange), "");
   const chain = chainLines(layout);
-  if (t.chain && chain.length) lines.push(t.chain.howTo, "ลำดับสำหรับ Scene Chain:", ...chain, "");
+  if (t.chain && chain.length) lines.push(...sheetStepLines(t.chain.howTo), "ลำดับสำหรับ Scene Chain:", ...chain, "");
   lines.push("จัดบน Mcky Vintage Key");
   return lines.join("\n");
 }
