@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { INIT, MAX, parse, unpack } from "@audio/synth-dx7";
-import { bankSysex, checksum, DX7_SEND_STEPS, packVoice, setVoiceName, voiceName, voiceSysex } from "../src/lib/studio/dx7.ts";
+import { bankSysex, checksum, DX7_SEND_STEPS, DX7_SINGLE_VOICE_NOTE, packVoice, setVoiceName, voiceName, voiceSysex } from "../src/lib/studio/dx7.ts";
 
 function randomVoice(seed: number) {
   let s = seed;
@@ -75,4 +75,13 @@ test("DX7 send steps use the display text printed in the owner's manual (p. 22)"
   assert.ok(DX7_SEND_STEPS.includes("MIDI TRANSMIT ?"));
   assert.ok(DX7_SEND_STEPS.includes("YES"));
   assert.ok(!DX7_SEND_STEPS.includes("TRANSIT"));
+});
+
+test("single-voice note follows the DX7 manual (edit buffer, STORE + voice selector, protection)", () => {
+  assert.match(DX7_SINGLE_VOICE_NOTE, /edit buffer/);
+  assert.match(DX7_SINGLE_VOICE_NOTE, /\[STORE\] ค้างไว้/);
+  assert.match(DX7_SINGLE_VOICE_NOTE, /1–32/);
+  assert.match(DX7_SINGLE_VOICE_NOTE, /MEMORY PROTECT/);
+  assert.match(DX7_SINGLE_VOICE_NOTE, /ON/);
+  assert.match(DX7_SINGLE_VOICE_NOTE, /ยังไม่ได้ทดสอบกับ DX7 จริง/);
 });

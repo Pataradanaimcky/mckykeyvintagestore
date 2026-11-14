@@ -71,6 +71,17 @@ export function bankSysex(voices: ArrayLike<number>[], fill: ArrayLike<number>, 
 export const DX7_SEND_STEPS =
   "กำลังรอ… บน DX7 กด FUNCTION แล้วกดปุ่ม 8 (MIDI) จนจอขึ้น SYS INFO AVAIL กดปุ่ม 8 อีกครั้งจนจอถามว่าจะส่ง (MIDI TRANSMIT ?) แล้วกด YES";
 
+/**
+ * Shown with "ดาวน์โหลดเฉพาะเสียงที่เลือก" (a single-voice dump). DX7 Owner's Manual p. 56–57,
+ * "Transmitting a single voice": a voice can go to the receiving DX7's internal or cartridge memory
+ * "provided you first turn OFF the corresponding protection"; it arrives in the edit buffer, then
+ * "press and hold the Slave's [STORE] button, and then press the Slave's voice selector
+ * corresponding to the memory number you wish to use (1-32)"; turn the memory protection back ON
+ * (manualsonline.com copy, read 2026-11-14). Not yet checked on a real DX7 (STUDIO.md 1a).
+ */
+export const DX7_SINGLE_VOICE_NOTE =
+  "เสียงเดี่ยว (ตามคู่มือ DX7 หน้า 56–57): ส่งเข้าเครื่องแล้วเสียงจะอยู่ใน edit buffer ยังไม่ถูกเก็บ · จะเก็บ: ปิด MEMORY PROTECT ของ INTERNAL หรือของ CARTRIDGE ที่จะเก็บก่อน (ตลับต้องเลื่อนสวิตช์บนตลับเป็น OFF ด้วย) แล้วกด [STORE] ค้างไว้ และกดปุ่มเลือกเสียง 1–32 ของช่องที่จะเก็บ เสร็จแล้วเปิด MEMORY PROTECT กลับเป็น ON · ยังไม่ได้ทดสอบกับ DX7 จริง";
+
 export type DumpCheck = { ok: true; channel: number } | { ok: false; reason: string };
 
 /**

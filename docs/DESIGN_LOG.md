@@ -58,6 +58,7 @@ Delegated by the owner on 2026-11-12. The PM records each decision here with the
 
 ## History
 
+- 2026-11-14: Organizer DX7: under "ดาวน์โหลดเฉพาะเสียงที่เลือก" the page says a single voice arrives in the DX7 edit buffer and how to store it ([STORE] + voice selector 1–32, protection OFF then ON), from the DX7 Owner's Manual pp. 56–57 (STUDIO.md 1g).
 - 2026-11-14: Organizer DX7: "บันทึกและนำไปใช้" gives the DX7's receive settings before sending the downloaded cartridge (MIDI channel 1, SYS INFO AVAIL, MEMORY PROTECT INTERNAL OFF then ON, get the old voices first), from the DX7 Owner's Manual pp. 20, 56–57 (STUDIO.md 1c).
 - 2026-11-13: Organizer MODX M: the rearrange steps add Delete & Move (removes a slot and moves the next ones up; Delete leaves a gap), from the MONTAGE M online manual, Live Set Edit (STUDIO.md 4q).
 - 2026-11-13: Organizer DX7: the waiting message comes from one tested constant and the test script now names the prompt "MIDI TRANSMIT ?", confirmed in a second text copy of the DX7 Owner's Manual (p. 22) (STUDIO.md 1b).

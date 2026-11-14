@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { FM_PRESETS } from "@/components/rack/fm/presets";
 import { OctaveSwitch, RackKeys } from "@/components/rack/RackKeys";
-import { bankSysex, checkCartridgeDump, DX7_SEND_STEPS, voiceSysex } from "@/lib/studio/dx7";
+import { bankSysex, checkCartridgeDump, DX7_SEND_STEPS, DX7_SINGLE_VOICE_NOTE, voiceSysex } from "@/lib/studio/dx7";
 import {
   FANTOM_DEVICE_ID,
   FANTOM_USB_DRIVER_HELP,
@@ -1381,6 +1381,7 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
             คัดลอกลิงก์แชร์
           </button>
         </div>
+        {t.usesFile && pickedItem?.patch && <p className="text-sm text-muted">{DX7_SINGLE_VOICE_NOTE}</p>}
         <input ref={jsonRef} type="file" accept=".json,application/json" className="sr-only" tabIndex={-1} aria-label="เปิดไฟล์งาน" onChange={(e) => void openJson(e)} />
         <details className="text-sm">
           <summary className="cursor-pointer text-muted">ดูใบจัดเรียง</summary>
