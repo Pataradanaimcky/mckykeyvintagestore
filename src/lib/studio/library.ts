@@ -153,9 +153,10 @@ export const TARGETS: Target[] = [
     about: "Live Set แบบ USER 8 แบงก์ แบงก์ละ 16 หน้า หน้าละ 16 ช่อง ตั้งชื่อช่อง สี Volume และ SSS Time ได้เหมือนบนเครื่อง",
     // MONTAGE M online manual, Live Set Register (om02screenparameters0300): opened with
     // [SHIFT] + [LIVE SET]; registers Performances to User Live Set slots; buttons "Register",
-    // "Store as New Perf. and Register" and "Overwrite Current Perf. and Register".
+    // "Store as New Perf. and Register" and "Overwrite Current Perf. and Register" (checked again
+    // 2026-11-14). Split into the three steps in the order they are done (STUDIO.md 7c).
     howTo:
-      "บนเครื่อง: เลือก Performance แล้วกด [SHIFT] + [LIVE SET] (หน้าจอ Live Set Register ลงได้เฉพาะช่องของแบงก์ USER) แตะช่องตามใบจัดเรียง → แตะ Register จากนั้นกด Edit เพื่อตั้ง Slot Name, Color, Volume และ SSS Time แล้วกด Done",
+      "บนเครื่อง: เลือก Performance แล้วกด [SHIFT] + [LIVE SET] (หน้าจอ Live Set Register ลงได้เฉพาะช่องของแบงก์ USER) · แตะช่องตามใบจัดเรียง → แตะ Register · จากนั้นกด Edit เพื่อตั้ง Slot Name, Color, Volume และ SSS Time แล้วกด Done",
     notes: [
       "ถ้าแก้เสียงไว้แต่ยังไม่ได้เก็บ ให้แตะ Store as New Perf. and Register แทน จะเก็บเป็น Performance ใหม่แล้วลงช่องเลย (ส่วน Overwrite Current Perf. and Register จะเขียนทับ Performance เดิม)",
     ],
@@ -205,8 +206,10 @@ export const TARGETS: Target[] = [
         "ไม่อยากเขียนทับ Scene? ใช้ Scene Chain แทน: กด [CHAIN] → แตะชื่อ <CHAIN SET> เลือกชุดที่ว่าง (001–100) → <EDIT> → <Select Scene> เลือก Scene → [E6] OK → แตะ <Next> ไปตำแหน่งถัดไป ทำซ้ำตามลำดับในใบจัดเรียง → <RENAME> ตั้งชื่อ → <WRITE> บันทึก · ชุดหนึ่งใส่ได้ถึง 512 Scene (16 x 32 หน้า) และ Scene เดิมไม่ถูกย้าย",
     },
     about: "Scene แบงก์ A–D แบงก์ละ 128 (A001–D128) หน้าจอ SCENE SELECT แสดงทีละ 16 ช่อง ใส่ชื่อ Scene ที่ทำไว้ในเครื่อง (ไม่เกิน 16 ตัวอักษรอังกฤษ) แล้วจัดลำดับ",
+    // Owner's Manual p. 22 (SCENE WRITE overwrites the destination). Steps in the order they are
+    // done: keep the scene at the destination first, then write (STUDIO.md 7c).
     howTo:
-      "บนเครื่อง: เลือก Scene เดิม กด [WRITE] → แตะ <SCENE> → (แตะ <Rename> ถ้าจะแก้ชื่อ) → หมุน [VALUE] หรือกด [DEC]/[INC] เลือกหมายเลขตามใบจัดเรียง → <OK> แล้ว <OK> อีกครั้ง · ระวัง: Scene ที่อยู่ในหมายเลขปลายทางจะถูกเขียนทับ ถ้ายังต้องใช้ ให้ย้ายไปเก็บที่หมายเลขว่างก่อน",
+      "ก่อนเขียน: Scene ที่อยู่ในหมายเลขปลายทางจะถูกเขียนทับ ถ้ายังต้องใช้ ให้ย้ายไปเก็บที่หมายเลขว่างก่อน · บนเครื่อง: เลือก Scene เดิม กด [WRITE] → แตะ <SCENE> → (แตะ <Rename> ถ้าจะแก้ชื่อ) · หมุน [VALUE] หรือกด [DEC]/[INC] เลือกหมายเลขตามใบจัดเรียง → <OK> แล้ว <OK> อีกครั้ง",
     verified: true,
     sources: [
       "https://www.roland.com/us/support/by_product/fantom-06/owners_manuals/",

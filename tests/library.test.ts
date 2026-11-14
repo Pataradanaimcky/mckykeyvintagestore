@@ -421,9 +421,19 @@ test("save-and-use steps split into a numbered list, warnings kept apart, nothin
   assert.ok(dx7.steps[1].startsWith("ก่อนส่งเข้า DX7"));
   assert.ok(dx7.steps[2].includes("Dexed"));
   assert.ok(dx7.steps[3].includes("MIDI RECEIVED"));
+  // MODX M and FANTOM-0 in the order they are done too (STUDIO.md 7c).
+  const modx = howToSteps(getTarget("modx-m"));
+  assert.equal(modx.steps.length, 3);
+  assert.ok(modx.steps[0].includes("[SHIFT] + [LIVE SET]"));
+  assert.ok(modx.steps[1].includes("Register"));
+  assert.ok(modx.steps[2].includes("Edit") && modx.steps[2].includes("Done"));
   const fantom = howToSteps(getTarget("fantom-0"));
-  assert.equal(fantom.steps.length, 1);
-  assert.ok(fantom.warnings[0].startsWith("ระวัง"));
+  assert.equal(fantom.steps.length, 3);
+  assert.deepEqual(fantom.warnings, []);
+  // Keep the scene at the destination before writing over it (Owner's Manual p. 22).
+  assert.ok(fantom.steps[0].startsWith("ก่อนเขียน") && fantom.steps[0].includes("ถูกเขียนทับ"));
+  assert.ok(fantom.steps[1].includes("[WRITE]") && fantom.steps[1].includes("<SCENE>"));
+  assert.ok(fantom.steps[2].includes("<OK>"));
 });
 
 test("MODX M Live Set layout follows Yamaha's manual: USER 1–8, 16 pages, 16 slots, 16 colors", () => {
