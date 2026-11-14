@@ -364,8 +364,8 @@ test("MODX M: rearrange steps say [SHIFT] + [EDIT] copies or exchanges a whole p
   const t = getTarget("modx-m");
   assert.ok(t.rearrange?.includes("ให้เลือกแบงก์ USER แล้วกด [SHIFT] ค้างไว้แล้วกด [EDIT]"));
   assert.ok(t.rearrange?.includes("ทั้งหน้า (Page)"));
-  // MODX M Operation Manual p. 424 (Shortcuts): [SHIFT] + [EDIT] calls up the Exchange/Copy screen.
-  assert.ok(t.rearrange?.endsWith("จะเปิดหน้าจอ Exchange/Copy"));
+  // MONTAGE M online manual, Shortcut operations (om02screenparameters0460): [SHIFT] + [EDIT] "Calls up the Copy/Exchange screen."
+  assert.ok(t.rearrange?.endsWith("จะเปิดหน้าจอ Copy/Exchange"));
   assert.ok(t.sources.includes("https://manual.yamaha.com/mi/synth/montage_m/en/om01basicoperation0120.html"));
 });
 
@@ -375,7 +375,7 @@ test("MODX M: rearrange steps say Delete & Move closes the gap, Delete leaves it
   assert.ok(t.rearrange?.includes("แตะ Delete & Move"));
   assert.ok(t.rearrange?.includes("ถ้าแตะ Delete จะเหลือช่องว่างไว้"));
   assert.ok(t.rearrange!.indexOf("Delete & Move") < t.rearrange!.indexOf("[SHIFT]"));
-  assert.ok(t.rearrange?.endsWith("จะเปิดหน้าจอ Exchange/Copy"));
+  assert.ok(t.rearrange?.endsWith("จะเปิดหน้าจอ Copy/Exchange"));
   assert.ok(t.sources.includes("https://manual.yamaha.com/mi/synth/montage_m/en/om02screenparameters0310.html"));
 });
 
@@ -485,4 +485,11 @@ test("order sheet numbers the steps like /studio, folded steps too, nothing lost
   l = moveItem(l, { kind: "pool", index: 0 }, { kind: "slot", page: 0, slot: 0 });
   const fs = orderSheet(l);
   for (const [i, s] of splitSteps(fantom.chain!.howTo).entries()) assert.ok(fs.includes(`\n${i + 1}. ${s}\n`), s);
+});
+
+test("MODX M: [SHIFT] + [EDIT] screen uses Yamaha's own name Copy/Exchange (MONTAGE M online manual, Shortcut operations)", () => {
+  const t = getTarget("modx-m");
+  assert.ok(t.rearrange?.includes("Copy/Exchange"));
+  assert.ok(!t.rearrange?.includes("Exchange/Copy"));
+  assert.ok(t.sources.includes("https://manual.yamaha.com/mi/synth/montage_m/en/om02screenparameters0460.html"));
 });
