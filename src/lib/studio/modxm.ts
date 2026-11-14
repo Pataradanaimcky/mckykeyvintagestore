@@ -31,13 +31,18 @@ export const MODX_USB_HELP =
   "และ [UTILITY] → Settings → Advanced → Device Number เป็น All หรือ 1 (ถ้าเป็น Off เครื่องจะไม่ตอบ)";
 
 /**
- * Advanced → "Bulk Receive" (Protect, On) only decides whether the keyboard
+ * Advanced → "Receive Bulk" (Protect, On) only decides whether the keyboard
  * takes Bulk Dump messages (Operation Manual p. 372). The organizer sends only
- * Parameter Requests, so Bulk Receive can stay at Protect: one more guard that
- * nothing is written to the keyboard.
+ * Parameter Requests, so Receive Bulk can stay at Protect: one more guard that
+ * nothing is written to the keyboard. Name checked 2026-11-14: Yamaha's
+ * MONTAGE M online manual, Utility screen, Advanced (manual.yamaha.com/mi/
+ * synth/montage_m/en/om02screenparameters0320.html) prints "Receive Bulk ...
+ * Settings: Protect (does not receive), On (receive)". The Kraft Music text
+ * copy of the MODX M6 manual reads "Bulk Receive" only because that copy
+ * reverses word order (it also reads "Number Device" and "16–1").
  */
 export const MODX_BULK_NOTE =
-  "Bulk Receive ([UTILITY] → Settings → Advanced) ปล่อยเป็น Protect ได้ หน้านี้ไม่ส่ง Bulk Dump เข้าเครื่อง";
+  "Receive Bulk ([UTILITY] → Settings → Advanced) ปล่อยเป็น Protect ได้ หน้านี้ไม่ส่ง Bulk Dump เข้าเครื่อง";
 
 /**
  * MIDI IN/OUT as printed in the Data List, MIDI PARAMETER CHANGE TABLE

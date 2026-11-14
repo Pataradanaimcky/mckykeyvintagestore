@@ -95,7 +95,7 @@ test("MIDI IN/OUT default is USB (Data List p. 226) and the help says so", async
   assert.ok(help.includes("ค่าเริ่มต้นของเครื่องคือ USB"));
 });
 
-test("the page only asks: every request is a Parameter Request (3n), so Bulk Receive can stay Protect", async () => {
+test("the page only asks: every request is a Parameter Request (3n), so Receive Bulk can stay Protect", async () => {
   const { pageNameRequests, MODX_BULK_NOTE: note } = await import("../src/lib/studio/modxm.ts");
   for (let page = 0; page < 16; page++) {
     for (const m of pageNameRequests(page)) {
@@ -106,5 +106,6 @@ test("the page only asks: every request is a Parameter Request (3n), so Bulk Rec
       assert.equal(m[m.length - 1], 0xf7);
     }
   }
-  for (const word of ["Bulk Receive", "[UTILITY]", "Advanced", "Protect", "Bulk Dump"]) assert.ok(note.includes(word), word);
+  assert.ok(!note.includes("Bulk Receive"), "the keyboard's own word is Receive Bulk");
+  for (const word of ["Receive Bulk", "[UTILITY]", "Advanced", "Protect", "Bulk Dump"]) assert.ok(note.includes(word), word);
 });

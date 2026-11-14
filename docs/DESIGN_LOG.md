@@ -55,6 +55,7 @@ None for the agents. Questions only the owner can answer (free pack terms, brand
 
 ## History
 
+- 2026-11-14: Organizer MODX M: the protect setting is named "Receive Bulk" as Yamaha prints it (MONTAGE M online manual, Utility → Advanced), not "Bulk Receive"; confirmation text and test script updated (STUDIO.md 4s).
 - 2026-11-14: Organizer: "บันทึกและนำไปใช้" shows the steps as a numbered list (DX7 1–4), with "ระวัง" and "ยังไม่ได้ทดสอบ" lines kept after the list; same text, order sheet unchanged (STUDIO.md 7a).
 - 2026-11-14: Organizer: "บันทึกและนำไปใช้" shows each keyboard's steps first; longer manual notes (DX7 backups, FM Converter, MODX M file types; MODX M Store as New Perf.) moved unchanged into a fold "หมายเหตุจากคู่มือ", and the MODX M rearrange and FANTOM-0 Scene Chain texts fold too; the order sheet still prints everything (ROADMAP Next 3, STUDIO.md 7).
 - 2026-11-14: Organizer DX7: under "ดาวน์โหลดเฉพาะเสียงที่เลือก" the page says a single voice arrives in the DX7 edit buffer and how to store it ([STORE] + voice selector 1–32, protection OFF then ON), from the DX7 Owner's Manual pp. 56–57 (STUDIO.md 1g).
