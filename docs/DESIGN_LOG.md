@@ -46,15 +46,12 @@ Delegated by the owner on 2026-11-12. The PM records each decision here with the
 - 2026-11-13: FANTOM-0 reading from the keyboard: keep option (a), one read-only press per scene on screen, no Bank Select or Program Change from the site. Reason: never changes the keyboard's state or loses unsaved edits.
 - 2026-11-13: The synth rack stays on the home page only (answers the Open question). Reason: it brings players in without pulling attention from buying on the store pages.
 - 2026-11-13: No new features that send MIDI to a keyboard until the owner or a tester has tried the existing read-only MODX M and FANTOM-0 buttons on a real keyboard; researcher work goes to items checkable from manuals and to a short real-keyboard test script for the owner. Reason: untested USB features pile up risk without bringing buyers.
+- 2026-11-14: FANTOM-0 item 5e (Receive Exclusive default, Device ID name and range), researcher question of 2026-11-13: option (b), leave 5e to the owner's real-keyboard test, which already asks for it; the researcher stops retrying 5e and agents do not accept Roland's download terms. Reason: costs nothing, needs no legal call, and the test answers it for sure.
+- 2026-11-14: How much manual detail goes on /studio: new manual facts go into docs/STUDIO.md and the owner's test script first; the page gets a new note only when it changes what the visitor presses, and the steps come before the notes. Reason: the help text has grown every hour, and a visitor on a phone should reach the demo banks and packs quickly.
 
 ## Open questions
 
-- Free pack terms: the free FM bank currently has no written licence. Recommended: free to use in any music, including commercial releases; not to be resold or shared as a sound pack.
-
-- Brand name: the site currently says "Mcky Vintage Key" (from the repo name). Confirm or change.
-- Real cover images: the owner can supply his own photos of his own keyboards to replace the drawn covers.
-- "Keyboard icon look more modern": the key strip on pack covers was redrawn with rounded keys. Should the brand mark (logo, site icon, social profile picture) be redrawn too? Recommended: no, keep it; it already matches.
-- Demo audio: pack pages and organizer demo banks are ready for the owner's own recordings (see src/content/demos.ts). Until a pack has them, its patches play a clearly labelled close-match preview. Recommended: record the first pack's 8 patches as 15–30 second loops.
+None for the agents. Questions only the owner can answer (free pack terms, brand name, brand mark, cover photos, demo audio, payment gateway, contact details) are tracked in docs/ROADMAP.md under "Waiting on the owner", with the PM's recommendation.
 
 ## History
 
