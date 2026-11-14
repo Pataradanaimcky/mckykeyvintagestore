@@ -48,6 +48,7 @@ import {
   TARGETS,
   unsupportedNameChars,
   slotTypeNote,
+  howToSteps,
   bankPageNameProblems,
   updateItem,
   type Item,
@@ -1338,7 +1339,31 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
       ) : (
       <section className="studio-panel" aria-label="บันทึกและนำไปใช้">
         <h2 className="font-bold">บันทึกและนำไปใช้</h2>
-        <p className="text-sm text-muted">{t.howTo}</p>
+        {(() => {
+          const { steps, warnings } = howToSteps(t);
+          return (
+            <>
+              {steps.length > 1 ? (
+                <ol className="flex list-decimal flex-col gap-1 pl-5 text-sm text-muted">
+                  {steps.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ol>
+              ) : (
+                steps.map((s) => (
+                  <p key={s} className="text-sm text-muted">
+                    {s}
+                  </p>
+                ))
+              )}
+              {warnings.map((w) => (
+                <p key={w} className="text-sm text-muted">
+                  {w}
+                </p>
+              ))}
+            </>
+          );
+        })()}
         {t.rearrange && (
           <details className="text-sm">
             <summary className="cursor-pointer text-muted">ช่องที่ลงทะเบียนไว้แล้ว: สลับด้วย Exchange</summary>

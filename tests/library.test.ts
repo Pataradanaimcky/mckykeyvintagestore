@@ -9,6 +9,7 @@ import {
   getTarget,
   unsupportedNameChars,
   slotTypeNote,
+  howToSteps,
   chainLines,
   bankPageNameProblems,
   nameProblemLines,
@@ -401,4 +402,22 @@ test("save-and-use: steps come first, longer manual notes are separate and follo
     assert.ok(sheet.indexOf(t.howTo) < sheet.indexOf("หมายเหตุจากคู่มือ:"));
   }
   assert.ok(!orderSheet(emptyLayout("fantom-0")).includes("หมายเหตุจากคู่มือ:"));
+});
+
+test("save-and-use steps split into a numbered list, warnings kept apart, nothing lost (STUDIO.md 7a)", () => {
+  for (const id of ["dx7", "modx-m", "fantom-0"] as const) {
+    const t = getTarget(id);
+    const { steps, warnings } = howToSteps(t);
+    assert.ok(steps.length >= 1, id);
+    for (const part of [...steps, ...warnings]) assert.ok(t.howTo.includes(part), part);
+    assert.equal(steps.length + warnings.length, t.howTo.split(" · ").length, id);
+    assert.ok(orderSheet(emptyLayout(id)).includes(t.howTo), id);
+  }
+  const dx7 = howToSteps(getTarget("dx7"));
+  assert.ok(dx7.steps.length >= 3);
+  assert.deepEqual(dx7.warnings, ["ยังไม่ได้ทดสอบกับ DX7 จริง"]);
+  assert.ok(dx7.steps[0].includes("Dexed"));
+  const fantom = howToSteps(getTarget("fantom-0"));
+  assert.equal(fantom.steps.length, 1);
+  assert.ok(fantom.warnings[0].startsWith("ระวัง"));
 });

@@ -219,6 +219,17 @@ export function slotTypeNote(t: Target): string {
   return `หน้านี้จัดเฉพาะช่อง Slot Type: ${main} · ช่องแบบ ${others.join(", ")} (Performance คู่กับ ${others.join(" / ")}) ให้ตั้งบนเครื่องในหน้า Live Set Edit`;
 }
 
+/**
+ * The "บันทึกและนำไปใช้" steps split at " · " for a numbered list on /studio (STUDIO.md 7a).
+ * Parts that are warnings ("ระวัง", "ยังไม่ได้ทดสอบ") are not numbered; they follow the list.
+ * The text itself is unchanged, and the order sheet still prints it whole.
+ */
+export function howToSteps(t: Target): { steps: string[]; warnings: string[] } {
+  const parts = t.howTo.split(" · ").map((s) => s.trim()).filter(Boolean);
+  const isWarning = (s: string) => s.startsWith("ระวัง") || s.startsWith("ยังไม่ได้ทดสอบ");
+  return { steps: parts.filter((s) => !isWarning(s)), warnings: parts.filter(isWarning) };
+}
+
 /** Characters in a name the keyboard cannot show (each listed once), or [] when all fit. */
 export function unsupportedNameChars(t: Target, name: string): string[] {
   if (!t.asciiNames && !t.usesFile) return [];
