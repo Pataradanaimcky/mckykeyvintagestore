@@ -80,8 +80,10 @@ export const TARGETS: Target[] = [
     nameMax: 10,
     hasVolume: false,
     about: "เปิดไฟล์ .syx (แบงก์ 32 เสียงหรือเสียงเดี่ยว) ลากเรียงใหม่ ฟังได้ แล้วดาวน์โหลดแบงก์ที่เรียงแล้ว",
+    // Steps in the order the player does them: keep the old voices, set the DX7 to receive, send,
+    // check the screen (STUDIO.md 7b).
     howTo:
-      "ส่งไฟล์ .syx เข้าเครื่องด้วยโปรแกรม MIDI ที่ใช้อยู่ หรือเปิดใน Dexed · ก่อนส่งเข้า DX7 (ตามคู่มือ DX7 หน้า 20, 56–57): ตั้ง DX7 ให้รับ MIDI ช่อง 1 (ไฟล์นี้เขียนไว้ช่อง 1) ตั้งเป็น SYS INFO AVAIL (ถ้าเป็น SYS INFO UNAVAIL เครื่องจะไม่รับข้อมูลเสียง) และปิด MEMORY PROTECT ของ INTERNAL ให้เป็น OFF แล้วเปิดกลับเป็น ON เมื่อเสร็จ · ส่งเสร็จในราว 1 วินาที จอ DX7 จะขึ้น FUNCTION CONTROL / MIDI RECEIVED ถ้าไม่ขึ้น ให้ตรวจว่า MEMORY PROTECT เป็น OFF แล้ว (คู่มือ DX7 หน้า 56) · เครื่องต้องปิด Memory Protect เพื่อรับ แปลว่าเสียงเดิมในเครื่องอาจถูกแทน ให้รับเสียงเดิมด้วยปุ่มรับบนหน้านี้แล้วดาวน์โหลดเก็บไว้ก่อน · ยังไม่ได้ทดสอบกับ DX7 จริง",
+      "เครื่องต้องปิด Memory Protect เพื่อรับ แปลว่าเสียงเดิมในเครื่องอาจถูกแทน ให้รับเสียงเดิมด้วยปุ่มรับบนหน้านี้แล้วดาวน์โหลดเก็บไว้ก่อน · ก่อนส่งเข้า DX7 (ตามคู่มือ DX7 หน้า 20, 56–57): ตั้ง DX7 ให้รับ MIDI ช่อง 1 (ไฟล์นี้เขียนไว้ช่อง 1) ตั้งเป็น SYS INFO AVAIL (ถ้าเป็น SYS INFO UNAVAIL เครื่องจะไม่รับข้อมูลเสียง) และปิด MEMORY PROTECT ของ INTERNAL ให้เป็น OFF แล้วเปิดกลับเป็น ON เมื่อเสร็จ · ส่งไฟล์ .syx เข้าเครื่องด้วยโปรแกรม MIDI ที่ใช้อยู่ หรือเปิดใน Dexed · ส่งเสร็จในราว 1 วินาที จอ DX7 จะขึ้น FUNCTION CONTROL / MIDI RECEIVED ถ้าไม่ขึ้น ให้ตรวจว่า MEMORY PROTECT เป็น OFF แล้ว (คู่มือ DX7 หน้า 56) · ยังไม่ได้ทดสอบกับ DX7 จริง",
     notes: [
       "ถ้ามี RAM cartridge ก็เก็บ 32 เสียงเดิมลงตลับได้ (คู่มือ DX7 หน้า 49): เลื่อนสวิตช์ Memory Protect บนตลับเป็น OFF กด [MEMORY PROTECT-CARTRIDGE] แล้ว [OFF] จากนั้น [FUNCTION] → [SAVE] จอถาม SAVE MEMORY ALL OF MEMORY? กด [YES] ถาม ARE YOU SURE? กด [YES] อีกครั้ง จอขึ้น UNDER WRITING! ราว 20 วินาที เสร็จแล้วเปิด Memory Protect ของตลับกลับ · ยังไม่ได้ทดสอบกับ DX7 จริง",
       "จะเล่นบน MONTAGE หรือ MODX: แปลงไฟล์นี้ด้วย Yamaha FM Converter (Yamaha ระบุว่ารองรับ Montage และ MODX และหน้า Compatibility ของ Yamaha บอกว่าเจ้าของ MONTAGE M / MODX M ใช้แปลงเป็นไฟล์ User ของ MONTAGE ได้ · ยังไม่ได้ทดสอบโหลดบน MODX M จริง)",

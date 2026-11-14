@@ -416,7 +416,11 @@ test("save-and-use steps split into a numbered list, warnings kept apart, nothin
   const dx7 = howToSteps(getTarget("dx7"));
   assert.ok(dx7.steps.length >= 3);
   assert.deepEqual(dx7.warnings, ["ยังไม่ได้ทดสอบกับ DX7 จริง"]);
-  assert.ok(dx7.steps[0].includes("Dexed"));
+  // In the order the player does them: back up first, then receive settings, send, check the screen (STUDIO.md 7b).
+  assert.ok(dx7.steps[0].includes("ดาวน์โหลดเก็บไว้ก่อน"));
+  assert.ok(dx7.steps[1].startsWith("ก่อนส่งเข้า DX7"));
+  assert.ok(dx7.steps[2].includes("Dexed"));
+  assert.ok(dx7.steps[3].includes("MIDI RECEIVED"));
   const fantom = howToSteps(getTarget("fantom-0"));
   assert.equal(fantom.steps.length, 1);
   assert.ok(fantom.warnings[0].startsWith("ระวัง"));
