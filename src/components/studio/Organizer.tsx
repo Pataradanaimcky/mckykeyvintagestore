@@ -1339,8 +1339,28 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
       <section className="studio-panel" aria-label="บันทึกและนำไปใช้">
         <h2 className="font-bold">บันทึกและนำไปใช้</h2>
         <p className="text-sm text-muted">{t.howTo}</p>
-        {t.rearrange && <p className="text-sm text-muted">{t.rearrange}</p>}
-        {t.chain && <p className="text-sm text-muted">{t.chain.howTo}</p>}
+        {t.rearrange && (
+          <details className="text-sm">
+            <summary className="cursor-pointer text-muted">ช่องที่ลงทะเบียนไว้แล้ว: สลับด้วย Exchange</summary>
+            <p className="mt-2 text-muted">{t.rearrange}</p>
+          </details>
+        )}
+        {t.chain && (
+          <details className="text-sm">
+            <summary className="cursor-pointer text-muted">ใช้ Scene Chain แทนการเขียนทับ (Scene เดิมไม่ถูกย้าย)</summary>
+            <p className="mt-2 text-muted">{t.chain.howTo}</p>
+          </details>
+        )}
+        {t.notes?.length ? (
+          <details className="text-sm">
+            <summary className="cursor-pointer text-muted">หมายเหตุจากคู่มือ ({t.notes.length})</summary>
+            <ul className="mt-2 flex list-disc flex-col gap-1 pl-5 text-muted">
+              {t.notes.map((n) => (
+                <li key={n}>{n}</li>
+              ))}
+            </ul>
+          </details>
+        ) : null}
         <div className="flex flex-wrap gap-2">
           {t.usesFile && (
             <>

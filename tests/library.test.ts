@@ -29,6 +29,10 @@ import {
 
 const names = (l: ReturnType<typeof emptyLayout>) => l.pages[0].map((x) => x?.name ?? "-");
 
+
+/** Steps and the folded manual notes together, as on the order sheet. */
+const full = (t: { howTo: string; notes?: string[] }) => [t.howTo, ...(t.notes ?? [])].join(" · ");
+
 test("pasted lists become sounds, ignoring numbers and bullets", () => {
   const items = itemsFromText("1. Grand Piano\n- Warm Pad\n\n03) City EP\n• Strings\tA");
   assert.deepEqual(items.map((i) => i.name), ["Grand Piano", "Warm Pad", "City EP", "Strings\tA".trim()]);
@@ -172,52 +176,52 @@ test("DX7 order sheet is the plain voice list: Voice 1–32 in cartridge order, 
 
 test("DX7 points to Yamaha FM Converter, names MODX M from Yamaha's compatibility page but not as tested", () => {
   const t = getTarget("dx7");
-  assert.match(t.howTo, /FM Converter/);
-  assert.match(t.howTo, /MONTAGE M \/ MODX M ใช้แปลงเป็นไฟล์ User ของ MONTAGE/);
-  assert.match(t.howTo, /ยังไม่ได้ทดสอบโหลดบน MODX M จริง/);
+  assert.match(full(t), /FM Converter/);
+  assert.match(full(t), /MONTAGE M \/ MODX M ใช้แปลงเป็นไฟล์ User ของ MONTAGE/);
+  assert.match(full(t), /ยังไม่ได้ทดสอบโหลดบน MODX M จริง/);
   assert.ok(t.sources.some((s) => s.includes("FM-Converter-User-Guide")));
   assert.ok(t.sources.some((s) => s.includes("montage-portal/essentials/compatibility")));
 });
 
 test("DX7 tells players to back up before loading a converted file (MONTAGE M manual: Load overwrites User data)", () => {
   const t = getTarget("dx7");
-  assert.match(t.howTo, /เซฟ Backup ทั้งเครื่องลง USB flash drive ไว้ก่อน/);
-  assert.match(t.howTo, /\[UTILITY\] → Contents → Load/);
+  assert.match(full(t), /เซฟ Backup ทั้งเครื่องลง USB flash drive ไว้ก่อน/);
+  assert.match(full(t), /\[UTILITY\] → Contents → Load/);
   assert.ok(t.sources.some((s) => s.includes("montage_m/en/om01basicoperation0260")));
 });
 
 test("DX7 gives the receive settings from the DX7 manual before sending the file (pp. 20, 56–57)", () => {
   const t = getTarget("dx7");
   for (const w of ["MIDI ช่อง 1", "SYS INFO AVAIL", "SYS INFO UNAVAIL", "MEMORY PROTECT", "ยังไม่ได้ทดสอบกับ DX7 จริง"]) {
-    assert.ok(t.howTo.includes(w), w);
+    assert.ok(full(t).includes(w), w);
   }
-  assert.ok(t.howTo.indexOf("SYS INFO AVAIL") < t.howTo.indexOf("FM Converter"));
+  assert.ok(full(t).indexOf("SYS INFO AVAIL") < full(t).indexOf("FM Converter"));
   assert.ok(t.sources.some((s) => s.includes("manualowl.com/m/Yamaha/DX7")));
 });
 
 test("DX7 says what the screen shows after receiving the file (manual p. 56)", () => {
   const t = getTarget("dx7");
-  assert.ok(t.howTo.includes("FUNCTION CONTROL / MIDI RECEIVED"));
-  assert.ok(t.howTo.indexOf("MIDI RECEIVED") > t.howTo.indexOf("MEMORY PROTECT"));
-  assert.ok(t.howTo.indexOf("MIDI RECEIVED") < t.howTo.indexOf("FM Converter"));
+  assert.ok(full(t).includes("FUNCTION CONTROL / MIDI RECEIVED"));
+  assert.ok(full(t).indexOf("MIDI RECEIVED") > full(t).indexOf("MEMORY PROTECT"));
+  assert.ok(full(t).indexOf("MIDI RECEIVED") < full(t).indexOf("FM Converter"));
   assert.ok(t.sources.some((s) => s.includes("dx7-man.pdf")));
 });
 
 test("DX7 says how to keep the old voices on a RAM cartridge before receiving (manual p. 49)", () => {
   const t = getTarget("dx7");
   for (const text of ["RAM cartridge", "[FUNCTION] → [SAVE]", "SAVE MEMORY ALL OF MEMORY?", "ARE YOU SURE?", "UNDER WRITING!"]) {
-    assert.ok(t.howTo.includes(text), text);
+    assert.ok(full(t).includes(text), text);
   }
-  assert.ok(t.howTo.indexOf("[SAVE]") < t.howTo.indexOf("ยังไม่ได้ทดสอบกับ DX7 จริง"));
+  assert.ok(full(t).indexOf("[SAVE]") < full(t).lastIndexOf("ยังไม่ได้ทดสอบกับ DX7 จริง"));
   assert.ok(t.sources.some((s) => s.includes("416114?page=54")));
 });
 
 test("DX7 lists the file types MODX M can load, from Yamaha's compatibility page and MONTAGE M manual", () => {
   const t = getTarget("dx7");
   for (const ext of [".Y2U", ".Y2L", ".Y2A", ".X7U", ".X7L", ".X7A", ".X8U", ".X8L", ".X8A"]) {
-    assert.ok(t.howTo.includes(ext), ext);
+    assert.ok(full(t).includes(ext), ext);
   }
-  assert.match(t.howTo, /คู่มือ FM Converter ไม่ได้บอกนามสกุลไฟล์ที่ได้/);
+  assert.match(full(t), /คู่มือ FM Converter ไม่ได้บอกนามสกุลไฟล์ที่ได้/);
   assert.ok(t.sources.some((s) => s.includes("montage_m/en/om01basicoperation0240")));
 });
 
@@ -374,7 +378,27 @@ test("MODX M: rearrange steps say Delete & Move closes the gap, Delete leaves it
 test("MODX M: register step names the Live Set Register buttons (MONTAGE M online manual, Live Set Register)", () => {
   const t = getTarget("modx-m");
   for (const w of ["[SHIFT] + [LIVE SET]", "Live Set Register", "USER", "Register", "Store as New Perf. and Register", "Overwrite Current Perf. and Register"])
-    assert.ok(t.howTo.includes(w), w);
+    assert.ok(full(t).includes(w), w);
   assert.ok(t.sources.some((s) => s.endsWith("om02screenparameters0300.html")));
   assert.ok(orderSheet(emptyLayout("modx-m")).includes("Store as New Perf. and Register"));
+});
+
+test("save-and-use: steps come first, longer manual notes are separate and follow the steps on the order sheet (PM 2026-11-14)", () => {
+  const dx7 = getTarget("dx7");
+  assert.ok(dx7.notes && dx7.notes.length >= 3);
+  assert.ok(dx7.howTo.length < 700, `DX7 steps too long: ${dx7.howTo.length}`);
+  for (const w of ["MIDI ช่อง 1", "SYS INFO AVAIL", "MIDI RECEIVED", "ยังไม่ได้ทดสอบกับ DX7 จริง"]) assert.ok(dx7.howTo.includes(w), w);
+  for (const w of ["RAM cartridge", "FM Converter", ".Y2U"]) assert.ok(!dx7.howTo.includes(w), w);
+  const modx = getTarget("modx-m");
+  assert.ok(modx.howTo.includes("Register") && modx.howTo.includes("Done"));
+  assert.ok(!modx.howTo.includes("Store as New"));
+  assert.equal(getTarget("fantom-0").notes, undefined);
+  for (const id of ["dx7", "modx-m"] as const) {
+    const t = getTarget(id);
+    const sheet = orderSheet(emptyLayout(id));
+    assert.ok(sheet.includes("หมายเหตุจากคู่มือ:"));
+    for (const n of t.notes!) assert.ok(sheet.includes(`- ${n}`), n);
+    assert.ok(sheet.indexOf(t.howTo) < sheet.indexOf("หมายเหตุจากคู่มือ:"));
+  }
+  assert.ok(!orderSheet(emptyLayout("fantom-0")).includes("หมายเหตุจากคู่มือ:"));
 });

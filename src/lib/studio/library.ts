@@ -54,8 +54,13 @@ export interface Target {
    */
   rearrange?: string;
   about: string;
-  /** How to put the result on the keyboard. */
+  /** How to put the result on the keyboard: the steps only, shown first. */
   howTo: string;
+  /**
+   * Longer manual notes (backups, other keyboards, file types), shown folded under the steps on
+   * /studio and after the steps on the order sheet (PM decision 2026-11-14).
+   */
+  notes?: string[];
   verified: boolean;
   sources: string[];
 }
@@ -76,7 +81,13 @@ export const TARGETS: Target[] = [
     hasVolume: false,
     about: "เปิดไฟล์ .syx (แบงก์ 32 เสียงหรือเสียงเดี่ยว) ลากเรียงใหม่ ฟังได้ แล้วดาวน์โหลดแบงก์ที่เรียงแล้ว",
     howTo:
-      "ส่งไฟล์ .syx เข้าเครื่องด้วยโปรแกรม MIDI ที่ใช้อยู่ หรือเปิดใน Dexed · ก่อนส่งเข้า DX7 (ตามคู่มือ DX7 หน้า 20, 56–57): ตั้ง DX7 ให้รับ MIDI ช่อง 1 (ไฟล์นี้เขียนไว้ช่อง 1) ตั้งเป็น SYS INFO AVAIL (ถ้าเป็น SYS INFO UNAVAIL เครื่องจะไม่รับข้อมูลเสียง) และปิด MEMORY PROTECT ของ INTERNAL ให้เป็น OFF แล้วเปิดกลับเป็น ON เมื่อเสร็จ · ส่งเสร็จในราว 1 วินาที จอ DX7 จะขึ้น FUNCTION CONTROL / MIDI RECEIVED ถ้าไม่ขึ้น ให้ตรวจว่า MEMORY PROTECT เป็น OFF แล้ว (คู่มือ DX7 หน้า 56) · เครื่องต้องปิด Memory Protect เพื่อรับ แปลว่าเสียงเดิมในเครื่องอาจถูกแทน ให้รับเสียงเดิมด้วยปุ่มรับบนหน้านี้แล้วดาวน์โหลดเก็บไว้ก่อน · ถ้ามี RAM cartridge ก็เก็บ 32 เสียงเดิมลงตลับได้ (คู่มือ DX7 หน้า 49): เลื่อนสวิตช์ Memory Protect บนตลับเป็น OFF กด [MEMORY PROTECT-CARTRIDGE] แล้ว [OFF] จากนั้น [FUNCTION] → [SAVE] จอถาม SAVE MEMORY ALL OF MEMORY? กด [YES] ถาม ARE YOU SURE? กด [YES] อีกครั้ง จอขึ้น UNDER WRITING! ราว 20 วินาที เสร็จแล้วเปิด Memory Protect ของตลับกลับ · ยังไม่ได้ทดสอบกับ DX7 จริง · จะเล่นบน MONTAGE หรือ MODX: แปลงไฟล์นี้ด้วย Yamaha FM Converter (Yamaha ระบุว่ารองรับ Montage และ MODX และหน้า Compatibility ของ Yamaha บอกว่าเจ้าของ MONTAGE M / MODX M ใช้แปลงเป็นไฟล์ User ของ MONTAGE ได้ · ยังไม่ได้ทดสอบโหลดบน MODX M จริง) · ก่อนโหลดไฟล์ที่แปลงแล้วเข้าเครื่อง ให้เซฟ Backup ทั้งเครื่องลง USB flash drive ไว้ก่อน เพราะคู่มือ MONTAGE M เตือนว่าการโหลดอาจเขียนทับข้อมูล User เดิม (โหลดที่ [UTILITY] → Contents → Load) · ไฟล์ที่ MODX M โหลดได้ตามหน้า Compatibility และคู่มือของ Yamaha: .Y2U .Y2L .Y2A ของ MONTAGE M / MODX M และไฟล์รุ่นก่อน .X7U .X7L .X7A (MONTAGE รุ่นแรก) .X8U .X8L .X8A (MODX / MODX+) · คู่มือ FM Converter ไม่ได้บอกนามสกุลไฟล์ที่ได้ ให้ดูนามสกุลก่อนโหลด",
+      "ส่งไฟล์ .syx เข้าเครื่องด้วยโปรแกรม MIDI ที่ใช้อยู่ หรือเปิดใน Dexed · ก่อนส่งเข้า DX7 (ตามคู่มือ DX7 หน้า 20, 56–57): ตั้ง DX7 ให้รับ MIDI ช่อง 1 (ไฟล์นี้เขียนไว้ช่อง 1) ตั้งเป็น SYS INFO AVAIL (ถ้าเป็น SYS INFO UNAVAIL เครื่องจะไม่รับข้อมูลเสียง) และปิด MEMORY PROTECT ของ INTERNAL ให้เป็น OFF แล้วเปิดกลับเป็น ON เมื่อเสร็จ · ส่งเสร็จในราว 1 วินาที จอ DX7 จะขึ้น FUNCTION CONTROL / MIDI RECEIVED ถ้าไม่ขึ้น ให้ตรวจว่า MEMORY PROTECT เป็น OFF แล้ว (คู่มือ DX7 หน้า 56) · เครื่องต้องปิด Memory Protect เพื่อรับ แปลว่าเสียงเดิมในเครื่องอาจถูกแทน ให้รับเสียงเดิมด้วยปุ่มรับบนหน้านี้แล้วดาวน์โหลดเก็บไว้ก่อน · ยังไม่ได้ทดสอบกับ DX7 จริง",
+    notes: [
+      "ถ้ามี RAM cartridge ก็เก็บ 32 เสียงเดิมลงตลับได้ (คู่มือ DX7 หน้า 49): เลื่อนสวิตช์ Memory Protect บนตลับเป็น OFF กด [MEMORY PROTECT-CARTRIDGE] แล้ว [OFF] จากนั้น [FUNCTION] → [SAVE] จอถาม SAVE MEMORY ALL OF MEMORY? กด [YES] ถาม ARE YOU SURE? กด [YES] อีกครั้ง จอขึ้น UNDER WRITING! ราว 20 วินาที เสร็จแล้วเปิด Memory Protect ของตลับกลับ · ยังไม่ได้ทดสอบกับ DX7 จริง",
+      "จะเล่นบน MONTAGE หรือ MODX: แปลงไฟล์นี้ด้วย Yamaha FM Converter (Yamaha ระบุว่ารองรับ Montage และ MODX และหน้า Compatibility ของ Yamaha บอกว่าเจ้าของ MONTAGE M / MODX M ใช้แปลงเป็นไฟล์ User ของ MONTAGE ได้ · ยังไม่ได้ทดสอบโหลดบน MODX M จริง)",
+      "ก่อนโหลดไฟล์ที่แปลงแล้วเข้าเครื่อง ให้เซฟ Backup ทั้งเครื่องลง USB flash drive ไว้ก่อน เพราะคู่มือ MONTAGE M เตือนว่าการโหลดอาจเขียนทับข้อมูล User เดิม (โหลดที่ [UTILITY] → Contents → Load)",
+      "ไฟล์ที่ MODX M โหลดได้ตามหน้า Compatibility และคู่มือของ Yamaha: .Y2U .Y2L .Y2A ของ MONTAGE M / MODX M และไฟล์รุ่นก่อน .X7U .X7L .X7A (MONTAGE รุ่นแรก) .X8U .X8L .X8A (MODX / MODX+) · คู่มือ FM Converter ไม่ได้บอกนามสกุลไฟล์ที่ได้ ให้ดูนามสกุลก่อนโหลด",
+    ],
     verified: true,
     sources: [
       // DX7 Owner's Manual p. 20 (FUNCTION, MIDI): "SYS INFO AVAIL" is needed to transfer voices,
@@ -138,7 +149,10 @@ export const TARGETS: Target[] = [
     // [SHIFT] + [LIVE SET]; registers Performances to User Live Set slots; buttons "Register",
     // "Store as New Perf. and Register" and "Overwrite Current Perf. and Register".
     howTo:
-      "บนเครื่อง: เลือก Performance แล้วกด [SHIFT] + [LIVE SET] (หน้าจอ Live Set Register ลงได้เฉพาะช่องของแบงก์ USER) แตะช่องตามใบจัดเรียง → แตะ Register · ถ้าแก้เสียงไว้แต่ยังไม่ได้เก็บ ให้แตะ Store as New Perf. and Register แทน จะเก็บเป็น Performance ใหม่แล้วลงช่องเลย (ส่วน Overwrite Current Perf. and Register จะเขียนทับ Performance เดิม) จากนั้นกด Edit เพื่อตั้ง Slot Name, Color, Volume และ SSS Time แล้วกด Done",
+      "บนเครื่อง: เลือก Performance แล้วกด [SHIFT] + [LIVE SET] (หน้าจอ Live Set Register ลงได้เฉพาะช่องของแบงก์ USER) แตะช่องตามใบจัดเรียง → แตะ Register จากนั้นกด Edit เพื่อตั้ง Slot Name, Color, Volume และ SSS Time แล้วกด Done",
+    notes: [
+      "ถ้าแก้เสียงไว้แต่ยังไม่ได้เก็บ ให้แตะ Store as New Perf. and Register แทน จะเก็บเป็น Performance ใหม่แล้วลงช่องเลย (ส่วน Overwrite Current Perf. and Register จะเขียนทับ Performance เดิม)",
+    ],
     // MONTAGE M online manual, Live Set Edit (om02screenparameters0310): Job, Copy, Exchange,
     // "Delete & Move", Delete; MODX M operation manual p. 38 "Exchanging Performances Registered to
     // slots" (Kraft Music copy): User bank only, Job → slot → Exchange → second slot → Done.
@@ -494,6 +508,7 @@ export function orderSheet(layout: Layout): string {
   const bad = nameProblemLines(t, layout);
   if (bad.length) lines.push(`ชื่อที่ ${t.short} พิมพ์ไม่ได้ (แก้เป็นตัวอักษรอังกฤษก่อนตั้งชื่อบนเครื่อง):`, ...bad.map((x) => `  ${x}`), "");
   lines.push(t.howTo, "");
+  if (t.notes?.length) lines.push("หมายเหตุจากคู่มือ:", ...t.notes.map((n) => `- ${n}`), "");
   if (t.rearrange) lines.push(t.rearrange, "");
   const chain = chainLines(layout);
   if (t.chain && chain.length) lines.push(t.chain.howTo, "ลำดับสำหรับ Scene Chain:", ...chain, "");

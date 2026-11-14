@@ -55,6 +55,7 @@ None for the agents. Questions only the owner can answer (free pack terms, brand
 
 ## History
 
+- 2026-11-14: Organizer: "บันทึกและนำไปใช้" shows each keyboard's steps first; longer manual notes (DX7 backups, FM Converter, MODX M file types; MODX M Store as New Perf.) moved unchanged into a fold "หมายเหตุจากคู่มือ", and the MODX M rearrange and FANTOM-0 Scene Chain texts fold too; the order sheet still prints everything (ROADMAP Next 3, STUDIO.md 7).
 - 2026-11-14: Organizer DX7: under "ดาวน์โหลดเฉพาะเสียงที่เลือก" the page says a single voice arrives in the DX7 edit buffer and how to store it ([STORE] + voice selector 1–32, protection OFF then ON), from the DX7 Owner's Manual pp. 56–57 (STUDIO.md 1g).
 - 2026-11-14: Organizer DX7: "บันทึกและนำไปใช้" gives the DX7's receive settings before sending the downloaded cartridge (MIDI channel 1, SYS INFO AVAIL, MEMORY PROTECT INTERNAL OFF then ON, get the old voices first), from the DX7 Owner's Manual pp. 20, 56–57 (STUDIO.md 1c).
 - 2026-11-13: Organizer MODX M: the rearrange steps add Delete & Move (removes a slot and moves the next ones up; Delete leaves a gap), from the MONTAGE M online manual, Live Set Edit (STUDIO.md 4q).
