@@ -421,3 +421,15 @@ test("save-and-use steps split into a numbered list, warnings kept apart, nothin
   assert.equal(fantom.steps.length, 1);
   assert.ok(fantom.warnings[0].startsWith("ระวัง"));
 });
+
+test("MODX M Live Set layout follows Yamaha's manual: USER 1–8, 16 pages, 16 slots, 16 colors", () => {
+  const t = getTarget("modx-m");
+  // MONTAGE M online manual, Live Set: Bank "Preset, User 1–8", "Live Set Slot 1–16";
+  // MODX M Data List: Page Name 03 1p 00 00, p = 0–15.
+  assert.equal(t.slotsPerPage, 16);
+  assert.equal(t.pagesPerBank, 16);
+  assert.equal(t.maxPages / (t.pagesPerBank ?? 1), 8);
+  // MONTAGE M online manual, Live Set Edit: slot Color settings, in the manual's order.
+  assert.deepEqual(t.colors, ["Black", "Red", "Yellow", "Green", "Blue", "Azure", "Pink", "Orange", "Purple", "Sakura", "Cream", "Lime", "Aqua", "Beige", "Mint", "Lilac"]);
+  assert.ok(t.sources.some((s) => s.endsWith("om02screenparameters0290.html")));
+});

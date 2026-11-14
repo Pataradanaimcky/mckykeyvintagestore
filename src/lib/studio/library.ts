@@ -127,10 +127,14 @@ export const TARGETS: Target[] = [
     slotName: "Slot",
     slotsPerPage: 16,
     columns: 4,
-    // USER 1–8, 16 pages each.
+    // USER 1–8, 16 pages each. MONTAGE M online manual, Live Set (om02screenparameters0290):
+    // Bank "Preset, User 1–8 (default) or Library name", "Live Set Slot 1–16"; pages per bank from
+    // the MODX M Data List, LIVE SET table: Page Name 03 1p 00 00 with p = page 0–15.
     maxPages: 128,
     pagesPerBank: 16,
     usesFile: false,
+    // MONTAGE M online manual, Live Set Edit (om02screenparameters0310): Color "Settings: Black,
+    // Red, Yellow, Green, Blue, Azure, Pink, Orange, Purple, Sakura, Cream, Lime, Aqua, Beige, Mint, Lilac".
     colors: ["Black", "Red", "Yellow", "Green", "Blue", "Azure", "Pink", "Orange", "Purple", "Sakura", "Cream", "Lime", "Aqua", "Beige", "Mint", "Lilac"],
     nameMax: 20,
     // MODX M Operation Manual p. 360 (Kraft Music copy of Yamaha's MODX M6 manual), Live Set Edit:
@@ -166,6 +170,7 @@ export const TARGETS: Target[] = [
     verified: true,
     sources: [
       "https://yamahasynth.com/learn/modx-m/welcome-to-modx-m/",
+      "https://manual.yamaha.com/mi/synth/montage_m/en/om02screenparameters0290.html",
       "https://manual.yamaha.com/mi/synth/montage_m/en/om02screenparameters0300.html",
       "https://manual.yamaha.com/mi/synth/montage_m/en/om02screenparameters0310.html",
       "https://manual.yamaha.com/mi/synth/montage_m/en/om01basicoperation0120.html",
