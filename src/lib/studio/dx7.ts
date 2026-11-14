@@ -82,6 +82,12 @@ export const DX7_SEND_STEPS =
 export const DX7_SINGLE_VOICE_NOTE =
   "เสียงเดี่ยว (ตามคู่มือ DX7 หน้า 56–57): ส่งเข้าเครื่องแล้วเสียงจะอยู่ใน edit buffer ยังไม่ถูกเก็บ · จะเก็บ: ปิด MEMORY PROTECT ของ INTERNAL หรือของ CARTRIDGE ที่จะเก็บก่อน (ตลับต้องเลื่อนสวิตช์บนตลับเป็น OFF ด้วย) แล้วกด [STORE] ค้างไว้ และกดปุ่มเลือกเสียง 1–32 ของช่องที่จะเก็บ เสร็จแล้วเปิด MEMORY PROTECT กลับเป็น ON · ยังไม่ได้ทดสอบกับ DX7 จริง";
 
+/**
+ * Label of the read-only receive button on /studio. Like the MODX M and FANTOM-0 buttons it says it
+ * has not been tried on a real keyboard yet (ROADMAP Next 2, STUDIO.md 1a, 7f).
+ */
+export const DX7_RECEIVE_LABEL = "รับเสียง 32 เสียงจาก DX7 ทาง USB-MIDI (ยังไม่ได้ทดสอบกับเครื่องจริง)";
+
 export type DumpCheck = { ok: true; channel: number } | { ok: false; reason: string };
 
 /**

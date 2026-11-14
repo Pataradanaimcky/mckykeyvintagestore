@@ -5,9 +5,10 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { FM_PRESETS } from "@/components/rack/fm/presets";
 import { OctaveSwitch, RackKeys } from "@/components/rack/RackKeys";
-import { bankSysex, checkCartridgeDump, DX7_SEND_STEPS, DX7_SINGLE_VOICE_NOTE, voiceSysex } from "@/lib/studio/dx7";
+import { bankSysex, checkCartridgeDump, DX7_RECEIVE_LABEL, DX7_SEND_STEPS, DX7_SINGLE_VOICE_NOTE, voiceSysex } from "@/lib/studio/dx7";
 import {
   FANTOM_DEVICE_ID,
+  FANTOM_RECEIVE_LABEL,
   FANTOM_USB_DRIVER_HELP,
   FantomPortFinder,
   identityRequest,
@@ -15,7 +16,7 @@ import {
   SceneNameCollector,
   sceneNameRequest,
 } from "@/lib/studio/fantom";
-import { MODX_BULK_NOTE, MODX_USB_HELP, namesOnPage, pageNameRequests, placeNames, readSlotNameReply, SlotNameCollector } from "@/lib/studio/modxm";
+import { MODX_BULK_NOTE, MODX_RECEIVE_LABEL, MODX_USB_HELP, namesOnPage, pageNameRequests, placeNames, readSlotNameReply, SlotNameCollector } from "@/lib/studio/modxm";
 import { getSound, guessSound, PREVIEW_SOUNDS } from "@/lib/studio/sounds";
 import { GmPreview } from "./gmPreview";
 import {
@@ -956,7 +957,7 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
                 เปิดไฟล์ .syx มาวางบนชั้น
               </button>
               <button type="button" className="studio-btn" aria-pressed={listening} onClick={() => void receiveFromDx7()}>
-                {listening ? "กำลังรอรับจาก DX7… (แตะเพื่อหยุด)" : "รับเสียง 32 เสียงจาก DX7 ทาง USB-MIDI"}
+                {listening ? "กำลังรอรับจาก DX7… (แตะเพื่อหยุด)" : DX7_RECEIVE_LABEL}
               </button>
               <p className="text-xs text-muted">อ่านอย่างเดียว หน้านี้ไม่ส่งอะไรเข้าเครื่อง เสียงที่รับมาจะใส่เป็นตลับ เสียงในตลับเดิมย้ายลงชั้นวาง ใช้ได้บน Chrome หรือ Edge</p>
             </>
@@ -975,7 +976,7 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
               {t.id === "fantom-0" && !demoSlug && (
                 <>
                   <button type="button" className="studio-btn" aria-pressed={asking} onClick={() => void askFantom()}>
-                    {asking ? "กำลังขอชื่อจาก FANTOM-0… (แตะเพื่อหยุด)" : "รับชื่อ Scene ที่เปิดอยู่จาก FANTOM-0 ทาง USB (ยังไม่ได้ทดสอบกับเครื่องจริง)"}
+                    {asking ? "กำลังขอชื่อจาก FANTOM-0… (แตะเพื่อหยุด)" : FANTOM_RECEIVE_LABEL}
                   </button>
                   <p className="text-xs text-muted">
                     อ่านอย่างเดียว ถามรุ่นเครื่องแล้วส่งคำขอชื่อ ไม่เขียนอะไรลงเครื่อง ได้ทีละ 1 Scene (Scene ที่อยู่บนจอ) เปลี่ยน Scene บนเครื่องแล้วกดอีกครั้ง ชื่อจะไปอยู่ท้ายชั้นวาง ใช้ได้บน Chrome หรือ Edge
@@ -985,7 +986,7 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
               {t.id === "modx-m" && !demoSlug && (
                 <>
                   <button type="button" className="studio-btn" aria-pressed={asking} onClick={() => void receiveFromModx()}>
-                    {asking ? "กำลังขอชื่อจาก MODX M… (แตะเพื่อหยุด)" : "รับชื่อช่องจาก MODX M ทาง USB (ยังไม่ได้ทดสอบกับเครื่องจริง)"}
+                    {asking ? "กำลังขอชื่อจาก MODX M… (แตะเพื่อหยุด)" : MODX_RECEIVE_LABEL}
                   </button>
                   <p className="text-xs text-muted">
                     อ่านอย่างเดียว ส่งแค่คำขอชื่อ ไม่เขียนอะไรลงเครื่อง ชื่อ 16 ช่องจะใส่หน้าที่เปิดอยู่ เสียงในช่องเดิมย้ายลงชั้นวาง ใช้ได้บน Chrome หรือ Edge

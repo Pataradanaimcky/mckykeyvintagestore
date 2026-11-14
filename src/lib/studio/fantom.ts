@@ -26,6 +26,9 @@ export const FANTOM_NAME_LENGTH = 16;
  * the Roland website) or GENERIC (the computer's standard driver; "Only MIDI is
  * available"); [WRITE] saves, then power off and on. The manual gives no default.
  */
+/** Label of the read-only scene-name button on /studio; untested on a real FANTOM-0 (STUDIO.md 5h, 7f). */
+export const FANTOM_RECEIVE_LABEL = "รับชื่อ Scene ที่เปิดอยู่จาก FANTOM-0 ทาง USB (ยังไม่ได้ทดสอบกับเครื่องจริง)";
+
 export const FANTOM_USB_DRIVER_HELP =
   "ถ้าคอมพิวเตอร์ไม่เห็น FANTOM-0: บนเครื่องดู [MENU] → SYSTEM → GENERAL → USB Driver " +
   "ถ้าเป็น VENDOR ต้องติดตั้งไดรเวอร์ USB จากเว็บ Roland ก่อน ถ้าเป็น GENERIC ใช้ไดรเวอร์ของคอมพิวเตอร์ได้เลย (ได้แค่ MIDI ไม่มีเสียงทาง USB) " +

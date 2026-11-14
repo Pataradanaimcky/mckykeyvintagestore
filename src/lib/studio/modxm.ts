@@ -26,6 +26,9 @@ export const MODX_NAME_LENGTH = 20;
  * prints no default; the Data List does for MIDI IN/OUT (see below), not for
  * Device Number.
  */
+/** Label of the read-only slot-name button on /studio; untested on a real MODX M (STUDIO.md 4f, 7f). */
+export const MODX_RECEIVE_LABEL = "รับชื่อช่องจาก MODX M ทาง USB (ยังไม่ได้ทดสอบกับเครื่องจริง)";
+
 export const MODX_USB_HELP =
   "บนเครื่องดู [UTILITY] → Settings → MIDI I/O → MIDI IN/OUT ต้องเป็น USB (ค่าเริ่มต้นของเครื่องคือ USB ถ้าเคยเปลี่ยนเป็น MIDI เครื่องจะรับส่ง MIDI ทางช่อง MIDI 5 ขาแทน) " +
   "และ [UTILITY] → Settings → Advanced → Device Number เป็น All หรือ 1 (ถ้าเป็น Off เครื่องจะไม่ตอบ)";
