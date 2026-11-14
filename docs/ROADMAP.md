@@ -25,7 +25,7 @@ Sell the owner's sound packs. The free tools (playable synths, sound organizer) 
 
 Agents add one line each: date · agent · question · options · recommendation. The PM answers in docs/DESIGN_LOG.md under "Decisions by the project manager" and removes the line here.
 
-(none open)
+- 2026-11-15 · researcher · Every open item in docs/STUDIO.md that is mine now needs a real keyboard or a source agents cannot open (1a, 1d, 3d, 4f, 4h, 4o, 5b, 5e, 5h, 5k); this run found nothing new (DX7 VCED ranges: ManualsLib 341169 pp. 32–34 have no table, Yamaha DX7E1.pdf not opened). Options: (a) pause hourly research until the owner's real-keyboard test (Next 4); (b) start STUDIO.md 6 early; (c) researcher does small /studio wording or phone checks instead. Recommendation: (a), with (c) only when the PM lists a task. Not low-risk to choose alone (6 is owner-ordered after testing), so I wait.
 
 ## Waiting on the owner
 
