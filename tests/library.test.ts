@@ -10,6 +10,7 @@ import {
   unsupportedNameChars,
   slotTypeNote,
   howToSteps,
+  splitSteps,
   chainLines,
   bankPageNameProblems,
   nameProblemLines,
@@ -446,4 +447,21 @@ test("MODX M Live Set layout follows Yamaha's manual: USER 1–8, 16 pages, 16 s
   // MONTAGE M online manual, Live Set Edit: slot Color settings, in the manual's order.
   assert.deepEqual(t.colors, ["Black", "Red", "Yellow", "Green", "Blue", "Azure", "Pink", "Orange", "Purple", "Sakura", "Cream", "Lime", "Aqua", "Beige", "Mint", "Lilac"]);
   assert.ok(t.sources.some((s) => s.endsWith("om02screenparameters0290.html")));
+});
+
+test("folded rearrange and Scene Chain texts split into steps in order, text unchanged", () => {
+  const modx = getTarget("modx-m");
+  const fantom = getTarget("fantom-0");
+  assert.ok(modx.rearrange && fantom.chain);
+  const r = splitSteps(modx.rearrange);
+  assert.equal(r.length, 4);
+  assert.match(r[0], /Exchange/);
+  assert.match(r[2], /Delete & Move/);
+  assert.match(r[3], /\[SHIFT\]/);
+  assert.equal(r.join(" · "), modx.rearrange);
+  const c = splitSteps(fantom.chain.howTo);
+  assert.equal(c.length, 2);
+  assert.match(c[0], /\[CHAIN\]/);
+  assert.equal(c.join(" · "), fantom.chain.howTo);
+  assert.deepEqual(splitSteps(" a ·  · b "), ["a", "b"]);
 });

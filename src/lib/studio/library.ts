@@ -234,8 +234,13 @@ export function slotTypeNote(t: Target): string {
  * Parts that are warnings ("ระวัง", "ยังไม่ได้ทดสอบ") are not numbered; they follow the list.
  * The text itself is unchanged, and the order sheet still prints it whole.
  */
+/** Splits a help text at " · " into its parts, in order (used for the folded rearrange and chain steps). */
+export function splitSteps(text: string): string[] {
+  return text.split(" · ").map((s) => s.trim()).filter(Boolean);
+}
+
 export function howToSteps(t: Target): { steps: string[]; warnings: string[] } {
-  const parts = t.howTo.split(" · ").map((s) => s.trim()).filter(Boolean);
+  const parts = splitSteps(t.howTo);
   const isWarning = (s: string) => s.startsWith("ระวัง") || s.startsWith("ยังไม่ได้ทดสอบ");
   return { steps: parts.filter((s) => !isWarning(s)), warnings: parts.filter(isWarning) };
 }

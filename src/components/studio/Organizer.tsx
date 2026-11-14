@@ -49,6 +49,7 @@ import {
   unsupportedNameChars,
   slotTypeNote,
   howToSteps,
+  splitSteps,
   bankPageNameProblems,
   updateItem,
   type Item,
@@ -1367,13 +1368,21 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
         {t.rearrange && (
           <details className="text-sm">
             <summary className="cursor-pointer text-muted">ช่องที่ลงทะเบียนไว้แล้ว: สลับด้วย Exchange</summary>
-            <p className="mt-2 text-muted">{t.rearrange}</p>
+            <ol className="mt-2 flex list-decimal flex-col gap-1 pl-5 text-muted">
+              {splitSteps(t.rearrange).map((s) => (
+                <li key={s}>{s}</li>
+              ))}
+            </ol>
           </details>
         )}
         {t.chain && (
           <details className="text-sm">
             <summary className="cursor-pointer text-muted">ใช้ Scene Chain แทนการเขียนทับ (Scene เดิมไม่ถูกย้าย)</summary>
-            <p className="mt-2 text-muted">{t.chain.howTo}</p>
+            <ol className="mt-2 flex list-decimal flex-col gap-1 pl-5 text-muted">
+              {splitSteps(t.chain.howTo).map((s) => (
+                <li key={s}>{s}</li>
+              ))}
+            </ol>
           </details>
         )}
         {t.notes?.length ? (
