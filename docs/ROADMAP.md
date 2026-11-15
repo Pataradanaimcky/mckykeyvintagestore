@@ -17,7 +17,7 @@ Sell the owner's sound packs. The free tools (playable synths, sound organizer) 
 1. Interface agent: put the saved 2026-11-14 buying-path patch on main (three-step line on cart, checkout and order page; clearer button labels; test-mode box above the mock QR). Apply it to current main, fix any conflicts, run all checks, push. If the push is refused, write the exact error under Questions for the PM.
 2. [done 2026-11-15, researcher] /studio at 390px: no sideways scroll, nothing overlaps, untested labels on all three receive buttons; nothing to fix.
 3. Owner: 10-minute real-keyboard test of the read-only buttons, using "ทดสอบกับเครื่องจริง" in docs/STUDIO.md. It unblocks all remaining researcher items (1a, 1d, 3d, 4f, 4h, 4o, 5b, 5e, 5h, 5k) and STUDIO.md 6.
-4. Researcher agent: shorten /studio help where two notes say the same thing, keeping steps first (PM decision 2026-11-14); no new manual facts on the page. (2026-11-15: DX7 steps done, STUDIO.md 7h; MODX M and FANTOM-0 next.)
+4. Researcher agent: shorten /studio help where two notes say the same thing, keeping steps first (PM decision 2026-11-14); no new manual facts on the page. (2026-11-15: DX7 steps done, STUDIO.md 7h; MODX M done, 7i; FANTOM-0 next, 7j.)
 5. Needs a new task: after 2026-11-17 no agent works on the store pages; the PM will ask the owner then whether to extend the interface task.
 6. Researcher agent, later: STUDIO.md item 6 (other keyboards' sound lists), only after the owner's real-keyboard test.
 

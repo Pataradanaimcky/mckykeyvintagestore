@@ -49,6 +49,7 @@ import {
   TARGETS,
   unsupportedNameChars,
   slotTypeNote,
+  REARRANGE_TITLE,
   howToSteps,
   splitSteps,
   bankPageNameProblems,
@@ -1368,7 +1369,7 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
         })()}
         {t.rearrange && (
           <details className="text-sm">
-            <summary className="cursor-pointer text-muted">ช่องที่ลงทะเบียนไว้แล้ว: สลับด้วย Exchange</summary>
+            <summary className="cursor-pointer text-muted">{REARRANGE_TITLE}</summary>
             <ol className="mt-2 flex list-decimal flex-col gap-1 pl-5 text-muted">
               {splitSteps(t.rearrange).map((s) => (
                 <li key={s}>{s}</li>

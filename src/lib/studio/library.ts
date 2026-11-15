@@ -171,7 +171,7 @@ export const TARGETS: Target[] = [
     // prints [SHIFT] + [EDIT] "Calls up the Copy/Exchange screen." (the Kraft Music text copy of
     // the MODX M manual p. 424 reads "Exchange/Copy" because it reverses word order, as with 4s).
     rearrange:
-      "ช่องที่ลงทะเบียนไว้แล้วไม่ต้องลงใหม่: กด [LIVE SET] → [EDIT] (เลือกแบงก์ USER เท่านั้น แบงก์ Preset และ Library แก้ไม่ได้) → แตะ Job ด้านล่างจอ → แตะช่องแรก → แตะ Exchange → แตะช่องที่จะสลับด้วย → Done · ทำทีละคู่ตามใบจัดเรียง ส่วน Copy ใช้ทำสำเนาช่องไปอีกช่อง · ถ้าจะเอาช่องที่ย้ายลงชั้นวางออกจากหน้า แล้วให้ช่องถัดไปเลื่อนขึ้นมาแทน ให้แตะช่องนั้นแล้วแตะ Delete & Move (ถ้าแตะ Delete จะเหลือช่องว่างไว้) · ถ้าจะคัดลอกหรือสลับทั้งหน้า (Page) หรือทั้งแบงก์ ให้เลือกแบงก์ USER แล้วกด [SHIFT] ค้างไว้แล้วกด [EDIT] จะเปิดหน้าจอ Copy/Exchange",
+      "กด [LIVE SET] → [EDIT] (เลือกแบงก์ USER เท่านั้น แบงก์ Preset และ Library แก้ไม่ได้) → แตะ Job ด้านล่างจอ → แตะช่องแรก → แตะ Exchange → แตะช่องที่จะสลับด้วย → Done · ทำทีละคู่ตามใบจัดเรียง ส่วน Copy ใช้ทำสำเนาช่องไปอีกช่อง · ถ้าจะเอาช่องที่ย้ายลงชั้นวางออกจากหน้า แล้วให้ช่องถัดไปเลื่อนขึ้นมาแทน ให้แตะช่องนั้นแล้วแตะ Delete & Move (ถ้าแตะ Delete จะเหลือช่องว่างไว้) · ถ้าจะคัดลอกหรือสลับทั้งหน้า (Page) หรือทั้งแบงก์ (แบงก์ USER เช่นกัน) ให้กด [SHIFT] ค้างไว้แล้วกด [EDIT] จะเปิดหน้าจอ Copy/Exchange",
     verified: true,
     sources: [
       "https://yamahasynth.com/learn/modx-m/welcome-to-modx-m/",
@@ -237,6 +237,12 @@ export function slotTypeNote(t: Target): string {
  * Parts that are warnings ("ระวัง", "ยังไม่ได้ทดสอบ") are not numbered; they follow the list.
  * The text itself is unchanged; the order sheet prints the same numbered steps (`sheetStepLines`).
  */
+/**
+ * Heading for the folded rearrange steps, on /studio and on the order sheet, so the first step
+ * does not have to repeat it (STUDIO.md 7i, ROADMAP Next 4).
+ */
+export const REARRANGE_TITLE = "ช่องที่ลงทะเบียนไว้แล้ว ไม่ต้องลงใหม่: สลับด้วย Exchange";
+
 /** Splits a help text at " · " into its parts, in order (used for the folded rearrange and chain steps). */
 export function splitSteps(text: string): string[] {
   return text.split(" · ").map((s) => s.trim()).filter(Boolean);
@@ -550,7 +556,7 @@ export function orderSheet(layout: Layout): string {
   if (bad.length) lines.push(`ชื่อที่ ${t.short} พิมพ์ไม่ได้ (แก้เป็นตัวอักษรอังกฤษก่อนตั้งชื่อบนเครื่อง):`, ...bad.map((x) => `  ${x}`), "");
   lines.push("บันทึกและนำไปใช้:", ...sheetStepLines(t.howTo), "");
   if (t.notes?.length) lines.push("หมายเหตุจากคู่มือ:", ...t.notes.map((n) => `- ${n}`), "");
-  if (t.rearrange) lines.push(...sheetStepLines(t.rearrange), "");
+  if (t.rearrange) lines.push(REARRANGE_TITLE, ...sheetStepLines(t.rearrange), "");
   const chain = chainLines(layout);
   if (t.chain && chain.length) lines.push(...sheetStepLines(t.chain.howTo), "ลำดับสำหรับ Scene Chain:", ...chain, "");
   lines.push("จัดบน Mcky Vintage Key");

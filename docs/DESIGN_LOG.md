@@ -58,6 +58,7 @@ None for the agents. Questions only the owner can answer (free pack terms, brand
 
 ## History
 
+- 2026-11-15: MODX M rearrange steps trimmed (ROADMAP Next 4, STUDIO.md 7i): the fold heading is shared by /studio and the order sheet so step 1 no longer repeats it, and the USER-bank rule is said once; no new manual facts; /studio checked at 1366px and 390px.
 - 2026-11-15: /studio phone check (ROADMAP Next 2) passed at 390px and 1366px on DX7, MODX M and FANTOM-0, nothing to fix; DX7 steps trimmed where they repeated Memory Protect and the manual page (ROADMAP Next 4, STUDIO.md 7h), no new manual facts.
 - 2026-11-15: Organizer research only (STUDIO.md 4o, 1d): the MONTAGE M online manual has no page for the Live Set Copy/Exchange screen (Live Set section has three pages only), so its options wait for the real-keyboard test; a Yamaha DX Simulator PDF that may list DX7 parameter ranges could not be opened (permission not given); /studio unchanged.
 - 2026-11-15: Organizer MODX M: the [SHIFT] + [EDIT] screen is now "Copy/Exchange" as Yamaha prints it (MONTAGE M online manual, Shortcut operations), not the reversed "Exchange/Copy" from a text copy; dialog options still unknown (STUDIO.md 7g, 4o).

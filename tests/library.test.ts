@@ -12,6 +12,7 @@ import {
   howToSteps,
   sheetStepLines,
   splitSteps,
+  REARRANGE_TITLE,
   chainLines,
   bankPageNameProblems,
   nameProblemLines,
@@ -362,7 +363,7 @@ test("MODX M: order sheet says how to rearrange registered slots with Job → Ex
 
 test("MODX M: rearrange steps say [SHIFT] + [EDIT] copies or exchanges a whole page or bank (MONTAGE M manual)", () => {
   const t = getTarget("modx-m");
-  assert.ok(t.rearrange?.includes("ให้เลือกแบงก์ USER แล้วกด [SHIFT] ค้างไว้แล้วกด [EDIT]"));
+  assert.ok(t.rearrange?.includes("ให้กด [SHIFT] ค้างไว้แล้วกด [EDIT]"));
   assert.ok(t.rearrange?.includes("ทั้งหน้า (Page)"));
   // MONTAGE M online manual, Shortcut operations (om02screenparameters0460): [SHIFT] + [EDIT] "Calls up the Copy/Exchange screen."
   assert.ok(t.rearrange?.endsWith("จะเปิดหน้าจอ Copy/Exchange"));
@@ -502,4 +503,19 @@ test("DX7 steps say Memory Protect OFF once and cite the manual pages once (STUD
   assert.ok(steps[1].includes("ปิด MEMORY PROTECT ของ INTERNAL ให้เป็น OFF"));
   assert.ok(steps[3].includes("MIDI RECEIVED") && steps[3].includes("MEMORY PROTECT"));
   assert.equal(steps.join(" ").split("คู่มือ DX7 หน้า").length - 1, 1);
+});
+
+test("MODX M rearrange: heading said once, first step starts with the button, USER rule not repeated (STUDIO.md 7i, ROADMAP Next 4)", () => {
+  const t = getTarget("modx-m");
+  const r = splitSteps(t.rearrange!);
+  assert.ok(r[0].startsWith("กด [LIVE SET] → [EDIT]"), r[0]);
+  assert.ok(!t.rearrange!.includes("ไม่ต้องลงใหม่"));
+  assert.ok(REARRANGE_TITLE.includes("ไม่ต้องลงใหม่") && REARRANGE_TITLE.includes("Exchange"));
+  assert.equal(t.rearrange!.split("เลือกแบงก์ USER").length - 1, 1);
+  assert.ok(r[3].includes("แบงก์ USER"));
+  const sheet = orderSheet(emptyLayout("modx-m")).split("\n");
+  const at = sheet.indexOf(REARRANGE_TITLE);
+  assert.ok(at >= 0);
+  assert.equal(sheet[at + 1], `1. ${r[0]}`);
+  assert.equal(orderSheet(emptyLayout("dx7")).includes(REARRANGE_TITLE), false);
 });
