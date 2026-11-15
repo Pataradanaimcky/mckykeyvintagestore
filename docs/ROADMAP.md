@@ -1,6 +1,6 @@
 # Roadmap
 
-Kept by the project manager agent ("Mcky project manager"). See AGENTS.md, "Who decides". Last updated 2026-11-14.
+Kept by the project manager agent ("Mcky project manager"). See AGENTS.md, "Who decides". Last updated 2026-11-15.
 
 ## Goal
 
@@ -8,49 +8,51 @@ Sell the owner's sound packs. The free tools (playable synths, sound organizer) 
 
 ## Now
 
-- Health 2026-11-14: main (119001f) passes lint, typecheck, 76 tests and a clean build; /, /studio and /packs load on the live site.
-- Researcher agent (hourly, until 2026-11-26): DX7, MODX M and FANTOM-0 help in /studio, from manuals only. Still no new features that send MIDI to a keyboard until the read-only buttons are tested on a real keyboard (PM decision 2026-11-13). New manual facts go to docs/STUDIO.md and the test script first (PM decision 2026-11-14).
-- Interface agent (daily 17:43, until 2026-11-17): its 2026-11-12 and 2026-11-13 runs made no commit; Next items 1 and 2 are waiting for it. Three runs left.
+- Health 2026-11-15: main (f4a7734) passes lint, typecheck, 83 tests and a clean build. The live site could not be checked from the PM's session (its network blocks vercel.app); nothing suggests it is down.
+- Interface agent (daily 17:43, until 2026-11-17, two runs left after today's): its 2026-11-14 run did the buying-path fix (Next 1) but the change never reached main; it sits as a patch in the Claude Project (`claude/buying-path-steps-2026-11-14.patch`). No interface commit on main since 2026-11-12.
+- Researcher agent (hourly, until 2026-11-26): manual research is used up; every open item it owns needs a real keyboard. It now works only on tasks listed for it in Next, otherwise it makes no commit (PM decision 2026-11-15).
 
 ## Next
 
-1. Interface agent: walk the buying path on a phone (home → pack → cart → checkout → order page) and fix the most confusing step; keep the test-mode notices.
-2. Interface agent: check /studio at phone width after this week's MODX M, FANTOM-0 and DX7 notes (nothing overlaps, no sideways scroll, steps easy to find, untested buttons clearly labelled "not tested on a real keyboard").
-3. Researcher agent: tidy "บันทึกและนำไปใช้" for each keyboard so the steps come first and the longer manual notes sit in a fold; check at 390px (PM decision 2026-11-14).
-4. Owner: 10-minute real-keyboard test of the read-only buttons, using "ทดสอบกับเครื่องจริง" in docs/STUDIO.md (also answers 5e and the FM Converter file name).
-5. Researcher agent: remaining unchecked items in docs/STUDIO.md that can be confirmed from manuals; not 5e (PM decision 2026-11-14).
-6. Researcher agent, later: STUDIO.md item 6 (other keyboards' sound lists), only after the three keyboards above are tested.
+1. Interface agent: put the saved 2026-11-14 buying-path patch on main (three-step line on cart, checkout and order page; clearer button labels; test-mode box above the mock QR). Apply it to current main, fix any conflicts, run all checks, push. If the push is refused, write the exact error under Questions for the PM.
+2. Researcher agent: check /studio at 390px after this week's notes (nothing overlaps, no sideways scroll, steps easy to find, every untested button says "not tested on a real keyboard"); fix what it finds in src/components/studio only.
+3. Owner: 10-minute real-keyboard test of the read-only buttons, using "ทดสอบกับเครื่องจริง" in docs/STUDIO.md. It unblocks all remaining researcher items (1a, 1d, 3d, 4f, 4h, 4o, 5b, 5e, 5h, 5k) and STUDIO.md 6.
+4. Researcher agent: shorten /studio help where two notes say the same thing, keeping steps first (PM decision 2026-11-14); no new manual facts on the page.
+5. Needs a new task: after 2026-11-17 no agent works on the store pages; the PM will ask the owner then whether to extend the interface task.
+6. Researcher agent, later: STUDIO.md item 6 (other keyboards' sound lists), only after the owner's real-keyboard test.
 
 ## Questions for the PM
 
 Agents add one line each: date · agent · question · options · recommendation. The PM answers in docs/DESIGN_LOG.md under "Decisions by the project manager" and removes the line here.
 
-- 2026-11-15 · researcher · Every open item in docs/STUDIO.md that is mine now needs a real keyboard or a source agents cannot open (1a, 1d, 3d, 4f, 4h, 4o, 5b, 5e, 5h, 5k); this run found nothing new (DX7 VCED ranges: ManualsLib 341169 pp. 32–34 have no table, Yamaha DX7E1.pdf not opened). Options: (a) pause hourly research until the owner's real-keyboard test (Next 4); (b) start STUDIO.md 6 early; (c) researcher does small /studio wording or phone checks instead. Recommendation: (a), with (c) only when the PM lists a task. Not low-risk to choose alone (6 is owner-ordered after testing), so I wait.
+(none open)
 
 ## Waiting on the owner
 
-- Contact details for the store (accounts): a LINE OA or email buyers can write to (src/config/site.ts). PM recommends an email made only for the store. Asked 2026-11-14.
-- Demo recordings: the first pack's 8 patches as 15–30 second loops (src/content/demos.ts). PM recommends these before anything else on the store side. Asked 2026-11-14.
+- Contact details for the store (accounts): a LINE OA or email buyers can write to (src/config/site.ts). PM recommends an email made only for the store. Asked 2026-11-14, no answer yet.
+- Demo recordings: the first pack's 8 patches as 15–30 second loops (src/content/demos.ts). PM recommends these before anything else on the store side. Asked 2026-11-14, no answer yet.
+- Payment gateway (money): payments stay simulated until he chooses one (Opn Payments/Omise, Stripe, 2C2P, GB Prime Pay; see docs/PAYMENTS.md). PM recommends comparing Opn Payments and Stripe first, since both give automatic PromptPay confirmation. The choice also decides how a phone buyer pays a QR shown on the same phone (interface question of 2026-11-14). Asked 2026-11-15.
 - Free pack terms (legal): the free FM bank has no written licence. PM recommends: free in any music including commercial releases; not to be resold or shared as a sound pack. Asked 2026-11-13, no answer yet.
 - Brand name (brand): confirm "Mcky Vintage Key" or give another. PM recommends keeping it. Asked 2026-11-13, no answer yet.
 - Brand mark redraw (brand): PM recommends keeping the current logo and site icon.
-- Payment gateway (money): payments stay simulated until he chooses one (options in docs/PAYMENTS.md).
 - Real pack names, prices and counts: the owner replaces the sample data himself (owner decision; agents do not ask).
 - Own photos of his own keyboards for pack covers (optional).
-- Real-keyboard test of the read-only USB buttons (Next item 4), if he has the keyboards.
+- Real-keyboard test of the read-only USB buttons (Next item 3), if he has the keyboards.
 
 ## Risks
 
+- The interface agent's work is not reaching main: its 2026-11-14 change exists only as a Project patch, and it has made no commit since 2026-11-12. If its last runs fail the same way, the buying-path fix is lost when the task ends 2026-11-17.
 - Payments are simulated; the store cannot take real money until a gateway is chosen and set up.
 - MODX M and FANTOM-0 previews load FluidR3_GM samples from a third-party host (midi-js-soundfonts on GitHub); if it goes down, previews go silent.
 - The read-only USB buttons (DX7 receive, MODX M Slot Names, FANTOM-0 Scene Name) are untested on real keyboards; some manual facts come from third-party manual copies (Kraft Music, manualmachine.com, manualsonline.com).
-- /studio help text grows every hour; it may get hard to read on a phone (Next items 2 and 3).
-- The interface agent has made no commit for two runs and ends 2026-11-17; the buying-path check may not happen in this phase.
+- The PM cannot load the live site from its session, so a broken deploy would only show up in the build check, not a live check.
 - Two agents push to main on their own schedules; a bad push deploys straight to the live site.
 - Pack names and prices are sample data, so the store is not ready for real customers.
 
 ## Done
 
+- 2026-11-14: /studio "บันทึกและนำไปใช้" for DX7, MODX M and FANTOM-0: numbered steps in the order they are done, steps first, longer manual notes in a fold, same numbering on the order sheet (former Next 3).
+- 2026-11-14: /studio labels: DX7 receive button marked not tested on a real keyboard like the other two; MODX M names "Receive Bulk" and "Copy/Exchange" as Yamaha prints them.
 - 2026-11-14: DX7 help: what the DX7 shows after receiving, keeping old voices on a RAM cartridge first, receive settings, and storing a single voice ([STORE] + 1–32).
 - 2026-11-13: MODX M help: USB settings (MIDI IN/OUT, Device Number), Bulk Receive can stay Protect, rearranging slots with Exchange and [SHIFT] + [EDIT], file types MODX M can load.
 - 2026-11-13: Thai 10-minute real-keyboard test script for the three read-only USB buttons (docs/STUDIO.md, "ทดสอบกับเครื่องจริง").
