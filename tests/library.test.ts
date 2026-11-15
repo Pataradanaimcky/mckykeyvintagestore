@@ -12,6 +12,7 @@ import {
   howToSteps,
   sheetStepLines,
   splitSteps,
+  CHAIN_TITLE,
   REARRANGE_TITLE,
   chainLines,
   bankPageNameProblems,
@@ -518,4 +519,21 @@ test("MODX M rearrange: heading said once, first step starts with the button, US
   assert.ok(at >= 0);
   assert.equal(sheet[at + 1], `1. ${r[0]}`);
   assert.equal(orderSheet(emptyLayout("dx7")).includes(REARRANGE_TITLE), false);
+});
+
+test("FANTOM-0 Scene Chain: heading said once, steps start with [CHAIN], no repeat of 'Scene เดิมไม่ถูกย้าย' (STUDIO.md 7j, ROADMAP Next 4)", () => {
+  const t = getTarget("fantom-0");
+  const c = splitSteps(t.chain!.howTo);
+  assert.equal(c.length, 2);
+  assert.ok(c[0].startsWith("กด [CHAIN]"), c[0]);
+  assert.ok(!t.chain!.howTo.includes("เขียนทับ") && !t.chain!.howTo.includes("ไม่ถูกย้าย"));
+  assert.ok(c[1].includes("512 Scene (16 x 32 หน้า)"));
+  assert.ok(CHAIN_TITLE.includes("Scene Chain") && CHAIN_TITLE.includes("ไม่ถูกย้าย"));
+  let l = { ...emptyLayout("fantom-0"), pool: itemsFromText("S1") };
+  l = moveItem(l, { kind: "pool", index: 0 }, { kind: "slot", page: 0, slot: 0 });
+  const sheet = orderSheet(l).split("\n");
+  const at = sheet.indexOf(CHAIN_TITLE);
+  assert.ok(at >= 0);
+  assert.equal(sheet[at + 1], `1. ${c[0]}`);
+  assert.equal(orderSheet(emptyLayout("fantom-0")).includes(CHAIN_TITLE), false);
 });

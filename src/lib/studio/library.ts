@@ -206,7 +206,7 @@ export const TARGETS: Target[] = [
     chain: {
       max: 512,
       howTo:
-        "ไม่อยากเขียนทับ Scene? ใช้ Scene Chain แทน: กด [CHAIN] → แตะชื่อ <CHAIN SET> เลือกชุดที่ว่าง (001–100) → <EDIT> → <Select Scene> เลือก Scene → [E6] OK → แตะ <Next> ไปตำแหน่งถัดไป ทำซ้ำตามลำดับในใบจัดเรียง → <RENAME> ตั้งชื่อ → <WRITE> บันทึก · ชุดหนึ่งใส่ได้ถึง 512 Scene (16 x 32 หน้า) และ Scene เดิมไม่ถูกย้าย",
+        "กด [CHAIN] → แตะชื่อ <CHAIN SET> เลือกชุดที่ว่าง (001–100) → <EDIT> → <Select Scene> เลือก Scene → [E6] OK → แตะ <Next> ไปตำแหน่งถัดไป ทำซ้ำตามลำดับในใบจัดเรียง → <RENAME> ตั้งชื่อ → <WRITE> บันทึก · ชุดหนึ่งใส่ได้ถึง 512 Scene (16 x 32 หน้า)",
     },
     about: "Scene แบงก์ A–D แบงก์ละ 128 (A001–D128) หน้าจอ SCENE SELECT แสดงทีละ 16 ช่อง ใส่ชื่อ Scene ที่ทำไว้ในเครื่อง (ไม่เกิน 16 ตัวอักษรอังกฤษ) แล้วจัดลำดับ",
     // Owner's Manual p. 22 (SCENE WRITE overwrites the destination). Steps in the order they are
@@ -233,21 +233,27 @@ export function slotTypeNote(t: Target): string {
 }
 
 /**
- * The "บันทึกและนำไปใช้" steps split at " · " for a numbered list on /studio (STUDIO.md 7a).
- * Parts that are warnings ("ระวัง", "ยังไม่ได้ทดสอบ") are not numbered; they follow the list.
- * The text itself is unchanged; the order sheet prints the same numbered steps (`sheetStepLines`).
- */
-/**
  * Heading for the folded rearrange steps, on /studio and on the order sheet, so the first step
  * does not have to repeat it (STUDIO.md 7i, ROADMAP Next 4).
  */
 export const REARRANGE_TITLE = "ช่องที่ลงทะเบียนไว้แล้ว ไม่ต้องลงใหม่: สลับด้วย Exchange";
+
+/**
+ * Heading for the folded FANTOM-0 Scene Chain steps, on /studio and on the order sheet, so the
+ * steps start with the button and do not repeat it (STUDIO.md 7j, ROADMAP Next 4).
+ */
+export const CHAIN_TITLE = "ใช้ Scene Chain แทนการเขียนทับ (Scene เดิมไม่ถูกย้าย)";
 
 /** Splits a help text at " · " into its parts, in order (used for the folded rearrange and chain steps). */
 export function splitSteps(text: string): string[] {
   return text.split(" · ").map((s) => s.trim()).filter(Boolean);
 }
 
+/**
+ * The "บันทึกและนำไปใช้" steps split at " · " for a numbered list on /studio (STUDIO.md 7a).
+ * Parts that are warnings ("ระวัง", "ยังไม่ได้ทดสอบ") are not numbered; they follow the list.
+ * The text itself is unchanged; the order sheet prints the same numbered steps (`sheetStepLines`).
+ */
 export function howToSteps(t: Target): { steps: string[]; warnings: string[] } {
   const parts = splitSteps(t.howTo);
   const isWarning = (s: string) => s.startsWith("ระวัง") || s.startsWith("ยังไม่ได้ทดสอบ");
@@ -558,7 +564,7 @@ export function orderSheet(layout: Layout): string {
   if (t.notes?.length) lines.push("หมายเหตุจากคู่มือ:", ...t.notes.map((n) => `- ${n}`), "");
   if (t.rearrange) lines.push(REARRANGE_TITLE, ...sheetStepLines(t.rearrange), "");
   const chain = chainLines(layout);
-  if (t.chain && chain.length) lines.push(...sheetStepLines(t.chain.howTo), "ลำดับสำหรับ Scene Chain:", ...chain, "");
+  if (t.chain && chain.length) lines.push(CHAIN_TITLE, ...sheetStepLines(t.chain.howTo), "ลำดับสำหรับ Scene Chain:", ...chain, "");
   lines.push("จัดบน Mcky Vintage Key");
   return lines.join("\n");
 }

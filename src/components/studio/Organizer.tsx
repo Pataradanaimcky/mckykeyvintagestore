@@ -49,6 +49,7 @@ import {
   TARGETS,
   unsupportedNameChars,
   slotTypeNote,
+  CHAIN_TITLE,
   REARRANGE_TITLE,
   howToSteps,
   splitSteps,
@@ -1379,7 +1380,7 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
         )}
         {t.chain && (
           <details className="text-sm">
-            <summary className="cursor-pointer text-muted">ใช้ Scene Chain แทนการเขียนทับ (Scene เดิมไม่ถูกย้าย)</summary>
+            <summary className="cursor-pointer text-muted">{CHAIN_TITLE}</summary>
             <ol className="mt-2 flex list-decimal flex-col gap-1 pl-5 text-muted">
               {splitSteps(t.chain.howTo).map((s) => (
                 <li key={s}>{s}</li>
