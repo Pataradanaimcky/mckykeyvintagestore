@@ -493,3 +493,13 @@ test("MODX M: [SHIFT] + [EDIT] screen uses Yamaha's own name Copy/Exchange (MONT
   assert.ok(!t.rearrange?.includes("Exchange/Copy"));
   assert.ok(t.sources.includes("https://manual.yamaha.com/mi/synth/montage_m/en/om02screenparameters0460.html"));
 });
+
+test("DX7 steps say Memory Protect OFF once and cite the manual pages once (STUDIO.md 7h, ROADMAP Next 4)", () => {
+  const { steps } = howToSteps(getTarget("dx7"));
+  assert.equal(steps.length, 4);
+  assert.ok(steps[0].includes("เสียงเดิมในเครื่องอาจถูกแทน") && steps[0].includes("ดาวน์โหลดเก็บไว้ก่อน"));
+  assert.ok(!/memory protect/i.test(steps[0]), steps[0]);
+  assert.ok(steps[1].includes("ปิด MEMORY PROTECT ของ INTERNAL ให้เป็น OFF"));
+  assert.ok(steps[3].includes("MIDI RECEIVED") && steps[3].includes("MEMORY PROTECT"));
+  assert.equal(steps.join(" ").split("คู่มือ DX7 หน้า").length - 1, 1);
+});
