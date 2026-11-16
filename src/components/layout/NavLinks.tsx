@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-/** The site's three parts, numbered as on the landing page, then the account. */
+/** The site's three parts, numbered as on the landing page, then the history page and the account. */
 const links = [
   { href: "/#play", match: "/", label: "เล่นซินธ์", num: "01" },
   { href: "/studio", match: "/studio", label: "จัดเรียงเสียง", num: "02" },
   { href: "/packs", match: "/packs", label: "แพ็กเสียง", num: "03" },
+  { href: "/history", match: "/history", label: "ประวัติซินธ์" },
   { href: "/account", match: "/account", label: "บัญชี" },
 ];
 

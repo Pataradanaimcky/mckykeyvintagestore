@@ -8,6 +8,7 @@ const columns = [
       { href: "/#play", label: "เล่นซินธ์" },
       { href: "/studio", label: "จัดเรียงเสียง" },
       { href: "/packs", label: "แพ็กเสียง" },
+      { href: "/history", label: "ประวัติซินธ์" },
     ],
   },
   {

@@ -1809,3 +1809,113 @@ html.js [data-reveal].is-in {
     transition: none !important;
   }
 }
+
+/* /history */
+.history-note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-left: 4px solid var(--color-red);
+  background: var(--color-surface);
+  padding: 1rem 1.25rem;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+}
+.history-note b {
+  color: var(--color-ink);
+}
+.history-jump {
+  border: 1px solid var(--color-line);
+  padding: 0.4rem 0.9rem;
+  font-weight: 600;
+}
+.history-jump:hover {
+  background: var(--color-surface);
+}
+.history-era {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-blue);
+}
+.history-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  border: 1px solid var(--color-line);
+  background: var(--color-canvas);
+}
+.history-img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  background: var(--color-surface);
+}
+.history-plate {
+  display: flex;
+  aspect-ratio: 16 / 10;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background: var(--color-surface);
+  color: var(--color-muted);
+  text-align: center;
+  padding: 1rem;
+}
+.history-credit {
+  padding: 0 1rem;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: var(--color-muted);
+  overflow-wrap: anywhere;
+}
+.history-credit a,
+.history-src {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.history-src {
+  font-size: 0.7rem;
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+.history-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-red);
+}
+.history-patch {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-weight: 700;
+  background: var(--color-ink);
+  color: var(--color-canvas);
+  padding: 0 0.35rem;
+}
+.history-cta {
+  margin-top: auto;
+  align-self: flex-start;
+  font-weight: 600;
+  color: var(--color-blue);
+}
+.history-cta:hover {
+  text-decoration: underline;
+}
+
+/*
+ * Square corners everywhere (owner decision 2026-11-16, replaces the earlier rounded cards and
+ * pill buttons). Unlayered and !important so it beats Tailwind's rounded-* utilities too.
+ * Only drawn round hardware keeps its circle: rack knobs, jack sockets and LEDs.
+ */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+}
+.rack-knob,
+.rack-jack,
+.rack-jack::before,
+.rack-led,
+.face-led {
+  border-radius: 999px !important;
+}
