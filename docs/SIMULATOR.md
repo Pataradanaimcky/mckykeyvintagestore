@@ -44,6 +44,7 @@ Owner request, 2026-11-16: the site has no MODX M or FANTOM simulator; he wants 
 - [ ] S9 Web MIDI out, MODX M: documented Bank Select / Program Change to pick a Performance on the real keyboard; Super Knob and part knob CCs from the site's controls. Sources in this file.
 - [ ] S10 Web MIDI out, FANTOM-0: documented messages to pick a Scene; zone knob/slider CCs. Sources in this file.
 - [ ] S11 Owner test list ("ทดสอบกับเครื่องจริง") for S8–S10, like docs/STUDIO.md.
+- [ ] S12 Send to the keyboard (owner request 2026-11-16): people arrange sounds on the site (simulator and /studio) and then send the result into their real MODX M / FANTOM-0. First research, with sources here, whether Yamaha's and Roland's official MIDI documentation describes receiving that data (bulk dump or parameter change for a Performance / Live Set / Scene). If it is documented: add it behind a clear confirmation, off by default, that warns it can overwrite the chosen memory and is untested on a real keyboard, and tell people to back up first. If it is not documented: give the steps on the keyboard instead and say plainly that the site cannot send it. Never write in an undocumented format.
 - [ ] S7 Sound quality pass on real phones' limits (CPU, latency), and a performance budget written here.
 
 ## Rules for the simulator agent
