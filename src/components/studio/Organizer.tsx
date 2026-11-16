@@ -19,6 +19,7 @@ import {
 import { MODX_BULK_NOTE, MODX_RECEIVE_LABEL, MODX_USB_HELP, namesOnPage, pageNameRequests, placeNames, readSlotNameReply, SlotNameCollector } from "@/lib/studio/modxm";
 import { getSound, guessSound, PREVIEW_SOUNDS } from "@/lib/studio/sounds";
 import { GmPreview } from "./gmPreview";
+import { packsHref } from "./packsLink";
 import {
   decodeLayout,
   emptyLayout,
@@ -736,6 +737,14 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
       </div>
       <p className="text-sm text-muted">
         <span className="font-semibold text-ink">{t.name}</span> · {t.about}
+        {packsHref(t.id) && (
+          <>
+            {" "}
+            <Link href={packsHref(t.id)!} className="whitespace-nowrap font-semibold text-ink underline underline-offset-2">
+              ดูแพ็กเสียงสำหรับ {t.short}
+            </Link>
+          </>
+        )}
       </p>
       {slotTypeNote(t) && <p className="text-xs text-muted">{slotTypeNote(t)}</p>}
 
