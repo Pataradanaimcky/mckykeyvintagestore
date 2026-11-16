@@ -11,6 +11,19 @@ Owner request, 2026-11-16: the site has no MODX M or FANTOM simulator; he wants 
   - The face is the store's own drawing, as on /studio. Labels say plainly that it is an emulation and not the keyboard's real sound, for example "จำลองการทำงานแบบ MODX M · ไม่ใช่เสียงจริงของเครื่อง". Maker names are plain text only, as in the footer trademark note.
 - **Why it sells packs:** players learn the workflow on the site, hear the store's own sounds built for the simulator, and buy the real packs for their keyboard. Simulator versions of the store's packs are the owner's to approve (Waiting on the owner).
 
+## Owner request 2026-11-16 (second message): feel like the real keyboard, and connect to it
+
+**Face.** The owner wants playing the simulator to feel like playing a real MODX M or FANTOM-0. Do this through *function and placement*, not by copying the look:
+- Same controls, in the same places relative to each other, doing the same jobs, with the keyboard's own words on them. MODX M: part sliders and knobs, the Super Knob, Scene buttons, part select/mute/solo, a display showing what the keyboard's display shows (Performance name, parts, Scene). FANTOM-0: zone sliders and knobs, the pads, Scene select, zone on/off, a display with Scene and zones.
+- The same steps to do things (e.g. pick a part, then turn its knobs; press a Scene button to recall). A player who knows the keyboard should know where to reach without reading.
+- The appearance stays the store's own drawing (shapes, colors, type, no maker logos, no copy of the panel's styling or the screen's graphics), like /studio. Yamaha's and Roland's panel designs are theirs; the owner's earlier permission is not his to give (DESIGN_LOG, 2026-11-12). Copy the layout of controls and the workflow, never the styling.
+
+**Connect to the real keyboard (Web MIDI, USB).** Works in Chrome and Edge (desktop and Android); say plainly on the page when the browser has no Web MIDI (e.g. Safari on iPhone). Only messages printed in the maker's own MIDI documentation (MODX M / MONTAGE M Data List and MIDI implementation; FANTOM-0 MIDI implementation). Add each message with its source page to this file before using it.
+- **In (keyboard → site):** play the simulator from the real keyboard's keys, wheels, sustain and knobs/sliders (notes, pitch bend, CCs). Learn which CC each control sends from the manual, with a "learn" fallback (turn a control, the site picks it up).
+- **Out (site → keyboard), live control only:** select a Performance / Scene on the real keyboard (Bank Select + Program Change as documented), send knob/slider CCs, all-notes-off. Nothing that writes or overwrites the keyboard's memory.
+- **Writing to the keyboard's memory:** not part of the simulator. Only if the maker documents it, behind a clear confirmation that is off by default and says it is untested on a real keyboard (same rule as /studio).
+- Everything is labelled "ยังไม่ได้ทดสอบกับเครื่องจริง" until the owner tries it on his keyboards (Waiting on the owner).
+
 ## Building blocks already in the repo
 
 - `src/components/rack/poly/voices.ts` (`PolyVoices`): analog-style polysynth, chorus, filter. Basis for the AN-X-like and VA partials.
@@ -27,6 +40,10 @@ Owner request, 2026-11-16: the site has no MODX M or FANTOM simulator; he wants 
 - [ ] S4 "MODX M SIM" rack page: Performance of 8 parts, part mixer, Super Knob, 8 Scenes, the store's own default Performances (at least 8). Desktop and 390px phone layouts.
 - [ ] S5 "FANTOM-0 SIM" rack page: Scene with zones, tones of up to 4 partials, 16 pads, the store's own default Scenes (at least 8).
 - [ ] S6 Links: pack pages and /studio demo banks link to the simulator page of the matching keyboard (`/#play-modxm`, `/#play-fantom`).
+- [ ] S8 Web MIDI in: play both simulator pages from a USB keyboard (notes, bend, sustain, CC learn), only on the page in view.
+- [ ] S9 Web MIDI out, MODX M: documented Bank Select / Program Change to pick a Performance on the real keyboard; Super Knob and part knob CCs from the site's controls. Sources in this file.
+- [ ] S10 Web MIDI out, FANTOM-0: documented messages to pick a Scene; zone knob/slider CCs. Sources in this file.
+- [ ] S11 Owner test list ("ทดสอบกับเครื่องจริง") for S8–S10, like docs/STUDIO.md.
 - [ ] S7 Sound quality pass on real phones' limits (CPU, latency), and a performance budget written here.
 
 ## Rules for the simulator agent

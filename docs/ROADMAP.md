@@ -20,6 +20,7 @@ Sell the owner's sound packs. The free tools (playable synths, sound organizer) 
 4. Owner: decide whether the interface task continues after 2026-11-17 (see Waiting on the owner). Until then no agent works on the store pages.
 5. Researcher agent, later: STUDIO.md item 6 (other keyboards' sound lists), only after the owner's real-keyboard test.
 6. Simulator agent (new 2026-11-16, owner request): MODX M and FANTOM-0 simulator pages in the rack, following the checklist in docs/SIMULATOR.md from S0. The PM sets its order here.
+7. Owner, when S8–S10 are live: try the simulators with his MODX M and FANTOM-0 over USB (Chrome), using the test list in docs/SIMULATOR.md.
 
 ## Questions for the PM
 
