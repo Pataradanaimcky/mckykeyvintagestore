@@ -64,6 +64,7 @@ None for the agents. Questions only the owner can answer (free pack terms, brand
 
 ## History
 
+- 2026-11-16: Simulator MODX M: Scenes are stored with [SHIFT] + SCENE as on the keyboard (MODX M Quick Guide p. 25), replacing the made-up MEMORY button; MODX M top-panel facts from Yamaha's Quick Guide written in docs/SIMULATOR.md (S0); checked at 1366px and 390px.
 - 2026-11-15: FANTOM-0 Scene Chain steps trimmed (ROADMAP Next 4 done, STUDIO.md 7j): the fold heading is shared by /studio and the order sheet, so step 1 starts with [CHAIN] and "Scene เดิมไม่ถูกย้าย" is said once; no new manual facts; /studio checked at 1366px and 390px.
 - 2026-11-15: MODX M rearrange steps trimmed (ROADMAP Next 4, STUDIO.md 7i): the fold heading is shared by /studio and the order sheet so step 1 no longer repeats it, and the USER-bank rule is said once; no new manual facts; /studio checked at 1366px and 390px.
 - 2026-11-15: /studio phone check (ROADMAP Next 2) passed at 390px and 1366px on DX7, MODX M and FANTOM-0, nothing to fix; DX7 steps trimmed where they repeated Memory Protect and the manual page (ROADMAP Next 4, STUDIO.md 7h), no new manual facts.

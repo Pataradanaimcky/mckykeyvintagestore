@@ -119,6 +119,21 @@ export function storeScene(scenes: readonly Scene[], slot: number, levels: reado
   return next;
 }
 
+/**
+ * One press of a SCENE button. On the keyboard, SCENE recalls and [SHIFT] + SCENE stores
+ * ("SCENE buttons (STORE)", MODX M Quick Guide, top panel 5-15). Returns the scenes after the
+ * press and the scene to recall (null when it stored).
+ */
+export function pressScene(
+  scenes: readonly Scene[],
+  slot: number,
+  shift: boolean,
+  now: { levels: readonly number[]; mutes: readonly boolean[]; knob: number },
+): { scenes: Scene[]; recall: Scene | null } {
+  if (shift) return { scenes: storeScene(scenes, slot, now.levels, now.mutes, now.knob), recall: null };
+  return { scenes: scenes.slice(), recall: scenes[slot] ?? null };
+}
+
 /** Name of a note for the display, e.g. 60 → "C3" (Yamaha numbering: middle C is C3). */
 export function noteName(note: number): string {
   const names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];

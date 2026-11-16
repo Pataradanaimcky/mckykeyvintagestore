@@ -11,8 +11,8 @@ import {
   PERFORMANCES,
   partControls,
   partsForNote,
+  pressScene,
   scenesOf,
-  storeScene,
   type Scene,
 } from "@/lib/sim/modx";
 import { SimEngine } from "./engine";
@@ -39,7 +39,7 @@ export function ModxPage({ active }: { active: boolean }) {
   const [knob, setKnob] = useState(perf.knobStart);
   const [scenes, setScenes] = useState<Scene[]>(() => scenesOf(perf));
   const [scene, setScene] = useState(0);
-  const [memory, setMemory] = useState(false);
+  const [shift, setShift] = useState(false);
   const [selected, setSelected] = useState(0);
   const [octave, setOctave] = useState(0);
   const [held, setHeld] = useState<ReadonlySet<number>>(new Set());
@@ -132,14 +132,12 @@ export function ModxPage({ active }: { active: boolean }) {
   });
 
   const recallScene = (i: number) => {
-    if (memory) {
-      setScenes((s) => storeScene(s, i, levels, mutes, knob));
-      setMemory(false);
-      setScene(i);
-      return;
-    }
-    const s = scenes[i];
+    const r = pressScene(scenes, i, shift, { levels, mutes, knob });
+    setScenes(r.scenes);
     setScene(i);
+    setShift(false);
+    const s = r.recall;
+    if (!s) return;
     setLevels((l) => l.map((v, p) => s.levels[p] ?? v));
     setMutes((m) => m.map((v, p) => s.mutes[p] ?? v));
     setKnob(s.knob);
@@ -276,7 +274,7 @@ export function ModxPage({ active }: { active: boolean }) {
             </div>
           </div>
 
-          {/* Scene buttons. MEMORY then a Scene button stores the current faders, mutes and knob. */}
+          {/* Scene buttons. As on the keyboard, [SHIFT] + SCENE stores the current faders, mutes and knob. */}
           <div className="rack-panel col-span-6 md:col-span-3">
             <p className="rack-title">SCENE</p>
             <div className="grid grid-cols-4 gap-1" role="group" aria-label="Scene">
@@ -286,9 +284,12 @@ export function ModxPage({ active }: { active: boolean }) {
                 </button>
               ))}
             </div>
-            <button type="button" className="rack-preset mt-auto" aria-pressed={memory} onClick={() => setMemory((m) => !m)}>
-              {memory ? "กด Scene ที่จะจำ" : "MEMORY"}
-            </button>
+            <div className="mt-auto flex items-center gap-1.5">
+              <button type="button" className="rack-preset" aria-pressed={shift} onClick={() => setShift((v) => !v)}>
+                SHIFT
+              </button>
+              <p className="rack-hint leading-snug">{shift ? "กด SCENE ที่จะเก็บ (STORE)" : "SHIFT + SCENE = STORE"}</p>
+            </div>
           </div>
 
           <div className="rack-panel rack-keys col-span-6 md:col-span-12">

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { MAX_PARTS, morph, noteName, PERFORMANCES, partControls, partsForNote, SCENE_COUNT, scenesOf, storeScene } from "../src/lib/sim/modx.ts";
+import { MAX_PARTS, morph, noteName, PERFORMANCES, partControls, partsForNote, pressScene, SCENE_COUNT, scenesOf, storeScene } from "../src/lib/sim/modx.ts";
 
 const split = PERFORMANCES.find((p) => p.name.includes("Split"))!;
 
@@ -44,4 +44,17 @@ test("store Performances stay within the keyboard's eight keyboard parts and hav
 test("note names use middle C = C3", () => {
   assert.equal(noteName(60), "C3");
   assert.equal(noteName(53), "F2");
+});
+
+test("SCENE recalls; SHIFT + SCENE stores and recalls nothing", () => {
+  const scenes = scenesOf(PERFORMANCES[0]);
+  const now = { levels: [0.3, 0.9], mutes: [true, false], knob: 0.7 };
+  const recall = pressScene(scenes, 2, false, now);
+  assert.deepEqual(recall.recall, scenes[2]);
+  assert.deepEqual(recall.scenes, scenes);
+  const stored = pressScene(scenes, 2, true, now);
+  assert.equal(stored.recall, null);
+  assert.deepEqual(stored.scenes[2], { levels: [0.3, 0.9], mutes: [true, false], knob: 0.7 });
+  assert.equal(stored.scenes[1], scenes[1]);
+  assert.notEqual(stored.scenes[2], scenes[2]);
 });
