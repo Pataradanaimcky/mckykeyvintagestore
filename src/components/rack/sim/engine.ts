@@ -4,6 +4,7 @@ import type { AnSettings, Performance } from "@/lib/sim/modx";
 
 interface PartChannel {
   gain: GainNode;
+  pan?: StereoPannerNode;
   an?: { voices: PolyVoices; settings: AnSettings };
   awm?: Promise<Soundfont>;
 }
@@ -38,15 +39,22 @@ export class SimEngine {
     if (this.ctx.state === "suspended") void this.ctx.resume();
   }
 
-  /** Sets up one channel per part. Sample parts start loading now; returns when all have loaded (or failed). */
-  async load(perf: Performance): Promise<boolean> {
+  /**
+   * Sets up one channel per part. Sample parts start loading now; returns when all have loaded (or failed).
+   * `pans` (0..1 per part) adds a pan control to each channel; without it the channels are as before.
+   */
+  async load(perf: Performance, pans?: readonly number[]): Promise<boolean> {
     this.allOff();
     for (const p of this.parts) setTimeout(() => p.gain.disconnect(), 1500);
-    this.parts = perf.parts.map((part) => {
+    this.parts = perf.parts.map((part, i) => {
       const gain = this.ctx.createGain();
       gain.gain.value = part.level;
-      gain.connect(this.bus);
       const ch: PartChannel = { gain };
+      if (pans) {
+        ch.pan = this.ctx.createStereoPanner();
+        ch.pan.pan.value = (pans[i] ?? 0.5) * 2 - 1;
+        gain.connect(ch.pan).connect(this.bus);
+      } else gain.connect(this.bus);
       if (part.engine === "AN-X" && part.an) {
         ch.an = { voices: new PolyVoices(this.ctx, gain, 6), settings: { ...part.an } };
       } else if (part.gm) {
@@ -64,6 +72,11 @@ export class SimEngine {
 
   setLevel(part: number, level: number) {
     this.parts[part]?.gain.gain.setTargetAtTime(level * 0.9, this.ctx.currentTime, 0.02);
+  }
+
+  /** Pan 0..1 (0.5 = centre); only for channels loaded with `pans`. */
+  setPan(part: number, pan: number) {
+    this.parts[part]?.pan?.pan.setTargetAtTime(Math.min(1, Math.max(-1, pan * 2 - 1)), this.ctx.currentTime, 0.02);
   }
 
   setCutoff(part: number, cutoff: number) {

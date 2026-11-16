@@ -1972,6 +1972,25 @@ html.js [data-reveal].is-in {
 .sim-strip.is-empty {
   opacity: 0.35;
 }
+/* FANTOM-0-style page: a knob over each zone slider, and a 4 x 4 pad grid. */
+.sim-zone .rack-knob {
+  width: 2rem;
+  height: 2rem;
+}
+.rack-skin-sim .sim-zone .sim-part-btn[aria-pressed="true"] {
+  box-shadow: inset 0 -3px 0 var(--color-red);
+}
+.sim-pads {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+.sim-pad {
+  min-height: 2.6rem;
+}
+.sim-pad:disabled {
+  opacity: 0.35;
+}
 
 /*
  * Square corners everywhere (owner decision 2026-11-16, replaces the earlier rounded cards and
