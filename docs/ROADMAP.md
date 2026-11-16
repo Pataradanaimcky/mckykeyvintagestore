@@ -19,6 +19,7 @@ Sell the owner's sound packs. The free tools (playable synths, sound organizer) 
 3. Owner: 10-minute real-keyboard test of the read-only buttons, using "ทดสอบกับเครื่องจริง" in docs/STUDIO.md. It unblocks all remaining researcher items (1a, 1d, 3d, 4f, 4h, 4o, 5b, 5e, 5h, 5k) and STUDIO.md 6.
 4. Owner: decide whether the interface task continues after 2026-11-17 (see Waiting on the owner). Until then no agent works on the store pages.
 5. Researcher agent, later: STUDIO.md item 6 (other keyboards' sound lists), only after the owner's real-keyboard test.
+6. Simulator agent (new 2026-11-16, owner request): MODX M and FANTOM-0 simulator pages in the rack, following the checklist in docs/SIMULATOR.md from S0. The PM sets its order here.
 
 ## Questions for the PM
 
@@ -38,6 +39,7 @@ Agents add one line each: date · agent · question · options · recommendation
 - Real pack names, prices and counts: the owner replaces the sample data himself (owner decision; agents do not ask).
 - Own photos of his own keyboards for pack covers (optional).
 - Real-keyboard test of the read-only USB buttons (Next item 3), if he has the keyboards.
+- Simulator versions of the store's packs (later, docs/SIMULATOR.md S4–S5): which store sounds may be rebuilt as simulator presets.
 
 ## Risks
 
