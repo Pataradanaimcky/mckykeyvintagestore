@@ -134,6 +134,41 @@ export function pressScene(
   return { scenes: scenes.slice(), recall: scenes[slot] ?? null };
 }
 
+/** Super Knob values the KNOB POSITION buttons start with (store's own choice; Yamaha's defaults are not printed). */
+export const KNOB_POSITION_DEFAULTS: readonly number[] = KNOB_POSITIONS.map((k) => k.value);
+
+/**
+ * One press of a KNOB POSITION button ([LEFT] [MID] [RIGHT]). On the keyboard the button recalls
+ * a stored Super Knob setting and [SHIFT] + the button saves the current value to it (MODX M
+ * Quick Guide, p. 23, top panel 5-6). Returns the stored values after the press and the knob
+ * value to recall (null when it saved).
+ */
+export function pressKnobPosition(
+  positions: readonly number[],
+  slot: number,
+  shift: boolean,
+  knob: number,
+): { positions: number[]; recall: number | null } {
+  const next = positions.slice();
+  if (slot < 0 || slot >= KNOB_POSITIONS.length) return { positions: next, recall: null };
+  if (shift) {
+    next[slot] = clamp01(knob);
+    return { positions: next, recall: null };
+  }
+  return { positions: next, recall: next[slot] ?? KNOB_POSITIONS[slot].value };
+}
+
+/**
+ * One press of [PART SELECT]. The guide prints it as "[PART SELECT] (MUTE)": with [SHIFT] it
+ * turns the selected Part's MUTE on or off (Quick Guide, p. 25, top panel 5-12). What the button
+ * does without [SHIFT] is not used here, so a plain press changes nothing.
+ */
+export function pressPartSelect(mutes: readonly boolean[], selected: number, shift: boolean): boolean[] {
+  const next = mutes.slice();
+  if (shift && selected >= 0 && selected < next.length) next[selected] = !next[selected];
+  return next;
+}
+
 /** Name of a note for the display, e.g. 60 → "C3" (Yamaha numbering: middle C is C3). */
 export function noteName(note: number): string {
   const names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];

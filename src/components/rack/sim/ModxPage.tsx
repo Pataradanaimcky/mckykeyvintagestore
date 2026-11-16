@@ -5,12 +5,15 @@ import { Fader } from "../Fader";
 import { Knob } from "../Knob";
 import { OctaveSwitch, RackKeys } from "../RackKeys";
 import {
+  KNOB_POSITION_DEFAULTS,
   KNOB_POSITIONS,
   MAX_PARTS,
   noteName,
   PERFORMANCES,
   partControls,
   partsForNote,
+  pressKnobPosition,
+  pressPartSelect,
   pressScene,
   scenesOf,
   type Scene,
@@ -37,6 +40,7 @@ export function ModxPage({ active }: { active: boolean }) {
   const [levels, setLevels] = useState<number[]>(() => perf.parts.map((p) => p.level));
   const [mutes, setMutes] = useState<boolean[]>(() => perf.parts.map(() => false));
   const [knob, setKnob] = useState(perf.knobStart);
+  const [knobPositions, setKnobPositions] = useState<number[]>(() => KNOB_POSITION_DEFAULTS.slice());
   const [scenes, setScenes] = useState<Scene[]>(() => scenesOf(perf));
   const [scene, setScene] = useState(0);
   const [shift, setShift] = useState(false);
@@ -86,6 +90,7 @@ export function ModxPage({ active }: { active: boolean }) {
     setLevels(p.parts.map((x) => x.level));
     setMutes(p.parts.map(() => false));
     setKnob(p.knobStart);
+    setKnobPositions(KNOB_POSITION_DEFAULTS.slice());
     setScenes(scenesOf(p));
     setScene(0);
     setSelected(0);
@@ -143,6 +148,20 @@ export function ModxPage({ active }: { active: boolean }) {
     setKnob(s.knob);
   };
 
+  // KNOB POSITION: recall, or [SHIFT] + button saves the current Super Knob value (Quick Guide p. 23).
+  const pressPosition = (i: number) => {
+    const r = pressKnobPosition(knobPositions, i, shift, knob);
+    setKnobPositions(r.positions);
+    setShift(false);
+    if (r.recall !== null) setKnob(r.recall);
+  };
+
+  // [SHIFT] + [PART SELECT] turns the selected Part's MUTE on or off (Quick Guide p. 25).
+  const pressPartSelectButton = () => {
+    setMutes((m) => pressPartSelect(m, selected, shift));
+    setShift(false);
+  };
+
   // Another page of the rack is showing: let every note go.
   const [wasActive, setWasActive] = useState(active);
   if (active !== wasActive) {
@@ -176,8 +195,15 @@ export function ModxPage({ active }: { active: boolean }) {
               <Knob label="SUPER" hint={`${Math.round(knob * 100)}`} value={knob} onChange={setKnob} />
             </div>
             <div className="mt-auto flex gap-1" role="group" aria-label="ตำแหน่ง Super Knob">
-              {KNOB_POSITIONS.map((k) => (
-                <button key={k.label} type="button" className="rack-mini px-1.5 text-[0.55rem]" aria-pressed={knob === k.value} onClick={() => setKnob(k.value)}>
+              {KNOB_POSITIONS.map((k, i) => (
+                <button
+                  key={k.label}
+                  type="button"
+                  className="rack-mini px-1.5 text-[0.55rem]"
+                  aria-pressed={knob === knobPositions[i]}
+                  onClick={() => pressPosition(i)}
+                  aria-label={shift ? `เก็บค่า Super Knob ไว้ที่ ${k.label}` : `เรียกค่า Super Knob ${k.label}`}
+                >
                   {k.label}
                 </button>
               ))}
@@ -207,6 +233,7 @@ export function ModxPage({ active }: { active: boolean }) {
               <div className="rack-lcd-row rack-lcd-small">
                 <span>
                   PART {selected + 1} {part ? `${part.engine} ${noteName(part.low)}–${noteName(part.high)}` : "—"}
+                  {mutes[selected] ? " MUTE" : ""}
                 </span>
                 <span>{statusText}</span>
               </div>
@@ -241,9 +268,22 @@ export function ModxPage({ active }: { active: boolean }) {
             </div>
           </div>
 
-          {/* Eight part faders with part select and mute, like the keyboard's slider row. */}
+          {/*
+            Eight part faders over PART buttons 1–8, as on the keyboard: a PART button selects the
+            part; [SHIFT] + [PART SELECT] mutes the selected part (Quick Guide pp. 24–25).
+          */}
           <div className="rack-panel col-span-6 md:col-span-9">
-            <p className="rack-title">PART LEVEL</p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="rack-title">PART LEVEL</p>
+              <button
+                type="button"
+                className={`rack-mini px-1.5 text-[0.55rem] ${shift ? "sim-shift-on" : ""}`}
+                onClick={pressPartSelectButton}
+                aria-label={shift ? `MUTE Part ${selected + 1} เปิดหรือปิด` : "PART SELECT (กด SHIFT ก่อนเพื่อ MUTE)"}
+              >
+                PART SELECT (MUTE)
+              </button>
+            </div>
             <div className="sim-faders">
               {Array.from({ length: MAX_PARTS }, (_, i) => {
                 const exists = i < perf.parts.length;
@@ -255,18 +295,15 @@ export function ModxPage({ active }: { active: boolean }) {
                       value={exists ? (levels[i] ?? 0) : 0}
                       onChange={(v) => exists && setLevels((l) => l.map((x, p) => (p === i ? v : x)))}
                     />
-                    <button type="button" className="rack-mini w-full" disabled={!exists} aria-pressed={selected === i} onClick={() => setSelected(i)} aria-label={`เลือก Part ${i + 1}`}>
-                      SEL
-                    </button>
                     <button
                       type="button"
-                      className="rack-mini w-full"
+                      className={`rack-mini sim-part-btn w-full ${mutes[i] ? "is-mute" : ""}`}
                       disabled={!exists}
-                      aria-pressed={!!mutes[i]}
-                      onClick={() => setMutes((m) => m.map((x, p) => (p === i ? !x : x)))}
-                      aria-label={`ปิดเสียง Part ${i + 1}`}
+                      aria-pressed={selected === i}
+                      onClick={() => setSelected(i)}
+                      aria-label={`PART ${i + 1}${mutes[i] ? " (MUTE)" : ""}`}
                     >
-                      MUTE
+                      {i + 1}
                     </button>
                   </div>
                 );
@@ -288,7 +325,9 @@ export function ModxPage({ active }: { active: boolean }) {
               <button type="button" className="rack-preset" aria-pressed={shift} onClick={() => setShift((v) => !v)}>
                 SHIFT
               </button>
-              <p className="rack-hint leading-snug">{shift ? "กด SCENE ที่จะเก็บ (STORE)" : "SHIFT + SCENE = STORE"}</p>
+              <p className="rack-hint leading-snug">
+                {shift ? "กด SCENE เพื่อเก็บ · KNOB POSITION เพื่อเก็บค่า · PART SELECT เพื่อ MUTE" : "SHIFT + SCENE = STORE"}
+              </p>
             </div>
           </div>
 

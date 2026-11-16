@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { MAX_PARTS, morph, noteName, PERFORMANCES, partControls, partsForNote, pressScene, SCENE_COUNT, scenesOf, storeScene } from "../src/lib/sim/modx.ts";
+import { KNOB_POSITION_DEFAULTS, MAX_PARTS, morph, noteName, PERFORMANCES, partControls, partsForNote, pressKnobPosition, pressPartSelect, pressScene, SCENE_COUNT, scenesOf, storeScene } from "../src/lib/sim/modx.ts";
 
 const split = PERFORMANCES.find((p) => p.name.includes("Split"))!;
 
@@ -57,4 +57,27 @@ test("SCENE recalls; SHIFT + SCENE stores and recalls nothing", () => {
   assert.deepEqual(stored.scenes[2], { levels: [0.3, 0.9], mutes: [true, false], knob: 0.7 });
   assert.equal(stored.scenes[1], scenes[1]);
   assert.notEqual(stored.scenes[2], scenes[2]);
+});
+
+test("KNOB POSITION: a press recalls, [SHIFT] + press saves the current Super Knob value", () => {
+  const start = KNOB_POSITION_DEFAULTS.slice();
+  assert.deepEqual(start, [0, 0.5, 1]);
+  const recall = pressKnobPosition(start, 1, false, 0.9);
+  assert.equal(recall.recall, 0.5);
+  assert.deepEqual(recall.positions, start);
+  const saved = pressKnobPosition(start, 0, true, 0.3);
+  assert.equal(saved.recall, null);
+  assert.deepEqual(saved.positions, [0.3, 0.5, 1]);
+  assert.equal(pressKnobPosition(saved.positions, 0, false, 1).recall, 0.3);
+  assert.equal(pressKnobPosition(start, 2, true, 7).positions[2], 1);
+  assert.deepEqual(start, [0, 0.5, 1], "the input is not changed");
+});
+
+test("[SHIFT] + [PART SELECT] mutes and unmutes only the selected part; a plain press does nothing", () => {
+  const mutes = [false, false, false];
+  assert.deepEqual(pressPartSelect(mutes, 1, false), mutes);
+  const once = pressPartSelect(mutes, 1, true);
+  assert.deepEqual(once, [false, true, false]);
+  assert.deepEqual(pressPartSelect(once, 1, true), mutes);
+  assert.deepEqual(pressPartSelect(mutes, 5, true), mutes);
 });
