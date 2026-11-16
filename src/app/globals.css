@@ -1902,6 +1902,68 @@ html.js [data-reveal].is-in {
   text-decoration: underline;
 }
 
+/* MODX M-style simulator page (store's own styling, layout follows the keyboard). */
+.sim-superknob .rack-knob {
+  width: 4.5rem;
+  height: 4.5rem;
+}
+.sim-superknob .rack-knob::after {
+  height: 1.3rem;
+}
+.sim-display {
+  min-height: 9.5rem;
+  font-size: 0.8rem;
+}
+.sim-parts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.15rem 0.6rem;
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+}
+.sim-part {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr) auto auto;
+  gap: 0.4rem;
+  padding: 0.05rem 0.25rem;
+}
+.sim-part.is-sel {
+  background: var(--color-trace);
+  color: var(--color-screen);
+  text-shadow: none;
+}
+.sim-part.is-mute {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+.sim-faders {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin-top: auto;
+}
+.sim-strip {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+.sim-strip .rack-mini {
+  padding: 0;
+  font-size: 0.5rem;
+}
+.rack-skin-sim .rack-mini[aria-pressed="true"] {
+  background: var(--color-blue);
+  color: #fff;
+}
+.rack-skin-sim .sim-strip .rack-mini[aria-label^="ปิดเสียง"][aria-pressed="true"] {
+  background: var(--color-red);
+}
+.sim-strip.is-empty {
+  opacity: 0.35;
+}
+
 /*
  * Square corners everywhere (owner decision 2026-11-16, replaces the earlier rounded cards and
  * pill buttons). Unlayered and !important so it beats Tailwind's rounded-* utilities too.

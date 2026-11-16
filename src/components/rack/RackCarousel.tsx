@@ -3,12 +3,14 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { FmPage } from "./fm/FmPage";
 import { PolyPage } from "./poly/PolyPage";
+import { ModxPage } from "./sim/ModxPage";
 import { SynthRack } from "./SynthRack";
 
 const PAGES = [
   { id: "modular", label: "MODULAR", note: "ต่อสายเอง" },
   { id: "fm", label: "FM 6-OP", note: "เล่นไฟล์ DX7" },
   { id: "poly", label: "POLY", note: "อนาล็อกยุค 80" },
+  { id: "modxm", label: "MODX M", note: "แบบจำลอง" },
 ] as const;
 
 /**
@@ -133,6 +135,7 @@ export function RackCarousel() {
             {p.id === "modular" && <SynthRack active={page === i} />}
             {p.id === "fm" && <FmPage active={page === i} />}
             {p.id === "poly" && <PolyPage active={page === i} />}
+            {p.id === "modxm" && <ModxPage active={page === i} />}
           </div>
         ))}
       </div>

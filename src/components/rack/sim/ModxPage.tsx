@@ -1,0 +1,310 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Fader } from "../Fader";
+import { Knob } from "../Knob";
+import { OctaveSwitch, RackKeys } from "../RackKeys";
+import {
+  KNOB_POSITIONS,
+  MAX_PARTS,
+  noteName,
+  PERFORMANCES,
+  partControls,
+  partsForNote,
+  scenesOf,
+  storeScene,
+  type Scene,
+} from "@/lib/sim/modx";
+import { SimEngine } from "./engine";
+import { useMidiIn } from "./useMidiIn";
+
+const MIDI_TEXT = {
+  off: "ต่อคีย์บอร์ด USB",
+  unsupported: "เบราว์เซอร์นี้ไม่มี Web MIDI (ใช้ Chrome หรือ Edge)",
+  denied: "ไม่ได้รับอนุญาตให้ใช้ MIDI",
+  waiting: "รอคีย์บอร์ด… เสียบสาย USB",
+  on: "ต่อแล้ว",
+} as const;
+
+/**
+ * MODX M-style page of the rack: a Performance of up to eight parts (layer / split), eight part
+ * faders, a Super Knob with LEFT / MID / RIGHT, eight Scenes, and play from the screen keys, the
+ * computer keyboard or a USB keyboard. An emulation with the store's own sounds; see docs/SIMULATOR.md.
+ */
+export function ModxPage({ active }: { active: boolean }) {
+  const [perfIndex, setPerfIndex] = useState(0);
+  const perf = PERFORMANCES[perfIndex];
+  const [levels, setLevels] = useState<number[]>(() => perf.parts.map((p) => p.level));
+  const [mutes, setMutes] = useState<boolean[]>(() => perf.parts.map(() => false));
+  const [knob, setKnob] = useState(perf.knobStart);
+  const [scenes, setScenes] = useState<Scene[]>(() => scenesOf(perf));
+  const [scene, setScene] = useState(0);
+  const [memory, setMemory] = useState(false);
+  const [selected, setSelected] = useState(0);
+  const [octave, setOctave] = useState(0);
+  const [held, setHeld] = useState<ReadonlySet<number>>(new Set());
+  const [loading, setLoading] = useState<"idle" | "loading" | "ready" | "failed">("idle");
+
+  const engine = useRef<SimEngine | null>(null);
+  const loadedFor = useRef(-1);
+  const sustain = useRef({ down: false, notes: new Set<number>() });
+  const live = useRef({ perf, mutes, levels, knob });
+  useEffect(() => {
+    live.current = { perf, mutes, levels, knob };
+  });
+
+  const ensure = useCallback(() => {
+    if (!engine.current) engine.current = new SimEngine();
+    const e = engine.current;
+    e.resume();
+    if (loadedFor.current !== perfIndex) {
+      loadedFor.current = perfIndex;
+      setLoading("loading");
+      void e.load(PERFORMANCES[perfIndex]).then((ok) => {
+        if (loadedFor.current === perfIndex) setLoading(ok ? "ready" : "failed");
+      });
+    }
+    return e;
+  }, [perfIndex]);
+
+  // Faders, mutes and the Super Knob drive the part channels.
+  useEffect(() => {
+    const e = engine.current;
+    if (!e || loadedFor.current !== perfIndex) return;
+    perf.parts.forEach((_, i) => {
+      const c = partControls(perf, i, levels[i] ?? 0, knob);
+      e.setLevel(i, mutes[i] ? 0 : c.level);
+      if (c.cutoff !== undefined) e.setCutoff(i, c.cutoff);
+    });
+  }, [perf, perfIndex, levels, mutes, knob, loading]);
+
+  const choosePerformance = (i: number) => {
+    const p = PERFORMANCES[(i + PERFORMANCES.length) % PERFORMANCES.length];
+    engine.current?.allOff();
+    setHeld(new Set());
+    setPerfIndex(PERFORMANCES.indexOf(p));
+    setLevels(p.parts.map((x) => x.level));
+    setMutes(p.parts.map(() => false));
+    setKnob(p.knobStart);
+    setScenes(scenesOf(p));
+    setScene(0);
+    setSelected(0);
+    if (engine.current) loadedFor.current = -1;
+  };
+
+  // Load the new Performance's sounds once the engine exists.
+  useEffect(() => {
+    if (engine.current && loadedFor.current !== perfIndex) ensure();
+  }, [perfIndex, ensure]);
+
+  const noteOn = useCallback(
+    (note: number, velocity = 0.8) => {
+      const e = ensure();
+      const { perf: p, mutes: m } = live.current;
+      const targets = partsForNote(p, note, m).map((i) => [i, note + (p.parts[i].shift ?? 0)] as [number, number]);
+      sustain.current.notes.delete(note);
+      e.noteOn(note, targets, velocity);
+      setHeld((h) => new Set(h).add(note));
+    },
+    [ensure],
+  );
+
+  const noteOff = useCallback((note: number) => {
+    if (sustain.current.down) sustain.current.notes.add(note);
+    else engine.current?.noteOff(note);
+    setHeld((h) => {
+      const next = new Set(h);
+      next.delete(note);
+      return next;
+    });
+  }, []);
+
+  const midi = useMidiIn(active, {
+    noteOn,
+    noteOff,
+    sustain: (down) => {
+      sustain.current.down = down;
+      if (!down) {
+        for (const n of sustain.current.notes) engine.current?.noteOff(n);
+        sustain.current.notes.clear();
+      }
+    },
+  });
+
+  const recallScene = (i: number) => {
+    if (memory) {
+      setScenes((s) => storeScene(s, i, levels, mutes, knob));
+      setMemory(false);
+      setScene(i);
+      return;
+    }
+    const s = scenes[i];
+    setScene(i);
+    setLevels((l) => l.map((v, p) => s.levels[p] ?? v));
+    setMutes((m) => m.map((v, p) => s.mutes[p] ?? v));
+    setKnob(s.knob);
+  };
+
+  // Another page of the rack is showing: let every note go.
+  const [wasActive, setWasActive] = useState(active);
+  if (active !== wasActive) {
+    setWasActive(active);
+    if (!active) setHeld(new Set());
+  }
+  useEffect(() => {
+    if (!active) engine.current?.allOff();
+  }, [active]);
+
+  useEffect(
+    () => () => {
+      engine.current?.close();
+      engine.current = null;
+    },
+    [],
+  );
+
+  const part = perf.parts[selected];
+  const statusText =
+    loading === "loading" ? "LOADING…" : loading === "failed" ? "SAMPLE ERROR" : loading === "ready" ? "READY" : "TOUCH A KEY";
+
+  return (
+    <section aria-label="MODX M แบบจำลอง" className="flex flex-col gap-3">
+      <div className="rack-case rack-skin-fm rack-skin-sim relative select-none p-2 sm:p-3">
+        <div className="grid grid-cols-6 gap-1.5 md:grid-cols-12 md:gap-2">
+          {/* Super Knob and its position buttons, on the left as on the keyboard. */}
+          <div className="rack-panel col-span-6 items-center md:col-span-2">
+            <p className="rack-title self-stretch">SUPER KNOB</p>
+            <div className="sim-superknob">
+              <Knob label="SUPER" hint={`${Math.round(knob * 100)}`} value={knob} onChange={setKnob} />
+            </div>
+            <div className="mt-auto flex gap-1" role="group" aria-label="ตำแหน่ง Super Knob">
+              {KNOB_POSITIONS.map((k) => (
+                <button key={k.label} type="button" className="rack-mini px-1.5 text-[0.55rem]" aria-pressed={knob === k.value} onClick={() => setKnob(k.value)}>
+                  {k.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Display: Performance, parts, Scene. */}
+          <div className="rack-panel col-span-6 md:col-span-7">
+            <p className="rack-title">PERFORMANCE</p>
+            <div className="rack-lcd sim-display" aria-live="polite">
+              <div className="rack-lcd-row">
+                <span className="truncate">{perf.name}</span>
+                <span className="rack-lcd-small">SCENE {scene + 1}</span>
+              </div>
+              <ol className="sim-parts">
+                {perf.parts.map((p, i) => (
+                  <li key={i} className={`sim-part ${i === selected ? "is-sel" : ""} ${mutes[i] ? "is-mute" : ""}`}>
+                    <span>{i + 1}</span>
+                    <span className="truncate">{p.name}</span>
+                    <span>{p.engine}</span>
+                    <span className="hidden sm:inline">
+                      {noteName(p.low)}–{noteName(p.high)}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+              <div className="rack-lcd-row rack-lcd-small">
+                <span>
+                  PART {selected + 1} {part ? `${part.engine} ${noteName(part.low)}–${noteName(part.high)}` : "—"}
+                </span>
+                <span>{statusText}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Performance select and USB. */}
+          <div className="rack-panel col-span-6 md:col-span-3">
+            <p className="rack-title">CATEGORY / USB</p>
+            <div className="flex items-center gap-1.5">
+              <button type="button" className="rack-mini" onClick={() => choosePerformance(perfIndex - 1)} aria-label="Performance ก่อนหน้า">
+                −
+              </button>
+              <select className="rack-select" aria-label="เลือก Performance" value={perfIndex} onChange={(e) => choosePerformance(Number(e.target.value))}>
+                {PERFORMANCES.map((p, i) => (
+                  <option key={p.name} value={i}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+              <button type="button" className="rack-mini" onClick={() => choosePerformance(perfIndex + 1)} aria-label="Performance ถัดไป">
+                +
+              </button>
+            </div>
+            <button type="button" className="rack-preset h-auto py-2 text-left leading-snug" onClick={() => void midi.connect()} aria-pressed={midi.state === "on"}>
+              {MIDI_TEXT[midi.state]}
+              {midi.state === "on" && midi.names.length > 0 && <span className="block font-normal opacity-80">{midi.names.join(", ")}</span>}
+            </button>
+            <p className="rack-hint leading-snug">เล่นจากคีย์บอร์ดจริงผ่าน USB (Chrome / Edge) · ยังไม่ได้ทดสอบกับเครื่องจริง</p>
+            <div className="mt-auto flex justify-end">
+              <OctaveSwitch octave={octave} onChange={setOctave} />
+            </div>
+          </div>
+
+          {/* Eight part faders with part select and mute, like the keyboard's slider row. */}
+          <div className="rack-panel col-span-6 md:col-span-9">
+            <p className="rack-title">PART LEVEL</p>
+            <div className="sim-faders">
+              {Array.from({ length: MAX_PARTS }, (_, i) => {
+                const exists = i < perf.parts.length;
+                return (
+                  <div key={i} className={`sim-strip ${exists ? "" : "is-empty"}`}>
+                    <Fader
+                      label={`${i + 1}`}
+                      hint={exists ? `${Math.round((levels[i] ?? 0) * 100)}` : "—"}
+                      value={exists ? (levels[i] ?? 0) : 0}
+                      onChange={(v) => exists && setLevels((l) => l.map((x, p) => (p === i ? v : x)))}
+                    />
+                    <button type="button" className="rack-mini w-full" disabled={!exists} aria-pressed={selected === i} onClick={() => setSelected(i)} aria-label={`เลือก Part ${i + 1}`}>
+                      SEL
+                    </button>
+                    <button
+                      type="button"
+                      className="rack-mini w-full"
+                      disabled={!exists}
+                      aria-pressed={!!mutes[i]}
+                      onClick={() => setMutes((m) => m.map((x, p) => (p === i ? !x : x)))}
+                      aria-label={`ปิดเสียง Part ${i + 1}`}
+                    >
+                      MUTE
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Scene buttons. MEMORY then a Scene button stores the current faders, mutes and knob. */}
+          <div className="rack-panel col-span-6 md:col-span-3">
+            <p className="rack-title">SCENE</p>
+            <div className="grid grid-cols-4 gap-1" role="group" aria-label="Scene">
+              {scenes.map((_, i) => (
+                <button key={i} type="button" className="rack-preset" aria-pressed={scene === i} onClick={() => recallScene(i)}>
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+            <button type="button" className="rack-preset mt-auto" aria-pressed={memory} onClick={() => setMemory((m) => !m)}>
+              {memory ? "กด Scene ที่จะจำ" : "MEMORY"}
+            </button>
+          </div>
+
+          <div className="rack-panel rack-keys col-span-6 md:col-span-12">
+            <div className="flex items-center justify-between gap-3">
+              <p className="rack-title">KEYS</p>
+              <p className="rack-hint hidden sm:block">ซ้อนเสียง · แบ่งช่วงคีย์ · Super Knob · 8 Scene</p>
+            </div>
+            <RackKeys active={active} held={held} octave={octave} onNoteOn={(n) => noteOn(n)} onNoteOff={noteOff} />
+          </div>
+        </div>
+      </div>
+
+      <p className="text-sm text-muted">
+        <b className="text-ink">จำลองการทำงานแบบ MODX M · ไม่ใช่เสียงจริงของเครื่อง</b> เสียงทั้งหมดเป็นของร้าน: ส่วน AWM2 ใช้แซมเปิลเปิด FluidR3_GM
+        (CC BY 3.0) ส่วน AN-X ใช้ซินธ์อนาล็อกที่ร้านเขียนเอง MODX เป็นเครื่องหมายการค้าของ Yamaha Corporation ร้านไม่ได้เกี่ยวข้องกับ Yamaha
+      </p>
+    </section>
+  );
+}

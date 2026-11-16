@@ -31,16 +31,21 @@ Owner request, 2026-11-16: the site has no MODX M or FANTOM simulator; he wants 
 - `src/components/studio/gmPreview.ts` with smplr@1.1.0 (MIT) and FluidR3_GM (CC BY 3.0, hosted on gleitz.github.io): sample playback. Look for better openly licensed sample sets (CC0 or CC BY) with clear licences; record each one's licence and credit in README.md. Never use samples whose licence is unclear.
 - `src/components/rack/RackCarousel.tsx`: add pages here (`PAGES`), each with `active` so only the page in view makes sound. `/#play-<id>` links open a page.
 
+## Confirmed facts (with sources)
+
+- MODX M (announced Oct 2025): 8 faders (MODX+ had 4); Super Knob with three Knob Position buttons (Left, Mid, Right); dedicated part-select and Scene-select buttons (counts not stated); six knobs under the touchscreen. Engines: AWM2 (128 elements per part), FM-X (8 operators, 88 algorithms), AN-X (3 oscillators with 5 waveforms, noise, 2 filters with 10 types each, 1 amp envelope, 2 LFOs). Polyphony 268. Source: [Synth Anatomy, Oct 2025](https://synthanatomy.com/2025/10/yamaha-modx-m-hardware-synthesizer-gets-major-hands-on-upgrade-with-an-x-engine.html); announcement: [Yamaha press release](https://usa.yamaha.com/news_events/2025/yamaha-unveils-modx-m-synthesizer.html). Still to confirm from Yamaha's manual: number of Scene buttons (the page uses 8), number of parts the faders control, panel positions.
+- FANTOM-0 (2022): 61 / 76 / 88-key models, colour touchscreen, RGB pads, Scenes, ZEN-Core engine. The press release gives no counts for knobs, sliders, pads, zones or partials. Source: [Roland press release](https://www.roland.com/us/company/press_releases/2022/Roland-Introduces-FANTOM-0-Synthesizer-Keyboard-Se/).
+
 ## Checklist (work top to bottom; tick with the date)
 
 - [ ] S0 Research, with sources in this file: from Yamaha's MODX M / MONTAGE M manuals, the Performance structure (parts, key and velocity ranges, Scenes, Super Knob assign), the three engines and their main parameters (FM-X operator count and algorithm count). From Roland's FANTOM-0 manuals, Scene / Zone / Tone / Partial structure and pad modes. Write down only what a manual confirms; list unknowns.
 - [ ] S1 Shared multi-part engine in `src/lib/sim/` (pure, tested logic: parts, key/velocity ranges, layer/split routing, scene recall, knob morph curves) and `src/components/rack/sim/` (audio). Mobile-friendly voice limits.
 - [ ] S2 Sample engine page piece: openly licensed multi-sample playback with loops, release, filter and envelope; loading state; works offline-safe (no sound without samples, no errors).
 - [ ] S3 FM-X-style 8-operator engine (own AudioWorklet), with tests for algorithm routing.
-- [ ] S4 "MODX M SIM" rack page: Performance of 8 parts, part mixer, Super Knob, 8 Scenes, the store's own default Performances (at least 8). Desktop and 390px phone layouts.
+- [~] S4 (first version 2026-11-16: rack page "MODX M", 8 store Performances with AWM2 and AN-X parts, layer and split, 8 part faders with SEL/MUTE, Super Knob with LEFT/MID/RIGHT, 8 Scenes with MEMORY, display. Missing: FM-X parts, control positions checked against Yamaha's manual, more Performances) "MODX M SIM" rack page: Performance of 8 parts, part mixer, Super Knob, 8 Scenes, the store's own default Performances (at least 8). Desktop and 390px phone layouts.
 - [ ] S5 "FANTOM-0 SIM" rack page: Scene with zones, tones of up to 4 partials, 16 pads, the store's own default Scenes (at least 8).
 - [ ] S6 Links: pack pages and /studio demo banks link to the simulator page of the matching keyboard (`/#play-modxm`, `/#play-fantom`).
-- [ ] S8 Web MIDI in: play both simulator pages from a USB keyboard (notes, bend, sustain, CC learn), only on the page in view.
+- [~] S8 (MODX M page done 2026-11-16: notes, velocity, sustain; CC learn and FANTOM-0 page still to do) Web MIDI in: play both simulator pages from a USB keyboard (notes, bend, sustain, CC learn), only on the page in view.
 - [ ] S9 Web MIDI out, MODX M: documented Bank Select / Program Change to pick a Performance on the real keyboard; Super Knob and part knob CCs from the site's controls. Sources in this file.
 - [ ] S10 Web MIDI out, FANTOM-0: documented messages to pick a Scene; zone knob/slider CCs. Sources in this file.
 - [ ] S11 Owner test list ("ทดสอบกับเครื่องจริง") for S8–S10, like docs/STUDIO.md.
