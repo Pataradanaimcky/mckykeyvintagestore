@@ -18,8 +18,12 @@ import {
   scenesOf,
   type Scene,
 } from "@/lib/sim/modx";
+import { emptyLearn, handleCc, toggleLearn, type LearnState } from "@/lib/sim/midi";
 import { SimEngine } from "./engine";
 import { useMidiIn } from "./useMidiIn";
+
+/** Page controls a keyboard knob or slider can be learnt to: the Super Knob and part faders 1–8. */
+type LearnTarget = "super" | `part${number}`;
 
 const MIDI_TEXT = {
   off: "ต่อคีย์บอร์ด USB",
@@ -48,6 +52,13 @@ export function ModxPage({ active }: { active: boolean }) {
   const [octave, setOctave] = useState(0);
   const [held, setHeld] = useState<ReadonlySet<number>>(new Set());
   const [loading, setLoading] = useState<"idle" | "loading" | "ready" | "failed">("idle");
+
+  const [learn, setLearnView] = useState<LearnState<LearnTarget>>(() => emptyLearn());
+  const learnRef = useRef(learn);
+  const setLearn = (next: LearnState<LearnTarget>) => {
+    learnRef.current = next;
+    setLearnView(next);
+  };
 
   const engine = useRef<SimEngine | null>(null);
   const loadedFor = useRef(-1);
@@ -134,7 +145,35 @@ export function ModxPage({ active }: { active: boolean }) {
         sustain.current.notes.clear();
       }
     },
+    // CC learn: a knob or slider on the keyboard moves the control it was learnt to.
+    cc: (cc, value) => {
+      const r = handleCc(learnRef.current, cc, value);
+      if (r.state !== learnRef.current) setLearn(r.state);
+      for (const { target, value: v } of r.set) {
+        if (target === "super") setKnob(v);
+        else {
+          const i = Number(target.slice(4)) - 1;
+          setLevels((l) => (i < l.length ? l.map((x, p) => (p === i ? v : x)) : l));
+        }
+      }
+    },
   });
+
+  const learnHint = (t: LearnTarget) =>
+    learn.learning === t ? "หมุนปุ่มบนคีย์บอร์ด…" : learn.map[t] !== undefined ? `CC ${learn.map[t]}` : "ยังไม่ได้ผูก";
+  const learnButton = (t: LearnTarget, label: string) => (
+    <button
+      type="button"
+      className={`rack-mini px-1.5 text-[0.55rem] ${learn.learning === t ? "sim-shift-on" : ""}`}
+      aria-pressed={learn.learning === t}
+      disabled={midi.state !== "on"}
+      title={midi.state === "on" ? undefined : "ต่อคีย์บอร์ด USB ก่อน"}
+      onClick={() => setLearn(toggleLearn(learnRef.current, t))}
+      aria-label={`${label}: ผูกกับปุ่มหรือสไลเดอร์บนคีย์บอร์ด (${learnHint(t)})`}
+    >
+      LEARN
+    </button>
+  );
 
   const recallScene = (i: number) => {
     const r = pressScene(scenes, i, shift, { levels, mutes, knob });
@@ -182,7 +221,7 @@ export function ModxPage({ active }: { active: boolean }) {
 
   const part = perf.parts[selected];
   const statusText =
-    loading === "loading" ? "LOADING…" : loading === "failed" ? "SAMPLE ERROR" : loading === "ready" ? "READY" : "TOUCH A KEY";
+    learn.learning ? "MOVE A CONTROL…" : loading === "loading" ? "LOADING…" : loading === "failed" ? "SAMPLE ERROR" : loading === "ready" ? "READY" : "TOUCH A KEY";
 
   return (
     <section aria-label="MODX M แบบจำลอง" className="flex flex-col gap-3">
@@ -193,6 +232,10 @@ export function ModxPage({ active }: { active: boolean }) {
             <p className="rack-title self-stretch">SUPER KNOB</p>
             <div className="sim-superknob">
               <Knob label="SUPER" hint={`${Math.round(knob * 100)}`} value={knob} onChange={setKnob} />
+            </div>
+            <div className="flex items-center gap-1">
+              {learnButton("super", "Super Knob")}
+              <span className="rack-hint">{learnHint("super")}</span>
             </div>
             <div className="mt-auto flex gap-1" role="group" aria-label="ตำแหน่ง Super Knob">
               {KNOB_POSITIONS.map((k, i) => (
@@ -262,7 +305,9 @@ export function ModxPage({ active }: { active: boolean }) {
               {MIDI_TEXT[midi.state]}
               {midi.state === "on" && midi.names.length > 0 && <span className="block font-normal opacity-80">{midi.names.join(", ")}</span>}
             </button>
-            <p className="rack-hint leading-snug">เล่นจากคีย์บอร์ดจริงผ่าน USB (Chrome / Edge) · ยังไม่ได้ทดสอบกับเครื่องจริง</p>
+            <p className="rack-hint leading-snug">
+              เล่นจากคีย์บอร์ดจริงผ่าน USB (Chrome / Edge) · LEARN: กดแล้วหมุนปุ่มบนคีย์บอร์ด · ยังไม่ได้ทดสอบกับเครื่องจริง
+            </p>
             <div className="mt-auto flex justify-end">
               <OctaveSwitch octave={octave} onChange={setOctave} />
             </div>
@@ -275,6 +320,12 @@ export function ModxPage({ active }: { active: boolean }) {
           <div className="rack-panel col-span-6 md:col-span-9">
             <div className="flex items-center justify-between gap-2">
               <p className="rack-title">PART LEVEL</p>
+              <span className="ml-auto flex items-center gap-1">
+                <span className="rack-hint hidden sm:inline">
+                  {selected + 1}: {learnHint(`part${selected + 1}`)}
+                </span>
+                {learnButton(`part${selected + 1}`, `Part ${selected + 1} level`)}
+              </span>
               <button
                 type="button"
                 className={`rack-mini px-1.5 text-[0.55rem] ${shift ? "sim-shift-on" : ""}`}
