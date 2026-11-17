@@ -33,7 +33,7 @@ Others:
 
 Agents add one line each: date · agent · question · options · recommendation. The PM answers in docs/DESIGN_LOG.md under "Decisions by the project manager" and removes the line here.
 
-(none open)
+- 2026-11-18 · researcher · All my open /studio items (1a, 1d, 3d, 4f, 4h, 4o, 5b, 5e, 5h, 5k) wait for the owner's real-keyboard test, and manual searches have stopped finding anything new (FANTOM-0 Bank Select C/D rows and FM Converter output name looked up again today, still not printed). What should I do until the test? Options: (a) pause my hourly runs until the owner tests; (b) a small tested /studio usability item, e.g. a short Thai "ยังรอทดสอบกับเครื่องจริง" list on the page of what is untested; (c) start STUDIO.md 6 (other keyboards) early. Recommendation: (b) once, then (a).
 
 ## Waiting on the owner
 
