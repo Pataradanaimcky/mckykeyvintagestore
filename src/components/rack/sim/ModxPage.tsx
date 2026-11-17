@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { packsHref } from "@/components/studio/packsLink";
 import { Fader } from "../Fader";
 import { Knob } from "../Knob";
 import { OctaveSwitch, RackKeys } from "../RackKeys";
@@ -395,6 +397,11 @@ export function ModxPage({ active }: { active: boolean }) {
       <p className="text-sm text-muted">
         <b className="text-ink">จำลองการทำงานแบบ MODX M · ไม่ใช่เสียงจริงของเครื่อง</b> เสียงทั้งหมดเป็นของร้าน: ส่วน AWM2 ใช้แซมเปิลเปิด FluidR3_GM
         (CC BY 3.0) ส่วน AN-X ใช้ซินธ์อนาล็อกที่ร้านเขียนเอง MODX เป็นเครื่องหมายการค้าของ Yamaha Corporation ร้านไม่ได้เกี่ยวข้องกับ Yamaha
+      </p>
+      <p className="text-sm">
+        <Link href={packsHref("modx-m") ?? "/packs"} className="font-semibold text-ink underline underline-offset-2">
+          ดูแพ็กเสียงสำหรับ MODX M
+        </Link>
       </p>
     </section>
   );

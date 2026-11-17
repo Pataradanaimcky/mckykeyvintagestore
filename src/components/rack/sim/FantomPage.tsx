@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { packsHref } from "@/components/studio/packsLink";
 import { Fader } from "../Fader";
 import { Knob } from "../Knob";
 import { OctaveSwitch, RackKeys } from "../RackKeys";
@@ -393,6 +395,11 @@ export function FantomPage({ active }: { active: boolean }) {
       <p className="text-sm text-muted">
         <b className="text-ink">จำลองการทำงานแบบ FANTOM-0 · ไม่ใช่เสียงจริงของเครื่อง</b> เสียงทั้งหมดเป็นของร้าน: partial แบบ PCM ใช้แซมเปิลเปิด
         FluidR3_GM (CC BY 3.0) แบบ VA ใช้ซินธ์อนาล็อกที่ร้านเขียนเอง FANTOM เป็นเครื่องหมายการค้าของ Roland Corporation ร้านไม่ได้เกี่ยวข้องกับ Roland
+      </p>
+      <p className="text-sm">
+        <Link href={packsHref("fantom-0") ?? "/packs"} className="font-semibold text-ink underline underline-offset-2">
+          ดูแพ็กเสียงสำหรับ FANTOM-0
+        </Link>
       </p>
     </section>
   );
