@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { asPerformance, FANTOM_SCENES, noteName, PAD_COUNT, panText, setSplit, SPLIT_LOWER, SPLIT_UPPER, toggleZone, ZONE_COUNT, zoneRange, zonesForNote } from "../src/lib/sim/fantom.ts";
+import { applyZoneControl, asPerformance, learnTargets, readLearnTarget, FANTOM_SCENES, noteName, PAD_COUNT, panText, setSplit, SPLIT_LOWER, SPLIT_UPPER, toggleZone, ZONE_COUNT, zoneRange, zonesForNote } from "../src/lib/sim/fantom.ts";
 
 const grand = FANTOM_SCENES[0];
 const onOf = (s: (typeof FANTOM_SCENES)[number]) => s.zones.map((z) => z.on);
@@ -56,4 +56,23 @@ test("display text", () => {
   assert.equal(panText(0), "L50");
   assert.equal(panText(1), "R50");
   assert.equal(noteName(60), "C4");
+});
+
+test("CC learn targets: LEVEL then PAN for each zone on the panel, at most [1]–[8]", () => {
+  assert.deepEqual(learnTargets(4), ["level1", "level2", "level3", "level4", "pan1", "pan2", "pan3", "pan4"]);
+  assert.equal(learnTargets(16).length, 16);
+  assert.deepEqual(learnTargets(0), []);
+  assert.deepEqual(readLearnTarget("pan3"), { control: "pan", zone: 2 });
+  assert.equal(readLearnTarget("pan9"), null);
+  assert.equal(readLearnTarget("level0"), null);
+  assert.equal(readLearnTarget("super"), null);
+});
+
+test("a learnt keyboard control moves only its zone's slider or knob", () => {
+  const r = applyZoneControl([0.1, 0.2], [0.5, 0.5], "level2", 1.4);
+  assert.deepEqual(r, { levels: [0.1, 1], pans: [0.5, 0.5] });
+  assert.deepEqual(applyZoneControl([0.1], [0.5], "pan1", 0).pans, [0]);
+  // A zone the Scene does not have, or an unknown target, changes nothing.
+  assert.deepEqual(applyZoneControl([0.1], [0.5], "level5", 1), { levels: [0.1], pans: [0.5] });
+  assert.deepEqual(applyZoneControl([0.1], [0.5], "bogus", 1), { levels: [0.1], pans: [0.5] });
 });

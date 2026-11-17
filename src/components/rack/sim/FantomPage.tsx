@@ -5,8 +5,10 @@ import { Fader } from "../Fader";
 import { Knob } from "../Knob";
 import { OctaveSwitch, RackKeys } from "../RackKeys";
 import {
+  applyZoneControl,
   asPerformance,
   FANTOM_SCENES,
+  learnTargets,
   noteName,
   PAD_COUNT,
   PANEL_ZONES,
@@ -15,8 +17,10 @@ import {
   toggleZone,
   zoneRange,
   zonesForNote,
+  type FantomLearnTarget,
   type SplitState,
 } from "@/lib/sim/fantom";
+import { emptyLearn, forget, handleCc, toggleLearn, type LearnState } from "@/lib/sim/midi";
 import { SimEngine } from "./engine";
 import { useMidiIn } from "./useMidiIn";
 
@@ -47,6 +51,14 @@ export function FantomPage({ active }: { active: boolean }) {
   const [octave, setOctave] = useState(0);
   const [held, setHeld] = useState<ReadonlySet<number>>(new Set());
   const [loading, setLoading] = useState<"idle" | "loading" | "ready" | "failed">("idle");
+  // CC learn: which zone control the LEARN button is for, and the CCs learnt so far (kept across Scenes).
+  const [learnFor, setLearnFor] = useState<FantomLearnTarget>("level1");
+  const [learn, setLearnView] = useState<LearnState<FantomLearnTarget>>(() => emptyLearn());
+  const learnRef = useRef(learn);
+  const setLearn = (next: LearnState<FantomLearnTarget>) => {
+    learnRef.current = next;
+    setLearnView(next);
+  };
 
   const engine = useRef<SimEngine | null>(null);
   const loadedFor = useRef(-1);
@@ -139,7 +151,20 @@ export function FantomPage({ active }: { active: boolean }) {
         sustain.current.notes.clear();
       }
     },
+    // CC learn: a knob or slider on the keyboard moves the zone slider or knob it was learnt to.
+    cc: (cc, value) => {
+      const r = handleCc(learnRef.current, cc, value);
+      if (r.state !== learnRef.current) setLearn(r.state);
+      for (const { target, value: v } of r.set) {
+        if (target.startsWith("level")) setLevels((l) => applyZoneControl(l, [], target, v).levels);
+        else setPans((p) => applyZoneControl([], p, target, v).pans);
+      }
+    },
   });
+
+  const targets = learnTargets(Math.min(scene.zones.length, PANEL_ZONES));
+  const targetLabel = (t: FantomLearnTarget) => (t.startsWith("level") ? `SLIDER ${t.slice(5)} (LEVEL)` : `KNOB ${t.slice(3)} (PAN)`);
+  const learnHint = learn.learning === learnFor ? "หมุนปุ่มบนคีย์บอร์ด…" : learn.map[learnFor] !== undefined ? `CC ${learn.map[learnFor]}` : "ยังไม่ได้ผูก";
 
   // [SPLIT]: off → waiting for a key; waiting → cancel; on → off.
   const pressSplit = () => {
@@ -168,7 +193,9 @@ export function FantomPage({ active }: { active: boolean }) {
     [],
   );
 
-  const statusText = splitArmed
+  const statusText = learn.learning
+    ? "MOVE A CONTROL…"
+    : splitArmed
     ? "PRESS A KEY…"
     : loading === "loading"
       ? "LOADING…"
@@ -236,7 +263,49 @@ export function FantomPage({ active }: { active: boolean }) {
               {MIDI_TEXT[midi.state]}
               {midi.state === "on" && midi.names.length > 0 && <span className="block font-normal opacity-80">{midi.names.join(", ")}</span>}
             </button>
-            <p className="rack-hint leading-snug">เล่นจากคีย์บอร์ดจริงผ่าน USB (Chrome / Edge) · ยังไม่ได้ทดสอบกับเครื่องจริง</p>
+            <p className="rack-hint leading-snug">
+              เล่นจากคีย์บอร์ดจริงผ่าน USB (Chrome / Edge) · LEARN: เลือกปุ่มบนหน้า กด LEARN แล้วหมุนปุ่มบนคีย์บอร์ด · ยังไม่ได้ทดสอบกับเครื่องจริง
+            </p>
+            <div className="flex items-center gap-1.5">
+              <select
+                className="rack-select min-w-0 flex-1"
+                aria-label="ปุ่มบนหน้าที่จะผูกกับคีย์บอร์ด"
+                value={learnFor}
+                onChange={(e) => {
+                  if (learnRef.current.learning) setLearn({ ...learnRef.current, learning: null });
+                  setLearnFor(e.target.value as FantomLearnTarget);
+                }}
+              >
+                {targets.map((t) => (
+                  <option key={t} value={t}>
+                    {targetLabel(t)}
+                    {learn.map[t] !== undefined ? ` · CC ${learn.map[t]}` : ""}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className={`rack-mini px-1.5 text-[0.55rem] ${learn.learning === learnFor ? "sim-shift-on" : ""}`}
+                aria-pressed={learn.learning === learnFor}
+                disabled={midi.state !== "on"}
+                title={midi.state === "on" ? undefined : "ต่อคีย์บอร์ด USB ก่อน"}
+                onClick={() => setLearn(toggleLearn(learnRef.current, learnFor))}
+                aria-label={`${targetLabel(learnFor)}: ผูกกับปุ่มหรือสไลเดอร์บนคีย์บอร์ด (${learnHint})`}
+              >
+                LEARN
+              </button>
+              {learn.map[learnFor] !== undefined && (
+                <button
+                  type="button"
+                  className="rack-mini px-1.5 text-[0.55rem]"
+                  onClick={() => setLearn(forget(learnRef.current, learnFor))}
+                  aria-label={`${targetLabel(learnFor)}: เลิกผูก CC ${learn.map[learnFor]}`}
+                >
+                  ×
+                </button>
+              )}
+              <span className="rack-hint shrink-0">{learnHint}</span>
+            </div>
             <div className="mt-auto flex items-center justify-between gap-2">
               <button type="button" className={`rack-preset ${splitArmed ? "sim-shift-on" : ""}`} aria-pressed={split.key !== null} onClick={pressSplit}>
                 SPLIT

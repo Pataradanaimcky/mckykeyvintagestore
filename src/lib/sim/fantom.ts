@@ -97,6 +97,39 @@ export function toggleZone(on: readonly boolean[], index: number): boolean[] {
   return next;
 }
 
+/** What a keyboard knob or slider can be learnt to on the page: a zone's slider (LEVEL) or knob (PAN). */
+export type ZoneControl = "level" | "pan";
+export type FantomLearnTarget = `${ZoneControl}${number}`;
+
+/** Learn targets for the zones on the panel: LEVEL 1… then PAN 1…, at most [1]–[8]. */
+export function learnTargets(zoneCount: number): FantomLearnTarget[] {
+  const n = Math.max(0, Math.min(PANEL_ZONES, Math.floor(zoneCount)));
+  const zones = Array.from({ length: n }, (_, i) => i + 1);
+  return [...zones.map((z) => `level${z}` as const), ...zones.map((z) => `pan${z}` as const)];
+}
+
+/** Reads a learn target back: which control of which zone (index from 0), or null if not valid. */
+export function readLearnTarget(target: string): { control: ZoneControl; zone: number } | null {
+  const m = /^(level|pan)([1-9]\d*)$/.exec(target);
+  if (!m) return null;
+  const zone = Number(m[2]) - 1;
+  if (zone >= PANEL_ZONES) return null;
+  return { control: m[1] as ZoneControl, zone };
+}
+
+/** Moves a zone's slider or knob to `value` (0..1). Zones the Scene does not have are left alone. */
+export function applyZoneControl(
+  levels: readonly number[],
+  pans: readonly number[],
+  target: string,
+  value: number,
+): { levels: number[]; pans: number[] } {
+  const t = readLearnTarget(target);
+  const v = Math.min(1, Math.max(0, value));
+  const set = (list: readonly number[], on: boolean) => list.map((x, i) => (on && t && i === t.zone ? v : x));
+  return { levels: set(levels, t?.control === "level"), pans: set(pans, t?.control === "pan") };
+}
+
 /** The Scene as a Performance for the shared audio engine (PCM plays as a sample part, VA as an analog part). */
 export function asPerformance(scene: FantomScene): Performance {
   return {
