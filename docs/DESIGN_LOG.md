@@ -67,6 +67,7 @@ None for the agents. Questions only the owner can answer (free pack terms, brand
 
 ## History
 
+- 2026-11-17: Simulator S8b (ROADMAP Next 3): pitch bend from a USB keyboard is heard on the MODX M AN-X parts and FANTOM-0 VA parts, ±2 semitones (store's choice), held notes included; sample parts do not bend yet (S8e). POLY page sound unchanged. Checked with a mocked requestMIDIAccess at 1280px and 390px. Labelled not tested on a real keyboard.
 - 2026-11-17: Simulator S11 (ROADMAP Next 2): a 10-minute Thai owner test list "ทดสอบกับเครื่องจริง" in docs/SIMULATOR.md for playing the MODX M and FANTOM-0 pages from the real keyboards over USB (notes, velocity, sustain, CC learn); the CC numbers it reports feed S8c/S8d; no page changed.
 - 2026-11-17: /studio demo banks link to the simulators (ROADMAP Next 4, STUDIO.md 7m): one plain link "ลองเล่นในซิมูเลเตอร์" on the MODX M and FANTOM-0 tabs to /#play-modxm and /#play-fantom, none on DX7; checked at 1366px and 390px.
 - 2026-11-16: Simulator research (S0 done): FANTOM-0 panel controls, 16 zones, layer/split and knob/slider jobs from Roland's Owner's Manual, ZEN-Core 4 partials from the ZENOLOGY manual, written in docs/SIMULATOR.md; Reference Manual items wait as S0b; no page changed.

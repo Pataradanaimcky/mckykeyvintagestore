@@ -33,6 +33,8 @@ export const releaseS = (v: number) => 0.05 + v * v * 4;
 interface Voice {
   note: number;
   oscs: OscillatorNode[];
+  /** Each oscillator's own detune (cents) before pitch bend. */
+  detunes: number[];
   filter: BiquadFilterNode;
   vca: GainNode;
 }
@@ -43,6 +45,8 @@ interface Voice {
  */
 export class PolyVoices {
   private voices: Voice[] = [];
+  /** Pitch bend in cents, added to every oscillator. Stays 0 unless `setBend` is called (the POLY page never does). */
+  private bend = 0;
 
   constructor(
     private ctx: AudioContext,
@@ -77,14 +81,15 @@ export class PolyVoices {
       const osc = ctx.createOscillator();
       osc.type = type;
       osc.frequency.value = freq;
-      osc.detune.value = detune;
+      osc.detune.value = detune + this.bend;
       const g = ctx.createGain();
       g.gain.value = level;
       osc.connect(g).connect(mix);
       osc.start(t);
       return osc;
     };
-    const oscs = [make("sawtooth", hz, s.saw * 0.6, -4), make("square", hz, s.pulse * 0.45, 4), make("square", hz / 2, s.sub * 0.6)];
+    const detunes = [-4, 4, 0];
+    const oscs = [make("sawtooth", hz, s.saw * 0.6, detunes[0]), make("square", hz, s.pulse * 0.45, detunes[1]), make("square", hz / 2, s.sub * 0.6, detunes[2])];
 
     const filter = ctx.createBiquadFilter();
     filter.type = "lowpass";
@@ -104,7 +109,7 @@ export class PolyVoices {
 
     mix.connect(filter).connect(vca).connect(this.out);
     oscs[0].onended = () => vca.disconnect();
-    this.voices.push({ note, oscs, filter, vca });
+    this.voices.push({ note, oscs, detunes, filter, vca });
   }
 
   noteOff(note: number, s: PolySettings) {
@@ -115,6 +120,13 @@ export class PolyVoices {
   allOff(s: PolySettings) {
     for (const v of this.voices) this.stop(v, s);
     this.voices = [];
+  }
+
+  /** Pitch bend in cents for the notes sounding now and the ones played next. */
+  setBend(cents: number) {
+    this.bend = cents;
+    const t = this.ctx.currentTime;
+    for (const v of this.voices) v.oscs.forEach((osc, i) => osc.detune.setTargetAtTime(v.detunes[i] + cents, t, 0.01));
   }
 
   /** Filter changes also move the notes already sounding. */

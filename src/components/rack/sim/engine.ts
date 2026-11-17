@@ -19,6 +19,7 @@ export class SimEngine {
   readonly analyser: AnalyserNode;
   private bus: GainNode;
   private parts: PartChannel[] = [];
+  private bendCents = 0;
   private sounding = new Map<number, { part: number; note: number }[]>();
 
   constructor() {
@@ -57,6 +58,7 @@ export class SimEngine {
       } else gain.connect(this.bus);
       if (part.engine === "AN-X" && part.an) {
         ch.an = { voices: new PolyVoices(this.ctx, gain, 6), settings: { ...part.an } };
+        if (this.bendCents) ch.an.voices.setBend(this.bendCents);
       } else if (part.gm) {
         ch.awm = import("smplr").then(async ({ Soundfont }) => {
           const inst = new Soundfont(this.ctx, { instrument: part.gm!, kit: "FluidR3_GM", destination: gain, loadLoopData: false, extraGain: 1, volume: 90 });
@@ -84,6 +86,15 @@ export class SimEngine {
     if (!an) return;
     an.settings = { ...an.settings, cutoff };
     an.voices.update(an.settings);
+  }
+
+  /**
+   * Pitch bend in cents. Heard on the AN-X / VA parts, held notes included. Sample (AWM2 / PCM)
+   * parts do not bend yet: smplr 1.1.0 has no way to change the pitch of a note already playing.
+   */
+  bend(cents: number) {
+    this.bendCents = cents;
+    for (const ch of this.parts) ch.an?.voices.setBend(cents);
   }
 
   /** `targets` are [part, note after transpose] pairs from the routing rules. */

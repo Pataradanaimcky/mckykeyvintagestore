@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { emptyLearn, forget, handleCc, listenAll, parseMidi, toggleLearn, type MidiEvent, type MidiInputLike } from "../src/lib/sim/midi.ts";
+import { BEND_RANGE, bendCents, emptyLearn, forget, handleCc, listenAll, parseMidi, toggleLearn, type MidiEvent, type MidiInputLike } from "../src/lib/sim/midi.ts";
 
 test("parseMidi reads note on/off, CC and pitch bend on any channel", () => {
   assert.deepEqual(parseMidi([0x90, 60, 127]), { type: "noteOn", channel: 0, note: 60, velocity: 1 });
@@ -77,4 +77,28 @@ test("listenAll with a mocked navigator.requestMIDIAccess: events from every inp
   assert.equal(a.onmidimessage, null);
   assert.equal(b.onmidimessage, null);
   assert.equal(access.onstatechange, null);
+});
+
+test("bendCents: ±2 semitones, centre is 0, out-of-range values are clamped", () => {
+  assert.equal(BEND_RANGE, 2);
+  assert.equal(bendCents(0), 0);
+  assert.equal(bendCents(1), 200);
+  assert.equal(bendCents(-1), -200);
+  assert.equal(bendCents(0.5), 100);
+  assert.equal(bendCents(3), 200);
+  assert.equal(bendCents(Number.NaN), 0);
+  assert.equal(bendCents(1, 12), 1200);
+  const ev = parseMidi([0xe0, 0, 96]) as { value: number };
+  assert.equal(bendCents(ev.value), 100);
+});
+
+test("listenAll passes pitch bend from a mocked keyboard", () => {
+  const input: MidiInputLike = { name: "Mock", onmidimessage: null };
+  const access = { inputs: { values: () => [input][Symbol.iterator]() }, onstatechange: null };
+  const got: MidiEvent[] = [];
+  const stop = listenAll(access, (e) => got.push(e), () => {});
+  input.onmidimessage?.({ data: new Uint8Array([0xe0, 0, 0x60]) });
+  assert.deepEqual(got, [{ type: "bend", channel: 0, value: 0.5 }]);
+  stop();
+  assert.equal(input.onmidimessage, null);
 });

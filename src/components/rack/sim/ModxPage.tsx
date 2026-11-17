@@ -20,7 +20,7 @@ import {
   scenesOf,
   type Scene,
 } from "@/lib/sim/modx";
-import { emptyLearn, handleCc, toggleLearn, type LearnState } from "@/lib/sim/midi";
+import { emptyLearn, handleCc, toggleLearn, type LearnState, bendCents } from "@/lib/sim/midi";
 import { SimEngine } from "./engine";
 import { useMidiIn } from "./useMidiIn";
 
@@ -140,6 +140,8 @@ export function ModxPage({ active }: { active: boolean }) {
   const midi = useMidiIn(active, {
     noteOn,
     noteOff,
+    // Pitch bend wheel: ±2 semitones (store's choice), heard on the AN-X / VA parts only for now.
+    bend: (v) => engine.current?.bend(bendCents(v)),
     sustain: (down) => {
       sustain.current.down = down;
       if (!down) {
@@ -210,7 +212,10 @@ export function ModxPage({ active }: { active: boolean }) {
     if (!active) setHeld(new Set());
   }
   useEffect(() => {
-    if (!active) engine.current?.allOff();
+    if (!active) {
+      engine.current?.allOff();
+      engine.current?.bend(0);
+    }
   }, [active]);
 
   useEffect(

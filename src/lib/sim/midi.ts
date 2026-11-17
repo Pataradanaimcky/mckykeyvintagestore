@@ -28,6 +28,18 @@ export function parseMidi(data: ArrayLike<number> | null | undefined): MidiEvent
   return null;
 }
 
+/**
+ * Pitch bend range of the simulator pages, in semitones each way. The store's own choice: the
+ * keyboards' part bend range is in their Data Lists, not yet read (docs/SIMULATOR.md, S8b).
+ */
+export const BEND_RANGE = 2;
+
+/** Bend value (-1 … +1, from parseMidi) → cents, at `range` semitones each way. */
+export function bendCents(value: number, range = BEND_RANGE): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(-1, Math.min(1, value)) * range * 100;
+}
+
 /** Sustain (damper) pedal is CC 64 in MIDI 1.0; 64 and above is down. */
 export const SUSTAIN_CC = 64;
 

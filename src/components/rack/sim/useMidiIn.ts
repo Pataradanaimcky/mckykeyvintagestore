@@ -10,6 +10,8 @@ export interface MidiHandlers {
   noteOff: (note: number) => void;
   /** Sustain pedal (CC 64), down or up. */
   sustain?: (down: boolean) => void;
+  /** Pitch bend wheel, -1 … +1 (0 = centre). */
+  bend?: (value: number) => void;
   /** Any other control change (number, 0–127), for CC learn. */
   cc?: (cc: number, value: number) => void;
 }
@@ -57,6 +59,7 @@ export function useMidiIn(active: boolean, handlers: MidiHandlers) {
           else if (ev.type === "noteOff") h.noteOff(ev.note);
           else if (ev.type === "cc" && ev.cc === SUSTAIN_CC) h.sustain?.(ev.value >= 64);
           else if (ev.type === "cc") h.cc?.(ev.cc, ev.value);
+          else if (ev.type === "bend") h.bend?.(ev.value);
         },
         (list) => {
           setNames(list);
