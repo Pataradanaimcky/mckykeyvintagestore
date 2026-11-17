@@ -53,6 +53,36 @@ Owner request, 2026-11-16: the site has no MODX M or FANTOM simulator; he wants 
 - ZEN-Core tone (from Roland's [ZENOLOGY Owner's Manual](https://static.roland.com/assets/media/pdf/ZENOLOGY_Manual_eng09_W.pdf), same ZEN-Core engine; the FANTOM-0 Owner's Manual does not print a partial count): 4 partials, each on/off; OSC types PCM, VA, PCM-Sync, SuperSAW, Noise.
 - FANTOM-0 Reference Manual, Parameter Guide and MIDI Implementation are listed on [Roland's FANTOM-07 manuals page](https://www.roland.com/us/support/by_product/fantom-07/owners_manuals/), but the download sits behind a licence-agreement checkbox the agent cannot tick, so their contents are not read this run. Unknown: pad mode list, zone velocity range, number of scenes per SCENE SELECT screen as a fact for the simulator (STUDIO.md cites 4 × 4 from the Owner's Manual p. 17), MIDI messages.
 
+## ทดสอบกับเครื่องจริง (ประมาณ 10 นาที)
+
+สำหรับเจ้าของร้าน (ข้อ S11) ทดสอบการเล่นหน้า MODX M และ FANTOM-0 จากคีย์บอร์ดจริงทาง USB หน้าเว็บรับข้อมูลอย่างเดียว ไม่ส่งอะไรเข้าเครื่อง ไม่เปลี่ยน Performance / Scene บนเครื่อง ทำเฉพาะเครื่องที่มี
+
+ก่อนเริ่ม: ใช้ Chrome หรือ Edge บนคอมพิวเตอร์ ต่อสาย USB ก่อนเปิดหน้า ปิดโปรแกรมเพลงอื่นที่อาจจับพอร์ต MIDI ไว้ ลดเสียงของคีย์บอร์ดเองลง (เสียงเครื่องจะดังพร้อมเสียงจากหน้าเว็บ) เปิดหน้าแรก แล้วไปที่แร็ค แท็บ MODX M (`/#play-modxm`) หรือ FANTOM-0 (`/#play-fantom`) คลิกคีย์บนจอหนึ่งครั้งก่อน เพื่อให้เบราว์เซอร์เปิดเสียง
+
+### MODX M
+
+1. ต่อสาย USB จากช่อง [USB TO HOST] ของ MODX M เข้าคอมพิวเตอร์ บนเครื่องตั้ง MIDI IN/OUT เป็น USB ([UTILITY] → Settings → MIDI I/O) จดค่าเดิมไว้
+2. บนหน้าเว็บกด "ต่อคีย์บอร์ด USB" เมื่อเบราว์เซอร์ถามเรื่อง MIDI ให้กดอนุญาต ควรขึ้น "ต่อแล้ว" พร้อมชื่อพอร์ต
+3. เล่นโน้ตเบาและแรงบนเครื่อง: หน้าเว็บควรมีเสียง และเบา/แรงตามที่กด เหยียบ sustain แล้วปล่อย: เสียงควรค้างแล้วหยุด
+4. กด PART 1 บนหน้าเว็บ กด LEARN ข้างหัวข้อ PART LEVEL แล้วเลื่อน Control slider 1 บนเครื่อง: fader บนหน้าเว็บควรขยับตาม และขึ้นเลข CC
+5. กด LEARN ใต้ Super Knob บนหน้าเว็บ แล้วหมุน Super Knob บนเครื่อง: Super Knob บนหน้าเว็บควรขยับตาม ถ้าไม่ขยับ ลองหมุน Knob 1 แทน แล้วจดว่าอันไหนใช้ได้
+6. หมุน pitch bend wheel: ตอนนี้ยังไม่มีผลกับเสียงบนหน้าเว็บ (ข้อ S8b ยังไม่ทำ) ไม่ต้องจด
+
+แจ้งกลับ: ชื่อพอร์ตที่หน้าเว็บแสดง · มีเสียงไหม ช้าหรือกระตุกไหม · เบา/แรงและ sustain ใช้ได้ไหม · ข้อ 4 และ 5 ขึ้น CC เลขอะไร หรือไม่ขยับ · บนเครื่องมีอะไรเปลี่ยนไหม (ไม่ควรมี)
+
+### FANTOM-0
+
+1. ต่อสาย USB จากช่อง USB COMPUTER ของ FANTOM-0 เข้าคอมพิวเตอร์ ถ้าคอมพิวเตอร์ไม่เห็นเครื่อง: ดู [MENU] → SYSTEM → GENERAL → USB Driver (GENERIC ใช้ไดรเวอร์ของคอมพิวเตอร์) จดค่าเดิมไว้
+2. บนหน้าเว็บกด "ต่อคีย์บอร์ด USB" แล้วกดอนุญาต ควรขึ้น "ต่อแล้ว" พร้อมชื่อพอร์ต
+3. เล่นโน้ตเบาและแรง และเหยียบ sustain เหมือนข้อ 3 ของ MODX M
+4. ในรายการใต้ปุ่ม USB เลือก "SLIDER 1 (LEVEL)" กด LEARN แล้วเลื่อน Slider [1] บนเครื่อง: slider ZONE 1 บนหน้าเว็บควรขยับตาม และขึ้นเลข CC
+5. เลือก "KNOB 1 (PAN)" กด LEARN แล้วหมุน Knob [1] บนเครื่อง: knob PAN ของ ZONE 1 บนหน้าเว็บควรขยับตาม
+6. กด Pad 2 บนหน้าเว็บเพื่อเปลี่ยน Scene แล้วเลื่อน Slider [1] อีกครั้ง: ยังควรขยับตาม (ค่าที่ผูกไว้ไม่หายเมื่อเปลี่ยน Scene)
+
+แจ้งกลับ: ชื่อพอร์ตที่หน้าเว็บแสดง · รุ่น 06, 07 หรือ 08 · มีเสียงไหม ช้าหรือกระตุกไหม · เบา/แรงและ sustain ใช้ได้ไหม · ข้อ 4 และ 5 ขึ้น CC เลขอะไร หรือไม่ขยับ (ถ้าไม่ขยับ จดว่าปุ่ม PAN/LEVEL หรือ CTRL บนเครื่องติดอยู่อันไหน) · บนเครื่องมีอะไรเปลี่ยนไหม (ไม่ควรมี)
+
+ที่มาของชื่อช่องต่อและหน้าตั้งค่า: เหมือนการทดสอบใน docs/STUDIO.md ("ทดสอบกับเครื่องจริง": MODX M [USB TO HOST] และ MIDI I/O, FANTOM-0 USB COMPUTER และ USB Driver) ชื่อปุ่มบนเครื่องจาก MODX M Quick Guide pp. 23–25 และ FANTOM-06/07/08 Owner's Manual pp. 8–9, 19 (ดู Confirmed facts) เลข CC ที่ได้จะใช้ทำข้อ S8c / S8d ส่งผลให้ project manager agent ถ้ามีอะไรบนเครื่องเปลี่ยน ให้หยุดทดสอบและแจ้งทันที
+
 ## Checklist (work top to bottom; tick with the date)
 
 - [x] S0 (2026-11-16: MODX M top panel from Yamaha's Quick Guide; FANTOM-0 panel, Scene/zone structure and layer/split from Roland's Owner's Manual, partials from the ZENOLOGY manual; unknowns listed in Confirmed facts, Reference Manual items in S0b) Research, with sources in this file: from Yamaha's MODX M / MONTAGE M manuals, the Performance structure (parts, key and velocity ranges, Scenes, Super Knob assign), the three engines and their main parameters (FM-X operator count and algorithm count). From Roland's FANTOM-0 manuals, Scene / Zone / Tone / Partial structure and pad modes. Write down only what a manual confirms; list unknowns.
@@ -71,7 +101,7 @@ Owner request, 2026-11-16: the site has no MODX M or FANTOM simulator; he wants 
 - [ ] S8c Which CC each MODX M control (Super Knob, Assign knobs, Control sliders) sends by default, from Yamaha's MODX M Data List / Operation Manual, so the page can offer a ready map next to LEARN. Unknown until read; LEARN works without it.
 - [ ] S9 Web MIDI out, MODX M: documented Bank Select / Program Change to pick a Performance on the real keyboard; Super Knob and part knob CCs from the site's controls. Sources in this file.
 - [ ] S10 Web MIDI out, FANTOM-0: documented messages to pick a Scene; zone knob/slider CCs. Sources in this file.
-- [ ] S11 Owner test list ("ทดสอบกับเครื่องจริง") for S8–S10, like docs/STUDIO.md.
+- [x] S11 (2026-11-17: "ทดสอบกับเครื่องจริง" above, MODX M and FANTOM-0: notes, velocity, sustain, CC learn; pitch bend left out until S8b) Owner test list ("ทดสอบกับเครื่องจริง") for S8–S10, like docs/STUDIO.md.
 - [ ] S12 Send to the keyboard (owner request 2026-11-16): people arrange sounds on the site (simulator and /studio) and then send the result into their real MODX M / FANTOM-0. First research, with sources here, whether Yamaha's and Roland's official MIDI documentation describes receiving that data (bulk dump or parameter change for a Performance / Live Set / Scene). If it is documented: add it behind a clear confirmation, off by default, that warns it can overwrite the chosen memory and is untested on a real keyboard, and tell people to back up first. If it is not documented: give the steps on the keyboard instead and say plainly that the site cannot send it. Never write in an undocumented format.
 - [ ] S4c MODX M: read Quick Guide pp. 23–25 again on a Yamaha-hosted copy to confirm whether [SHIFT] + [PART SELECT] mutes the selected Part directly or turns the PART buttons into mute buttons (the 2026-11-16 notes say the former; this run could not open the PDF).
 - [ ] S5b FANTOM-0 [SPLIT] details from the Reference Manual (S0b): whether SPLIT also switches other zones off, and the default split key. The page keeps other zones as they are and turns zones 1 and 4 on (store's reading of Owner's Manual p. 17).
