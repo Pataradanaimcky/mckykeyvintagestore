@@ -13,3 +13,20 @@ export function packsHref(targetId: string): string | null {
   const inst = PACKS_INSTRUMENT[targetId];
   return inst ? `/packs?inst=${inst}` : null;
 }
+
+/**
+ * One plain link from the /studio demo banks to the matching simulator page in the home page rack
+ * (PM decision 2026-11-17, SIMULATOR.md S6 studio part). Values are rack page ids in
+ * src/components/rack/RackCarousel.tsx (checked in tests/packs-link.test.ts).
+ * DX7 gets none: the FM 6-OP rack page already plays DX7 files.
+ */
+const SIM_PAGE: Record<string, string> = {
+  "modx-m": "modxm",
+  "fantom-0": "fantom",
+};
+
+/** `/#play-<page>` for the organizer target, or null when that tab gets no simulator link. */
+export function simHref(targetId: string): string | null {
+  const page = SIM_PAGE[targetId];
+  return page ? `/#play-${page}` : null;
+}

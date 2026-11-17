@@ -19,7 +19,7 @@ import {
 import { MODX_BULK_NOTE, MODX_RECEIVE_LABEL, MODX_USB_HELP, namesOnPage, pageNameRequests, placeNames, readSlotNameReply, SlotNameCollector } from "@/lib/studio/modxm";
 import { getSound, guessSound, PREVIEW_SOUNDS } from "@/lib/studio/sounds";
 import { GmPreview } from "./gmPreview";
-import { packsHref } from "./packsLink";
+import { packsHref, simHref } from "./packsLink";
 import {
   decodeLayout,
   emptyLayout,
@@ -767,6 +767,13 @@ export function Organizer({ packs = [] }: { packs?: DemoPackInfo[] }) {
           <div className="flex flex-col gap-1">
             <h2 className="font-bold">ลองกับแบงก์เดโมของร้าน</h2>
             <p className="text-xs text-muted">โหลดเสียงในแพ็กลงเครื่อง แตะแต่ละช่องเพื่อฟังเดโม ลองสลับลองจัดได้ แต่ดาวน์โหลดไม่ได้</p>
+            {simHref(t.id) && (
+              <p className="text-xs">
+                <Link href={simHref(t.id)!} className="font-semibold text-ink underline underline-offset-2">
+                  ลองเล่นในซิมูเลเตอร์
+                </Link>
+              </p>
+            )}
           </div>
           <div className="flex flex-wrap gap-1.5">
             {demoPacks.map((p) => (
