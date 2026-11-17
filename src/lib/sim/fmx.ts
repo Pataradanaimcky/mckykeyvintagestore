@@ -197,3 +197,94 @@ export function renderVoice(v: FmVoice, patch: FmPatch, out: Float32Array, sampl
     out[n] += s * carrierGain;
   }
 }
+
+/** Note number to frequency (A4 = MIDI 69 = 440 Hz). */
+export const noteFreq = (note: number) => 440 * 2 ** ((note - 69) / 12);
+
+/** Voices per FM-X-style part: the store's own limit, kept low so phones keep up (SIMULATOR.md S3b). */
+export const FM_MAX_VOICES = 6;
+
+/**
+ * A polyphonic FM-X-style part: the voices of one patch, with a voice limit. A new note past the
+ * limit takes the oldest voice. Used by the AudioWorklet (src/worklets/fmx-processor.js), kept
+ * here so it can be tested without audio.
+ */
+export class FmPoly {
+  patch: FmPatch;
+  bendRatio = 1;
+  readonly maxVoices: number;
+  voices: { note: number; voice: FmVoice }[] = [];
+
+  constructor(patch: FmPatch, maxVoices = FM_MAX_VOICES) {
+    this.patch = patch;
+    this.maxVoices = Math.max(1, Math.floor(maxVoices));
+  }
+
+  noteOn(note: number, velocity: number) {
+    this.voices = this.voices.filter((v) => v.note !== note);
+    while (this.voices.length >= this.maxVoices) this.voices.shift();
+    this.voices.push({ note, voice: newVoice(noteFreq(note), velocity) });
+  }
+
+  noteOff(note: number) {
+    for (const v of this.voices) if (v.note === note) releaseVoice(v.voice);
+  }
+
+  allOff() {
+    for (const v of this.voices) releaseVoice(v.voice);
+  }
+
+  /** Pitch bend in cents, for held and new notes. */
+  setBend(cents: number) {
+    this.bendRatio = 2 ** (cents / 1200);
+  }
+
+  /**
+   * Mixes all voices into `out` (cleared first) and drops voices that have finished. A full chord
+   * can add up past 1, so the mix goes through a soft limit (tanh), which keeps it within -1..1.
+   */
+  render(out: Float32Array, sampleRate: number) {
+    out.fill(0);
+    const alg = ALGORITHMS[this.patch.algorithm] ?? ALGORITHMS[0];
+    for (const v of this.voices) renderVoice(v.voice, this.patch, out, sampleRate, this.bendRatio);
+    if (this.voices.length > 0) for (let n = 0; n < out.length; n++) out[n] = Math.tanh(out[n]);
+    this.voices = this.voices.filter((v) => !voiceDone(v.voice, alg));
+  }
+}
+
+const o = (ratio: number, level: number, attack: number, decay: number, sustain: number, release: number): Operator => ({ ratio, level, attack, decay, sustain, release });
+const silent = o(1, 0, 0, 0, 0, 0.1);
+
+/** The store's own FM-X-style sounds for the MODX M simulator (not Yamaha presets). */
+export const FM_PATCHES = {
+  /** Electric-piano-like: four carrier/modulator pairs, a short bright attack on two of them. */
+  tine: {
+    algorithm: 1,
+    feedback: 0,
+    ops: [
+      o(1, 0.9, 0.002, 1.8, 0.25, 0.4),
+      o(1, 0.35, 0.002, 1.2, 0.1, 0.3),
+      o(1, 0.5, 0.002, 2.4, 0.2, 0.5),
+      o(14, 0.18, 0.001, 0.25, 0, 0.1),
+      silent,
+      silent,
+      silent,
+      silent,
+    ],
+  },
+  /** Bell-like: three short stacks with ratios that are not whole numbers. */
+  bell: {
+    algorithm: 5,
+    feedback: 0.1,
+    ops: [
+      o(1, 0.8, 0.002, 3.5, 0, 1.5),
+      o(3.5, 0.45, 0.002, 2.5, 0, 1),
+      o(1, 0.25, 0.002, 1.5, 0, 0.8),
+      o(2, 0.5, 0.002, 2.8, 0, 1.2),
+      o(5.19, 0.3, 0.002, 1.6, 0, 0.8),
+      o(1, 0.2, 0.002, 1, 0, 0.5),
+      o(4, 0.25, 0.002, 1.2, 0, 0.6),
+      o(1, 0.2, 0.002, 0.6, 0, 0.3),
+    ],
+  },
+} satisfies Record<string, FmPatch>;

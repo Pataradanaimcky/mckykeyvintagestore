@@ -2,13 +2,15 @@
  * MODX M-style simulator: the rules, kept apart from audio so they can be tested.
  *
  * Works the way the keyboard is described (docs/SIMULATOR.md, sources there): a Performance of
- * parts, each part with a key range and its own engine (AWM2 sample, AN-X analog style here;
- * FM-X comes later), eight faders for part levels, a Super Knob with Left / Mid / Right position
+ * parts, each part with a key range and its own engine (AWM2 sample, AN-X analog style and an
+ * FM-X-style 8-operator FM voice of the store's own, src/lib/sim/fmx.ts), eight faders for part levels, a Super Knob with Left / Mid / Right position
  * buttons, and Scene buttons that recall settings. Every sound here is the store's own; the
  * sample part plays openly licensed General MIDI samples, not Yamaha's waveforms.
  */
 
-export type Engine = "AWM2" | "AN-X";
+import { FM_PATCHES, type FmPatch } from "./fmx.ts";
+
+export type Engine = "AWM2" | "AN-X" | "FM-X";
 
 /** Analog-style part settings, same meaning as the POLY page (each 0..1). */
 export interface AnSettings {
@@ -29,6 +31,8 @@ export interface Part {
   gm?: string;
   /** AN-X parts. */
   an?: AnSettings;
+  /** FM-X parts: the store's own FM patch (not a Yamaha voice). */
+  fm?: FmPatch;
   /** Lowest and highest MIDI note this part plays (inclusive). */
   low: number;
   high: number;
@@ -202,9 +206,11 @@ export const PERFORMANCES: Performance[] = [
     parts: [
       { name: "Tine EP", engine: "AWM2", gm: "electric_piano_1", ...ALL, level: 0.8 },
       { name: "Strings", engine: "AN-X", an: AN.strings, ...ALL, level: 0.5 },
+      { name: "FM Tine", engine: "FM-X", fm: FM_PATCHES.tine, ...ALL, level: 0.45 },
     ],
     knob: [
       { part: 1, param: "level", from: 0.1, to: 1 },
+      { part: 2, param: "level", from: 1, to: 0.3 },
       { part: 1, param: "cutoff", from: 0.35, to: 0.75 },
     ],
     knobStart: 0.4,
@@ -241,10 +247,12 @@ export const PERFORMANCES: Performance[] = [
     parts: [
       { name: "Sweep", engine: "AN-X", an: AN.sweep, ...ALL, level: 0.7 },
       { name: "Choir", engine: "AWM2", gm: "choir_aahs", ...ALL, level: 0.4 },
+      { name: "FM Bell", engine: "FM-X", fm: FM_PATCHES.bell, low: 60, high: 127, level: 0.35 },
     ],
     knob: [
       { part: 0, param: "cutoff", from: 0.1, to: 0.8 },
       { part: 1, param: "level", from: 0, to: 1 },
+      { part: 2, param: "level", from: 0.2, to: 1 },
     ],
     knobStart: 0.2,
   },

@@ -37,7 +37,7 @@ test("store Performances stay within the keyboard's eight keyboard parts and hav
   for (const p of PERFORMANCES) {
     assert.ok(p.parts.length >= 1 && p.parts.length <= MAX_PARTS);
     assert.ok(p.name.startsWith("MCKY "));
-    for (const part of p.parts) assert.ok(part.engine === "AWM2" ? !!part.gm : !!part.an);
+    for (const part of p.parts) assert.ok(part.engine === "AWM2" ? !!part.gm : part.engine === "FM-X" ? !!part.fm : !!part.an);
   }
 });
 

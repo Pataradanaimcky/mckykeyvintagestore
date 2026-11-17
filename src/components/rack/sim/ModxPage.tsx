@@ -140,7 +140,7 @@ export function ModxPage({ active }: { active: boolean }) {
   const midi = useMidiIn(active, {
     noteOn,
     noteOff,
-    // Pitch bend wheel: ±2 semitones (store's choice), heard on the AN-X / VA parts only for now.
+    // Pitch bend wheel: ±2 semitones (store's choice), heard on the AN-X and FM-X parts (not the AWM2 sample parts yet).
     bend: (v) => engine.current?.bend(bendCents(v)),
     sustain: (down) => {
       sustain.current.down = down;
@@ -401,7 +401,7 @@ export function ModxPage({ active }: { active: boolean }) {
 
       <p className="text-sm text-muted">
         <b className="text-ink">จำลองการทำงานแบบ MODX M · ไม่ใช่เสียงจริงของเครื่อง</b> เสียงทั้งหมดเป็นของร้าน: ส่วน AWM2 ใช้แซมเปิลเปิด FluidR3_GM
-        (CC BY 3.0) ส่วน AN-X ใช้ซินธ์อนาล็อกที่ร้านเขียนเอง MODX เป็นเครื่องหมายการค้าของ Yamaha Corporation ร้านไม่ได้เกี่ยวข้องกับ Yamaha
+        (CC BY 3.0) ส่วน AN-X ใช้ซินธ์อนาล็อกที่ร้านเขียนเอง ส่วน FM-X ใช้ FM 8 operator ที่ร้านเขียนเอง (ไม่ใช่ algorithm ของ Yamaha) MODX เป็นเครื่องหมายการค้าของ Yamaha Corporation ร้านไม่ได้เกี่ยวข้องกับ Yamaha
       </p>
       <p className="text-sm">
         <Link href={packsHref("modx-m") ?? "/packs"} className="font-semibold text-ink underline underline-offset-2">
