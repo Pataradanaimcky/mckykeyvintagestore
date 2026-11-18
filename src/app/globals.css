@@ -1987,6 +1987,9 @@ html.js [data-reveal].is-in {
 }
 .sim-pad {
   min-height: 2.6rem;
+  padding-inline: 0.15rem;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
 }
 .sim-pad:disabled {
   opacity: 0.35;

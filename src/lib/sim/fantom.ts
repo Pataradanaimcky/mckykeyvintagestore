@@ -117,6 +117,75 @@ export function toggleZone(on: readonly boolean[], index: number): boolean[] {
   return next;
 }
 
+/**
+ * What the pads do. ZONE MUTE and ZONE SOLO are the keyboard's Pad Mode values (FANTOM-06/07/08
+ * Parameter Guide p. 4; Reference Manual p. 106). SYSTEM uses the system's pad setting (p. 107);
+ * on this page that setting is the store's shortcut of picking Scenes with the pads.
+ */
+export type PadMode = "SYSTEM" | "ZONE MUTE" | "ZONE SOLO";
+
+/** On the PAD screen a pad picks the mode: pad [5], [6] and [16] (Reference Manual pp. 106–107), as indexes. */
+export const PAD_MODE_PADS: Readonly<Record<number, PadMode>> = { 4: "ZONE MUTE", 5: "ZONE SOLO", 15: "SYSTEM" };
+
+export interface PadState {
+  mode: PadMode;
+  /** [PAD MODE] was pressed: the next pad picks the mode. */
+  choosing: boolean;
+  /** Zones muted with the pads; several may be muted. */
+  mutes: boolean[];
+  /** The one soloed zone, or null. */
+  solo: number | null;
+}
+
+export const PAD_START: PadState = { mode: "SYSTEM", choosing: false, mutes: [], solo: null };
+
+/** [PAD MODE]: shows the PAD screen, or leaves it when pressed again (leaving is the store's choice). */
+export const pressPadMode = (state: PadState): PadState => ({ ...state, choosing: !state.choosing });
+
+/** A new Scene starts with no pad mutes or solo and keeps the pad mode (store's choice; the manual does not say). */
+export const padsForNewScene = (state: PadState): PadState => ({ ...state, choosing: false, mutes: [], solo: null });
+
+/**
+ * One press of a pad. Pad number = zone number in ZONE MUTE (each press turns that zone's mute on
+ * or off) and ZONE SOLO (only that zone is heard, one zone at a time, the same pad again cancels;
+ * Reference Manual p. 106). `scene` is the Scene to select, or null.
+ */
+export function pressPad(state: PadState, pad: number, zoneCount: number, sceneCount: number): { state: PadState; scene: number | null } {
+  if (state.choosing) {
+    const mode = PAD_MODE_PADS[pad];
+    return { state: mode ? { ...state, mode, choosing: false } : state, scene: null };
+  }
+  if (state.mode === "SYSTEM") return { state, scene: pad >= 0 && pad < sceneCount ? pad : null };
+  if (pad < 0 || pad >= zoneCount) return { state, scene: null };
+  if (state.mode === "ZONE SOLO") return { state: { ...state, solo: state.solo === pad ? null : pad }, scene: null };
+  const mutes = Array.from({ length: zoneCount }, (_, i) => !!state.mutes[i]);
+  mutes[pad] = !mutes[pad];
+  return { state: { ...state, mutes }, scene: null };
+}
+
+/**
+ * Zones that can be heard: lit with ZONE INT/EXT, not muted, and the soloed zone when there is one.
+ * A solo does not turn on a zone that is off or undo a mute (store's reading; the manual does not say).
+ */
+export const audibleZones = (on: readonly boolean[], pads: PadState): boolean[] =>
+  on.map((v, i) => v && !pads.mutes[i] && (pads.solo === null || pads.solo === i));
+
+/** How a pad looks and reads in the current state. */
+export function padFace(state: PadState, pad: number, zoneCount: number, sceneNames: readonly string[], sceneIndex: number): { label: string; enabled: boolean; pressed: boolean; aria: string } {
+  const n = pad + 1;
+  if (state.choosing) {
+    const mode = PAD_MODE_PADS[pad];
+    return { label: mode ?? String(n), enabled: !!mode, pressed: mode === state.mode, aria: mode ? `Pad ${n}: เลือกโหมด ${mode}` : `Pad ${n} (โหมดนี้ยังไม่มีในหน้านี้)` };
+  }
+  if (state.mode === "SYSTEM") {
+    const name = sceneNames[pad];
+    return { label: String(n), enabled: name !== undefined, pressed: pad === sceneIndex, aria: name !== undefined ? `Pad ${n}: Scene ${name}` : `Pad ${n} (ว่าง)` };
+  }
+  const exists = pad < zoneCount;
+  const word = state.mode === "ZONE MUTE" ? "MUTE" : "SOLO";
+  return { label: String(n), enabled: exists, pressed: exists && (state.mode === "ZONE MUTE" ? !!state.mutes[pad] : state.solo === pad), aria: exists ? `Pad ${n}: ${word} ZONE ${n}` : `Pad ${n} (Scene นี้ไม่มี ZONE ${n})` };
+}
+
 /** What a keyboard knob or slider can be learnt to on the page: a zone's slider (LEVEL) or knob (PAN). */
 export type ZoneControl = "level" | "pan";
 export type FantomLearnTarget = `${ZoneControl}${number}`;

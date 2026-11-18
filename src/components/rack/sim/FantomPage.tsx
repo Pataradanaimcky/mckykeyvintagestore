@@ -9,20 +9,27 @@ import { OctaveSwitch, RackKeys } from "../RackKeys";
 import {
   applyZoneControl,
   asPerformance,
+  audibleZones,
   channelLevel,
   FANTOM_SCENES,
   learnTargets,
   noteName,
   noteTargets,
   PAD_COUNT,
+  PAD_START,
+  padFace,
+  padsForNewScene,
   PANEL_ZONES,
   panText,
   partialChannels,
   partialText,
+  pressPad,
+  pressPadMode,
   setSplit,
   toggleZone,
   zoneRange,
   type FantomLearnTarget,
+  type PadState,
   type SplitState,
 } from "@/lib/sim/fantom";
 import { emptyLearn, forget, handleCc, toggleLearn, type LearnState, bendCents } from "@/lib/sim/midi";
@@ -38,11 +45,15 @@ const MIDI_TEXT = {
 } as const;
 
 const NO_SPLIT: SplitState = { key: null };
+const SCENE_NAMES = FANTOM_SCENES.map((s) => s.name);
+
+const padHint = (pads: PadState) =>
+  pads.choosing ? "กด Pad 5 MUTE · 6 SOLO · 16 SYSTEM" : pads.mode === "ZONE MUTE" ? "ZONE MUTE: Pad = ZONE" : pads.mode === "ZONE SOLO" ? "ZONE SOLO: ฟังทีละ ZONE" : "SYSTEM: เลือก Scene";
 
 /**
  * FANTOM-0-style page of the rack: a Scene of zones (layer with ZONE INT/EXT, split with [SPLIT]
  * and a key), knobs [1]–[8] for zone pan and sliders [1]–[8] for zone volume (PAN/LEVEL, Owner's
- * Manual p. 19), and pads that select Scenes. An emulation with the store's own sounds; see
+ * Manual p. 19), and pads with [PAD MODE]: ZONE MUTE, ZONE SOLO, or picking Scenes. An emulation with the store's own sounds; see
  * docs/SIMULATOR.md.
  */
 export function FantomPage({ active }: { active: boolean }) {
@@ -53,6 +64,8 @@ export function FantomPage({ active }: { active: boolean }) {
   const [on, setOn] = useState<boolean[]>(() => scene.zones.map((z) => z.on));
   const [split, setSplitState] = useState<SplitState>(NO_SPLIT);
   const [splitArmed, setSplitArmed] = useState(false);
+  const [pads, setPads] = useState<PadState>(PAD_START);
+  const audible = audibleZones(on, pads);
   const [octave, setOctave] = useState(0);
   const [held, setHeld] = useState<ReadonlySet<number>>(new Set());
   const [loading, setLoading] = useState<"idle" | "loading" | "ready" | "failed">("idle");
@@ -68,9 +81,9 @@ export function FantomPage({ active }: { active: boolean }) {
   const engine = useRef<SimEngine | null>(null);
   const loadedFor = useRef(-1);
   const sustain = useRef({ down: false, notes: new Set<number>() });
-  const live = useRef({ scene, on, split, splitArmed });
+  const live = useRef({ scene, on, audible, split, splitArmed });
   useEffect(() => {
-    live.current = { scene, on, split, splitArmed };
+    live.current = { scene, on, audible, split, splitArmed };
   });
 
   const ensure = useCallback(() => {
@@ -88,15 +101,17 @@ export function FantomPage({ active }: { active: boolean }) {
     return e;
   }, [sceneIndex]);
 
-  // Sliders, knobs and ZONE INT/EXT drive every partial channel of their zone.
+  // Sliders, knobs, ZONE INT/EXT and the pads' MUTE / SOLO drive every partial channel of their zone.
+  const audibleKey = audible.join();
   useEffect(() => {
     const e = engine.current;
     if (!e || loadedFor.current !== sceneIndex) return;
+    const heard = audibleKey.split(",").map((v) => v === "true");
     partialChannels(scene).forEach((c, i) => {
-      e.setLevel(i, channelLevel(c, levels, on));
+      e.setLevel(i, channelLevel(c, levels, heard));
       e.setPan(i, pans[c.zone] ?? 0.5);
     });
-  }, [scene, sceneIndex, levels, pans, on, loading]);
+  }, [scene, sceneIndex, levels, pans, audibleKey, loading]);
 
   const chooseScene = (i: number) => {
     const n = (i + FANTOM_SCENES.length) % FANTOM_SCENES.length;
@@ -109,6 +124,7 @@ export function FantomPage({ active }: { active: boolean }) {
     setOn(s.zones.map((z) => z.on));
     setSplitState(NO_SPLIT);
     setSplitArmed(false);
+    setPads(padsForNewScene);
     if (engine.current) loadedFor.current = -1;
   };
 
@@ -119,7 +135,7 @@ export function FantomPage({ active }: { active: boolean }) {
   const noteOn = useCallback(
     (note: number, velocity = 0.8) => {
       const e = ensure();
-      const { scene: s, on: o, split: sp, splitArmed: armed } = live.current;
+      const { scene: s, on: o, audible: heard, split: sp, splitArmed: armed } = live.current;
       // [SPLIT] held + a key sets the split point (Owner's Manual p. 17).
       if (armed) {
         const r = setSplit(o, note);
@@ -128,7 +144,7 @@ export function FantomPage({ active }: { active: boolean }) {
         setSplitArmed(false);
         return;
       }
-      const targets = noteTargets(s, note, o, sp);
+      const targets = noteTargets(s, note, heard, sp);
       sustain.current.notes.delete(note);
       e.noteOn(note, targets, velocity);
       setHeld((h) => new Set(h).add(note));
@@ -183,6 +199,12 @@ export function FantomPage({ active }: { active: boolean }) {
     } else setSplitArmed(true);
   };
 
+  const hitPad = (i: number) => {
+    const r = pressPad(pads, i, Math.min(scene.zones.length, PAD_COUNT), FANTOM_SCENES.length);
+    setPads(r.state);
+    if (r.scene !== null) chooseScene(r.scene);
+  };
+
   const [wasActive, setWasActive] = useState(active);
   if (active !== wasActive) {
     setWasActive(active);
@@ -233,7 +255,7 @@ export function FantomPage({ active }: { active: boolean }) {
                 {scene.zones.map((z, i) => {
                   const r = zoneRange(z, i, split);
                   return (
-                    <li key={i} className={`sim-part ${on[i] ? "" : "is-mute"}`}>
+                    <li key={i} className={`sim-part ${audible[i] ? "" : "is-mute"}`}>
                       <span>{i + 1}</span>
                       <span className="truncate">{z.tone.name}</span>
                       <span>{partialText(z.tone)}</span>
@@ -245,7 +267,11 @@ export function FantomPage({ active }: { active: boolean }) {
                 })}
               </ol>
               <div className="rack-lcd-row rack-lcd-small">
-                <span>ZONE {on.map((v, i) => (v ? i + 1 : null)).filter((v) => v !== null).join(" ") || "—"}</span>
+                <span className="truncate">
+                  ZONE {on.map((v, i) => (v ? i + 1 : null)).filter((v) => v !== null).join(" ") || "—"}
+                  {pads.mutes.some(Boolean) && ` · MUTE ${pads.mutes.map((v, i) => (v ? i + 1 : null)).filter((v) => v !== null).join(" ")}`}
+                  {pads.solo !== null && ` · SOLO ${pads.solo + 1}`}
+                </span>
                 <span>{statusText}</span>
               </div>
             </div>
@@ -364,26 +390,21 @@ export function FantomPage({ active }: { active: boolean }) {
             </div>
           </div>
 
-          {/* Pads [1]–[16]: here they select Scenes. */}
+          {/* Pads [1]–[16] and [PAD MODE]: press it, then a pad picks what the pads do. */}
           <div className="rack-panel col-span-6 md:col-span-5">
             <div className="flex items-center justify-between gap-2">
               <p className="rack-title">PAD</p>
-              <span className="rack-hint">เลือก Scene</span>
+              <span className="rack-hint min-w-0 flex-1 truncate text-right">{padHint(pads)}</span>
+              <button type="button" className={`rack-mini shrink-0 px-1.5 text-[0.55rem] ${pads.choosing ? "sim-shift-on" : ""}`} aria-pressed={pads.choosing} onClick={() => setPads(pressPadMode)}>
+                PAD MODE
+              </button>
             </div>
-            <div className="sim-pads" role="group" aria-label="Pad เลือก Scene">
+            <div className="sim-pads" role="group" aria-label={`Pad โหมด ${pads.mode}`}>
               {Array.from({ length: PAD_COUNT }, (_, i) => {
-                const exists = i < FANTOM_SCENES.length;
+                const face = padFace(pads, i, scene.zones.length, SCENE_NAMES, sceneIndex);
                 return (
-                  <button
-                    key={i}
-                    type="button"
-                    className="rack-preset sim-pad"
-                    disabled={!exists}
-                    aria-pressed={sceneIndex === i}
-                    onClick={() => chooseScene(i)}
-                    aria-label={exists ? `Pad ${i + 1}: Scene ${FANTOM_SCENES[i].name}` : `Pad ${i + 1} (ว่าง)`}
-                  >
-                    {i + 1}
+                  <button key={i} type="button" className="rack-preset sim-pad" disabled={!face.enabled} aria-pressed={face.pressed} onClick={() => hitPad(i)} aria-label={face.aria}>
+                    {face.label}
                   </button>
                 );
               })}
@@ -393,7 +414,7 @@ export function FantomPage({ active }: { active: boolean }) {
           <div className="rack-panel rack-keys col-span-6 md:col-span-12">
             <div className="flex items-center justify-between gap-3">
               <p className="rack-title">KEYS</p>
-              <p className="rack-hint hidden sm:block">ซ้อนเสียงด้วย ZONE · แบ่งคีย์ด้วย SPLIT · Pad เลือก Scene</p>
+              <p className="rack-hint hidden sm:block">ซ้อนเสียงด้วย ZONE · แบ่งคีย์ด้วย SPLIT · PAD MODE เปลี่ยนหน้าที่ Pad</p>
             </div>
             <RackKeys active={active} held={held} octave={octave} onNoteOn={(n) => noteOn(n)} onNoteOff={noteOff} />
           </div>

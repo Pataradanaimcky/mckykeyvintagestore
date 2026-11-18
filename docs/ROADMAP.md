@@ -30,7 +30,7 @@ Others:
 
 Agents add one line each: date · agent · question · options · recommendation. The PM answers in docs/DESIGN_LOG.md under "Decisions by the project manager" and removes the line here.
 
-None open.
+- 2026-11-18 · simulator · Roland's manuals page puts a licence checkbox before its downloads, but a web search returned the FANTOM-06/07/08 Parameter Guide and Reference Manual directly on static.roland.com, and I read them there for facts (S0b, pad modes). May agents keep reading these direct copies? This touches licence terms, so it may be the owner's call · Options: keep reading them, noting facts in our own words / stop and treat their contents as unknown, removing PAD MODE / owner reads the terms first · Recommend: keep reading, since they are public on Roland's own host and nothing from them is copied or shipped; the page change is easy to undo.
 
 ## Waiting on the owner
 

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { activePartials, applyZoneControl, asPerformance, channelLevel, learnTargets, MAX_SCENE_PARTIALS, noteTargets, PARTIAL_COUNT, partialChannels, partialText, zoneChannels, readLearnTarget, FANTOM_SCENES, noteName, PAD_COUNT, panText, setSplit, SPLIT_LOWER, SPLIT_UPPER, toggleZone, ZONE_COUNT, zoneRange, zonesForNote } from "../src/lib/sim/fantom.ts";
+import { activePartials, applyZoneControl, audibleZones, PAD_START, padFace, padsForNewScene, pressPad, pressPadMode, asPerformance, channelLevel, learnTargets, MAX_SCENE_PARTIALS, noteTargets, PARTIAL_COUNT, partialChannels, partialText, zoneChannels, readLearnTarget, FANTOM_SCENES, noteName, PAD_COUNT, panText, setSplit, SPLIT_LOWER, SPLIT_UPPER, toggleZone, ZONE_COUNT, zoneRange, zonesForNote } from "../src/lib/sim/fantom.ts";
 
 const grand = FANTOM_SCENES[0];
 const onOf = (s: (typeof FANTOM_SCENES)[number]) => s.zones.map((z) => z.on);
@@ -118,4 +118,54 @@ test("a learnt keyboard control moves only its zone's slider or knob", () => {
   // A zone the Scene does not have, or an unknown target, changes nothing.
   assert.deepEqual(applyZoneControl([0.1], [0.5], "level5", 1), { levels: [0.1], pans: [0.5] });
   assert.deepEqual(applyZoneControl([0.1], [0.5], "bogus", 1), { levels: [0.1], pans: [0.5] });
+});
+
+const pick = (pad: number) => pressPad(pressPadMode(PAD_START), pad, 4, 8).state;
+
+test("[PAD MODE] then pad 5, 6 or 16 picks ZONE MUTE, ZONE SOLO or SYSTEM; other pads pick nothing", () => {
+  assert.equal(pick(4).mode, "ZONE MUTE");
+  assert.equal(pick(5).mode, "ZONE SOLO");
+  assert.equal(pressPad(pressPadMode(pick(4)), 15, 4, 8).state.mode, "SYSTEM");
+  const other = pressPad(pressPadMode(PAD_START), 0, 4, 8);
+  assert.equal(other.state.choosing, true);
+  assert.equal(other.state.mode, "SYSTEM");
+  assert.equal(other.scene, null);
+  assert.equal(pressPadMode(pressPadMode(PAD_START)).choosing, false);
+});
+
+test("SYSTEM: a pad picks a Scene on this page; an empty pad does nothing", () => {
+  assert.equal(pressPad(PAD_START, 3, 4, 8).scene, 3);
+  assert.equal(pressPad(PAD_START, 8, 4, 8).scene, null);
+});
+
+test("ZONE MUTE: pad = zone, each press toggles, several zones may be muted, held notes follow through the level", () => {
+  let s = pressPad(pick(4), 0, 4, 8).state;
+  s = pressPad(s, 1, 4, 8).state;
+  assert.deepEqual(s.mutes, [true, true, false, false]);
+  assert.deepEqual(audibleZones([true, true, true, false], s), [false, false, true, false]);
+  assert.equal(pressPad(s, 9, 4, 8).state, s);
+  assert.deepEqual(pressPad(s, 1, 4, 8).state.mutes, [true, false, false, false]);
+  const heard = audibleZones(onOf(grand), s);
+  assert.deepEqual(noteTargets(grand, 60, heard), []);
+  assert.equal(channelLevel(partialChannels(grand)[0], grand.zones.map((z) => z.level), heard), 0);
+});
+
+test("ZONE SOLO: one zone at a time, the same pad cancels, an unlit or muted zone stays silent", () => {
+  let s = pressPad(pick(5), 1, 4, 8).state;
+  assert.deepEqual(audibleZones([true, true, true, true], s), [false, true, false, false]);
+  s = pressPad(s, 2, 4, 8).state;
+  assert.equal(s.solo, 2);
+  assert.deepEqual(audibleZones([true, true, false, true], s), [false, false, false, false]);
+  assert.equal(pressPad(s, 2, 4, 8).state.solo, null);
+  assert.deepEqual(audibleZones([true, true], { ...PAD_START, solo: 0, mutes: [true] }), [false, false]);
+});
+
+test("a new Scene clears pad mutes and solo and keeps the mode; pad faces follow the mode", () => {
+  const s = pressPad(pick(4), 2, 4, 8).state;
+  assert.deepEqual(padsForNewScene({ ...s, solo: 1 }), { mode: "ZONE MUTE", choosing: false, mutes: [], solo: null });
+  assert.equal(padFace(s, 2, 4, ["A"], 0).pressed, true);
+  assert.equal(padFace(s, 4, 4, ["A"], 0).enabled, false);
+  assert.equal(padFace(pressPadMode(s), 4, 4, ["A"], 0).label, "ZONE MUTE");
+  assert.equal(padFace(pressPadMode(s), 0, 4, ["A"], 0).enabled, false);
+  assert.deepEqual([padFace(PAD_START, 0, 4, ["A"], 0).enabled, padFace(PAD_START, 1, 4, ["A"], 0).enabled], [true, false]);
 });
