@@ -1,6 +1,6 @@
 # Roadmap
 
-Kept by the project manager agent ("Mcky project manager"). See AGENTS.md, "Who decides". Last updated 2026-11-17.
+Kept by the project manager agent ("Mcky project manager"). See AGENTS.md, "Who decides". Last updated 2026-11-18.
 
 ## Goal
 
@@ -8,36 +8,33 @@ Sell the owner's sound packs. The free tools (playable synths, sound organizer) 
 
 ## Now
 
-- Health 2026-11-17: main (bda362b) passes lint, typecheck, 115 tests and a clean build. Live site not checked this run: the PM's session could not open mckykeyvintagestore.vercel.app (proxy 403 / fetch permission not granted), so whether the live pages load is unknown today.
-- Interface agent (daily 17:43, last run today 2026-11-17): its 2026-11-16 run could not push. It left a note in the Claude Project (`claude/interface-run-2026-11-16-push-blocked.md`): the repo is not in that scheduled task's sources, so the git proxy refused the push (403). This explains why none of its work since 2026-11-12 reached main. Only the owner can fix the task's repository access (Waiting on the owner).
-- Simulator agent (runs every 4 hours per its schedule, until 2026-12-13): moving well. Since the last report: MODX M page got the keyboard's own PART / [SHIFT] + [PART SELECT] / [SHIFT] + KNOB POSITION steps and CC learn; a first FANTOM-0 page is in the rack (/#play-fantom: 8 store Scenes, zone pan/level, ZONE INT/EXT, SPLIT, pads pick Scenes, USB keyboard in) with CC learn. Both pages are playable; next is leading players from them to the packs.
-- Researcher agent (runs every 6 hours per its schedule, until 2026-11-26): added the /studio → packs links on 2026-11-16 (former Next 2); its later runs had nothing listed and made no commit, as decided. New listed task: Next 4.
+- Health 2026-11-18: main (568c448) passes lint, typecheck, 134 tests and a clean build. Live site not checked again: the PM's session cannot open mckykeyvintagestore.vercel.app (proxy refused the connection, 403), so whether the live pages load is unknown (second day).
+- Interface agent: stopped. Its scheduled run of 2026-11-17 17:43 did not happen: the server turned the task off because its model needed usage credits on the owner's plan. Its planned end date was that day anyway. Its 2026-11-14 buying-path patch is still only in the Claude Project (`claude/buying-path-steps-2026-11-14.patch`), not on the site. Only the owner can decide whether store-page work continues (Waiting on the owner).
+- Simulator agent (every 4 hours, until 2026-12-13): moving well, no questions. Since the last report: pack links from both pages, the owner's USB test list, pitch bend on the analog-style parts, FM-X-style parts on the MODX M page (store's own 8-operator FM in an AudioWorklet), and FANTOM-0 tones of up to 4 partials. With Next 1–3 of 2026-11-17 done it took S3 and S5d on its own, as the checklist allowed. New items: Next 1–2.
+- Researcher agent (every 6 hours, until 2026-11-26): nothing to do until the owner's real-keyboard test; PM decision 2026-11-18: no new /studio work and no commits until then.
 
 ## Next
 
 Simulator agent, in this order:
-1. Simulator agent: on the MODX M and FANTOM-0 rack pages, one plain link under the page to that keyboard's packs (`/packs?inst=yamaha-modx-m`, `/packs?inst=roland-fantom-0`, ids as in src/components/studio/packsLink.ts), in src/components/rack/sim only; no claims about the packs (PM decision 2026-11-17).
-2. Simulator agent: S11, a short Thai owner test list ("ทดสอบกับเครื่องจริง") in docs/SIMULATOR.md for what is live now: play both pages from a USB MODX M / FANTOM-0 in Chrome (notes, velocity, sustain, CC learn). Ten minutes at most, like the one in docs/STUDIO.md.
-3. Simulator agent: S8b pitch bend heard on both pages (±2 semitones, store's own choice), without changing the POLY page's sound.
+1. Simulator agent: S7 phone check of the MODX M and FANTOM-0 pages now that FM-X parts and 4-partial tones are in (390px, Chromium with CPU throttling): note in docs/SIMULATOR.md a voice and CPU budget; lower the store's voice or partial limits only if the check shows dropouts or a stuck page. No change to MODULAR, FM 6-OP or POLY.
+2. Simulator agent: S8c, which CC each MODX M control sends by default, from Yamaha's own documents (Data List / Operation Manual on yamaha.com) with sources in SIMULATOR.md, shown as a ready map next to LEARN and labelled "ยังไม่ได้ทดสอบกับเครื่องจริง"; anything not printed stays unknown.
 
 Others:
-4. Researcher agent: on /studio, next to the MODX M and FANTOM-0 demo banks, one plain link "ลองเล่นในซิมูเลเตอร์" to `/#play-modxm` / `/#play-fantom` (SIMULATOR.md S6, studio part), in src/components/studio only; none on DX7 (the FM 6-OP page already plays DX7 files; leave it).
-5. Interface agent, only if the owner fixes its repository access before 17:43 today: put the saved 2026-11-14 buying-path patch (`claude/buying-path-steps-2026-11-14.patch` in the Claude Project) on main; src part applies to current main, docs lines by hand; run all checks, push. Otherwise this waits for the owner's choice about the task.
-6. Owner: 10-minute real-keyboard test of the /studio read-only buttons ("ทดสอบกับเครื่องจริง" in docs/STUDIO.md). It unblocks the remaining researcher items (1a, 1d, 3d, 4f, 4h, 4o, 5b, 5e, 5h, 5k) and STUDIO.md 6.
-7. Owner, once Next 2 is in: try both simulators with his MODX M and FANTOM-0 over USB (Chrome), using the new test list in docs/SIMULATOR.md.
-8. Simulator agent, later: S9/S10 (pick a Performance/Scene on the real keyboard) only after the owner's USB test and once the documented messages are written in SIMULATOR.md; S3 FM-X engine; S5 tones of up to 4 partials.
-9. Researcher agent, later: STUDIO.md item 6 (other keyboards' sound lists), only after the owner's real-keyboard test.
-10. Needs a new task or the interface agent: link pack pages to the matching simulator page (SIMULATOR.md S6, store part); the simulator and researcher agents do not touch store pages.
+3. Owner: try both simulators with his MODX M and FANTOM-0 over USB in Chrome, using "ทดสอบกับเครื่องจริง" in docs/SIMULATOR.md (about 10 minutes). Its CC numbers feed S8c/S8d.
+4. Owner: 10-minute real-keyboard test of the /studio read-only buttons ("ทดสอบกับเครื่องจริง" in docs/STUDIO.md). It unblocks the researcher's remaining items (1a, 1d, 3d, 4f, 4h, 4o, 5b, 5e, 5h, 5k) and STUDIO.md 6.
+5. Needs a new task or the interface agent (owner's choice, Waiting on the owner): put the saved 2026-11-14 buying-path patch on main, then link pack pages to the matching simulator page (SIMULATOR.md S6, store part). The simulator and researcher agents do not touch store pages.
+6. Simulator agent, later: S9/S10 (pick a Performance/Scene on the real keyboard) only after the owner's USB test and once the documented messages are written in SIMULATOR.md; S8e (bend on sample parts; any new dependency goes to the PM first); S3c, S5b, S5c, S5e when their manual facts are read.
+7. Researcher agent, later: STUDIO.md item 6 (other keyboards' sound lists), only after the owner's real-keyboard test.
 
 ## Questions for the PM
 
 Agents add one line each: date · agent · question · options · recommendation. The PM answers in docs/DESIGN_LOG.md under "Decisions by the project manager" and removes the line here.
 
-- 2026-11-18 · researcher · All my open /studio items (1a, 1d, 3d, 4f, 4h, 4o, 5b, 5e, 5h, 5k) wait for the owner's real-keyboard test, and manual searches have stopped finding anything new (FANTOM-0 Bank Select C/D rows and FM Converter output name looked up again today, still not printed). What should I do until the test? Options: (a) pause my hourly runs until the owner tests; (b) a small tested /studio usability item, e.g. a short Thai "ยังรอทดสอบกับเครื่องจริง" list on the page of what is untested; (c) start STUDIO.md 6 (other keyboards) early. Recommendation: (b) once, then (a).
+None open.
 
 ## Waiting on the owner
 
-- Interface task (accounts and agents), still waiting since 2026-11-16, new fact today: its pushes fail because the repo is not in that scheduled task's sources. PM recommends: open "Vintage Keys interface expert", add Pataradanaimcky/mckykeyvintagestore with write access, and extend it one week (end date in its prompt), store pages only, buying path first. Its last scheduled run is today 17:43 Bangkok. Alternative: let it end and apply the saved buying-path patch himself.
+- Store-page work after the interface task stopped (accounts and money), changed 2026-11-18: the task was turned off on 2026-11-17 because its model needed usage credits, and its end date has passed. PM recommends: one store-pages task (on the same model as the other tasks, so no extra credits), with this repo added with write access, for one week: apply the saved buying-path patch first, then link pack pages to the simulators. Alternatives: apply the patch himself; or leave the store pages as they are for now.
 - Contact details for the store (accounts): a LINE OA or email buyers can write to (src/config/site.ts). PM recommends an email made only for the store. Asked 2026-11-14, no answer yet.
 - Demo recordings: the first pack's 8 patches as 15–30 second loops (src/content/demos.ts). PM recommends these before anything else on the store side. Asked 2026-11-14, no answer yet.
 - Payment gateway (money): payments stay simulated until he chooses one (Opn Payments/Omise, Stripe, 2C2P, GB Prime Pay; see docs/PAYMENTS.md). PM recommends comparing Opn Payments and Stripe first, since both give automatic PromptPay confirmation. The choice also decides how a phone buyer pays a QR shown on the same phone (interface question of 2026-11-14). Asked 2026-11-15.
@@ -46,16 +43,17 @@ Agents add one line each: date · agent · question · options · recommendation
 - Brand mark redraw (brand): PM recommends keeping the current logo and site icon.
 - Real pack names, prices and counts: the owner replaces the sample data himself (owner decision; agents do not ask).
 - Own photos of his own keyboards for pack covers (optional).
-- Real-keyboard test of the read-only USB buttons (Next item 3), if he has the keyboards.
+- Real-keyboard test of the read-only USB buttons (Next 4) and of both simulators (Next 3), if he has the keyboards.
 - Simulator versions of the store's packs (later, docs/SIMULATOR.md S4–S5): which store sounds may be rebuilt as simulator presets.
 
 ## Risks
 
-- The interface agent cannot push (repo not in its task's sources); its buying-path fix exists only as a Project patch, and the task ends after today's run unless the owner changes it.
-- The PM's own live-site check can fail when the session cannot reach vercel.app (2026-11-17); then a broken deploy is noticed only by the next run or by visitors.
-- The simulators' USB input and CC learn are tested only with a mocked Web MIDI, not on a real MODX M or FANTOM-0.
+- No agent can change store pages now that the interface task is off; the buying-path fix exists only as a Project patch.
+- The PM's live-site check fails when the session cannot reach vercel.app (2026-11-17 and 2026-11-18); a broken deploy is then noticed only by visitors or the owner.
+- The simulator pages got heavier (FM-X worklet, up to 8 partial channels per Scene) and are checked only in desktop Chromium at phone width, not on real phones (Next 1).
+- The simulators' USB input, CC learn and pitch bend are tested only with a mocked Web MIDI, not on a real MODX M or FANTOM-0.
 - Payments are simulated; the store cannot take real money until a gateway is chosen and set up.
-- MODX M and FANTOM-0 previews load FluidR3_GM samples from a third-party host (midi-js-soundfonts on GitHub); if it goes down, previews go silent.
+- MODX M and FANTOM-0 previews and simulator sample parts load FluidR3_GM samples from a third-party host (midi-js-soundfonts on GitHub); if it goes down, those parts go silent (the pages show SAMPLE ERROR).
 - The read-only USB buttons (DX7 receive, MODX M Slot Names, FANTOM-0 Scene Name) are untested on real keyboards; some manual facts come from third-party manual copies (Kraft Music, manualmachine.com, manualsonline.com).
 - When it works, the PM's live-site check reads page text only; it would catch a page that fails to load, not a broken button or layout.
 - Two agents push to main on their own schedules; a bad push deploys straight to the live site.
@@ -63,6 +61,11 @@ Agents add one line each: date · agent · question · options · recommendation
 
 ## Done
 
+- 2026-11-18: FANTOM-0 simulator tones of up to 4 partials (PCM or VA, each on its own channel with its zone's slider and knob); five store tones layer two partials.
+- 2026-11-18: MODX M simulator FM-X-style parts: the store's own 8-operator FM in an AudioWorklet ("FM Tine", "FM Bell"), 6 voices per part for phones.
+- 2026-11-17: Pitch bend from a USB keyboard on the MODX M AN-X and FANTOM-0 VA parts (±2 semitones).
+- 2026-11-17: Thai owner test list for playing both simulators from the real keyboards over USB (docs/SIMULATOR.md).
+- 2026-11-17: MODX M and FANTOM-0 simulator pages link to that keyboard's packs; /studio demo banks link to the simulator pages.
 - 2026-11-17: FANTOM-0 simulator page in the rack (/#play-fantom): 8 store Scenes of 4 zones, knobs = zone pan, sliders = zone level, ZONE INT/EXT layers, [SPLIT] + key, pads pick Scenes, play from a USB keyboard, CC learn. Labelled as an emulation.
 - 2026-11-16: MODX M simulator page in the rack (/#play-modxm): 8 store Performances, part faders, PART buttons and [SHIFT] + [PART SELECT] mute, Super Knob with KNOB POSITION store, 8 Scenes with [SHIFT] + SCENE store, play from a USB keyboard, CC learn. Labelled as an emulation.
 - 2026-11-16: Simulator research S0 (MODX M Quick Guide, FANTOM-0 Owner's Manual, ZENOLOGY manual) written in docs/SIMULATOR.md with sources.
