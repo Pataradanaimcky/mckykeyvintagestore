@@ -84,6 +84,41 @@ Owner request, 2026-11-16: the site has no MODX M or FANTOM simulator; he wants 
 
 ที่มาของชื่อช่องต่อและหน้าตั้งค่า: เหมือนการทดสอบใน docs/STUDIO.md ("ทดสอบกับเครื่องจริง": MODX M [USB TO HOST] และ MIDI I/O, FANTOM-0 USB COMPUTER และ USB Driver) ชื่อปุ่มบนเครื่องจาก MODX M Quick Guide pp. 23–25 และ FANTOM-06/07/08 Owner's Manual pp. 8–9, 19 (ดู Confirmed facts) เลข CC ที่ได้จะใช้ทำข้อ S8c / S8d ส่งผลให้ project manager agent ถ้ามีอะไรบนเครื่องเปลี่ยน ให้หยุดทดสอบและแจ้งทันที
 
+## Performance budget (S7, measured 2026-11-18)
+
+How it was measured: production build, Chromium 157 at 390 × 844 on the agent's 2-core cloud machine, all 8 Performances and all 8 Scenes, 6 keys held while a fader moves. **Not a real phone.** The sample host cannot be reached from the sandbox, so sample parts played a synthetic stand-in bank (88 notes); real download and decode times are unknown.
+
+| Budget (store presets; `tests/sim-budget.test.ts` enforces the first three) | Limit | Heaviest now |
+|---|---|---|
+| Channels per Performance / Scene | 5 | 5 (FANTOM-0 Scenes) |
+| FM-X parts per Performance | 1 | 1 |
+| AN-X / VA / FM-X parts per Performance / Scene | 4 | 4 (MCKY Supersaw Stack) |
+| Voices per AN-X / VA part, per FM-X part | 6, 6 | code limits, unchanged |
+| Partial channels a Scene may load (code limit) | 8 | 5 used |
+| Audio work, 6 notes held (share of real time on this machine) | under 15% | 9.7% MCKY EP & Strings; 8.2% MCKY Sweep Pad; 6.5% MCKY Supersaw Stack |
+| Audio work, 16 notes held | under 15% | 11.3% MCKY Sweep Pad; 10.7% MCKY EP & Strings |
+
+The 15% lines are the store's own rule of thumb, not a measured phone limit. Sample voices have no count limit in smplr; 48 voices at once (16 notes, three layers) stayed inside the numbers above.
+
+Results at 390px, with Chrome's CPU throttling at 1×, 4× and 6×:
+
+| | 1× | 4× | 6× |
+|---|---|---|---|
+| Key press to READY, slowest MODX M Performance | 0.5 s | 1.1 s | 1.5 s |
+| Key press to READY, slowest FANTOM-0 Scene | 1.2 s | 1.8 s | 2.5 s |
+| Frame time while playing, 95th percentile | 17 ms | 17 ms | 17 ms |
+| Slowest frame while playing | 33 ms | 33 ms | 50 ms |
+| Key press to the key lighting, slowest | 33 ms | 46 ms | 55 ms |
+| Long tasks while playing | 0 | 0 | 0 |
+| Audio underruns (`AudioContext.playbackStats`) | 0 | 0 | 0 |
+
+No sideways scroll, no console errors, and the rack stayed on the right page on both simulators.
+
+Limits of this check:
+- **CPU throttling slows the page's main thread, not the audio thread.** The same worklet loop took 1.59 ms at 1× and 1.70 ms at 6×, so the underrun row above says nothing about a slow phone by itself.
+- To load the audio thread, an extra worklet burned time in each 2.9 ms audio block on the three heaviest presets. With 1.8 ms extra: 0 underruns on all three, with 6 keys held. With 3.2 ms extra (more than the block itself): 326–383 underruns in 4 seconds, which shows the counter does detect dropouts. So these presets keep working with the audio thread doing roughly 7× its normal work (MCKY EP & Strings: 0.28 ms normal, about 2.1 ms in total). How a given phone compares with this machine is unknown (S7c).
+- Output latency on phones is unknown: it depends on the device and is not visible here.
+
 ## Checklist (work top to bottom; tick with the date)
 
 - [x] S0 (2026-11-16: MODX M top panel from Yamaha's Quick Guide; FANTOM-0 panel, Scene/zone structure and layer/split from Roland's Owner's Manual, partials from the ZENOLOGY manual; unknowns listed in Confirmed facts, Reference Manual items in S0b) Research, with sources in this file: from Yamaha's MODX M / MONTAGE M manuals, the Performance structure (parts, key and velocity ranges, Scenes, Super Knob assign), the three engines and their main parameters (FM-X operator count and algorithm count). From Roland's FANTOM-0 manuals, Scene / Zone / Tone / Partial structure and pad modes. Write down only what a manual confirms; list unknowns.
@@ -113,7 +148,9 @@ Owner request, 2026-11-16: the site has no MODX M or FANTOM simulator; he wants 
 - [ ] S5e FANTOM-0 partial switches on the page (turn partials 1–4 of the current zone's tone on and off), once the keyboard's steps for partial on/off are read in the Reference Manual or Parameter Guide (S0b); until then the partials play as the store set them.
 - [ ] S5b FANTOM-0 [SPLIT] details from the Reference Manual (S0b): whether SPLIT also switches other zones off, and the default split key. The page keeps other zones as they are and turns zones 1 and 4 on (store's reading of Owner's Manual p. 17).
 - [ ] S5c FANTOM-0 CTRL knob mode for the current zone (ATTACK, RELEASE, REVERB, CHORUS, LOW/MID/HIGH GAIN, EQ ON, Owner's Manual pp. 8, 19), once how [ZONE SELECT] picks the current zone is confirmed.
-- [ ] S7 Sound quality pass on real phones' limits (CPU, latency), and a performance budget written here.
+- [~] S7 (2026-11-18: budget and desktop-Chromium check written in "Performance budget" below; no limit needed lowering, sound and pages unchanged; `tests/sim-budget.test.ts` keeps store presets inside the measured budget. Still open: a real phone, see S7c) Sound quality pass on real phones' limits (CPU, latency), and a performance budget written here.
+- [ ] S7b Loudness on very large chords: with 16 notes held at once the mix went over full scale in 6 of the 16 presets (peak 1.04–1.45, MCKY Bass & Lead highest, which has no samples, so it is not caused by the stand-in samples), and a real output would clip. With 6 notes every preset stayed under 0.9. Fix on the simulator bus only (not the shared POLY code path), then re-measure.
+- [ ] S7c Real phone check by the owner or a tester: does a held 6-note chord crackle on MCKY EP & Strings (MODX M) and MCKY Supersaw Stack (FANTOM-0), how long LOADING lasts on mobile data, and how late the sound feels. Not measurable from the agent's sandbox.
 
 ## Rules for the simulator agent
 
