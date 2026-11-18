@@ -9,16 +9,19 @@ import { OctaveSwitch, RackKeys } from "../RackKeys";
 import {
   applyZoneControl,
   asPerformance,
+  channelLevel,
   FANTOM_SCENES,
   learnTargets,
   noteName,
+  noteTargets,
   PAD_COUNT,
   PANEL_ZONES,
   panText,
+  partialChannels,
+  partialText,
   setSplit,
   toggleZone,
   zoneRange,
-  zonesForNote,
   type FantomLearnTarget,
   type SplitState,
 } from "@/lib/sim/fantom";
@@ -78,20 +81,20 @@ export function FantomPage({ active }: { active: boolean }) {
       loadedFor.current = sceneIndex;
       setLoading("loading");
       const s = FANTOM_SCENES[sceneIndex];
-      void e.load(asPerformance(s), s.zones.map((z) => z.pan)).then((ok) => {
+      void e.load(asPerformance(s), partialChannels(s).map((c) => s.zones[c.zone].pan)).then((ok) => {
         if (loadedFor.current === sceneIndex) setLoading(ok ? "ready" : "failed");
       });
     }
     return e;
   }, [sceneIndex]);
 
-  // Sliders, knobs and ZONE INT/EXT drive the zone channels.
+  // Sliders, knobs and ZONE INT/EXT drive every partial channel of their zone.
   useEffect(() => {
     const e = engine.current;
     if (!e || loadedFor.current !== sceneIndex) return;
-    scene.zones.forEach((_, i) => {
-      e.setLevel(i, on[i] ? (levels[i] ?? 0) : 0);
-      e.setPan(i, pans[i] ?? 0.5);
+    partialChannels(scene).forEach((c, i) => {
+      e.setLevel(i, channelLevel(c, levels, on));
+      e.setPan(i, pans[c.zone] ?? 0.5);
     });
   }, [scene, sceneIndex, levels, pans, on, loading]);
 
@@ -125,7 +128,7 @@ export function FantomPage({ active }: { active: boolean }) {
         setSplitArmed(false);
         return;
       }
-      const targets = zonesForNote(s, note, o, sp).map((i) => [i, note + (s.zones[i].shift ?? 0)] as [number, number]);
+      const targets = noteTargets(s, note, o, sp);
       sustain.current.notes.delete(note);
       e.noteOn(note, targets, velocity);
       setHeld((h) => new Set(h).add(note));
@@ -233,7 +236,7 @@ export function FantomPage({ active }: { active: boolean }) {
                     <li key={i} className={`sim-part ${on[i] ? "" : "is-mute"}`}>
                       <span>{i + 1}</span>
                       <span className="truncate">{z.tone.name}</span>
-                      <span>{z.tone.partial}</span>
+                      <span>{partialText(z.tone)}</span>
                       <span className="hidden sm:inline">
                         {noteName(r.low)}–{noteName(r.high)}
                       </span>
