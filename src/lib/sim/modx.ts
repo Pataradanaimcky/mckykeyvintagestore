@@ -33,9 +33,12 @@ export interface Part {
   an?: AnSettings;
   /** FM-X parts: the store's own FM patch (not a Yamaha voice). */
   fm?: FmPatch;
-  /** Lowest and highest MIDI note this part plays (inclusive). */
+  /** Note Limit: lowest and highest MIDI note this part plays (inclusive). Low above high plays outside the gap. */
   low: number;
   high: number;
+  /** Velocity Limit, 1..127 (default the full range). Low above high plays outside the gap. */
+  velLow?: number;
+  velHigh?: number;
   /** Fader position 0..1. */
   level: number;
   /** Transpose in semitones. */
@@ -79,12 +82,32 @@ export const KNOB_POSITIONS = [
 
 export const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
-/** Parts that sound for `note`: in range, not muted, fader up. */
-export function partsForNote(perf: Performance, note: number, mutes: readonly boolean[] = []): number[] {
+/** Velocity Limit range printed by Yamaha (MONTAGE M Operation Manual, Part Settings; docs/SIMULATOR.md, S1). */
+export const VEL_MIN = 1;
+export const VEL_MAX = 127;
+/** The on-screen keys have no touch strength; they always play at this velocity (0..1). */
+export const SCREEN_VELOCITY = 0.8;
+
+/** Velocity 0..1 as used by the page and the audio, as a MIDI value 1..127. */
+export const midiVelocity = (v: number) => Math.min(VEL_MAX, Math.max(VEL_MIN, Math.round(v * VEL_MAX)));
+
+/**
+ * Note Limit / Velocity Limit test. With the first value above the second the part plays outside
+ * the gap: C5 to C4 plays up to C4 and from C5; 93 to 34 plays 1–34 and 93–127 (same manual).
+ */
+export const inLimit = (value: number, low: number, high: number) =>
+  low <= high ? value >= low && value <= high : value <= high || value >= low;
+
+/**
+ * Parts that sound for `note`: inside the Note Limit and not muted. With `velocity` (MIDI 1..127)
+ * the part's Velocity Limit counts too.
+ */
+export function partsForNote(perf: Performance, note: number, mutes: readonly boolean[] = [], velocity?: number): number[] {
   const out: number[] = [];
   perf.parts.forEach((p, i) => {
-    if (i >= MAX_PARTS || mutes[i]) return;
-    if (note >= p.low && note <= p.high) out.push(i);
+    if (i >= MAX_PARTS || mutes[i] || !inLimit(note, p.low, p.high)) return;
+    if (velocity !== undefined && !inLimit(velocity, p.velLow ?? VEL_MIN, p.velHigh ?? VEL_MAX)) return;
+    out.push(i);
   });
   return out;
 }
@@ -227,7 +250,7 @@ export const PERFORMANCES: Performance[] = [
     parts: [
       { name: "Tine EP", engine: "AWM2", gm: "electric_piano_1", ...ALL, level: 0.8 },
       { name: "Strings", engine: "AN-X", an: AN.strings, ...ALL, level: 0.5 },
-      { name: "FM Tine", engine: "FM-X", fm: FM_PATCHES.tine, ...ALL, level: 0.45 },
+      { name: "FM Tine", engine: "FM-X", fm: FM_PATCHES.tine, ...ALL, velLow: 80, velHigh: 127, level: 0.45 },
     ],
     knob: [
       { part: 1, param: "level", from: 0.1, to: 1 },
@@ -293,7 +316,7 @@ export const PERFORMANCES: Performance[] = [
     name: "MCKY Strings Layer",
     parts: [
       { name: "Strings", engine: "AWM2", gm: "string_ensemble_1", ...ALL, level: 0.8 },
-      { name: "Pizz", engine: "AWM2", gm: "pizzicato_strings", ...ALL, level: 0.4 },
+      { name: "Pizz", engine: "AWM2", gm: "pizzicato_strings", ...ALL, velLow: 90, velHigh: 127, level: 0.4 },
       { name: "AN Strings", engine: "AN-X", an: AN.strings, ...ALL, level: 0.3 },
     ],
     knob: [

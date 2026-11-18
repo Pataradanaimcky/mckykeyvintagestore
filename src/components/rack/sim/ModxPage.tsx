@@ -10,6 +10,7 @@ import {
   KNOB_POSITION_DEFAULTS,
   KNOB_POSITIONS,
   MAX_PARTS,
+  midiVelocity,
   MODX_DEFAULT_CC,
   noteName,
   PERFORMANCES,
@@ -20,6 +21,9 @@ import {
   pressScene,
   sceneFromCc,
   scenesOf,
+  SCREEN_VELOCITY,
+  VEL_MAX,
+  VEL_MIN,
   type Scene,
 } from "@/lib/sim/modx";
 import { bendCents, emptyLearn, handleCc, hasReadyMap, toggleLearn, toggleReadyMap, type LearnState } from "@/lib/sim/midi";
@@ -121,10 +125,10 @@ export function ModxPage({ active }: { active: boolean }) {
   }, [perfIndex, ensure]);
 
   const noteOn = useCallback(
-    (note: number, velocity = 0.8) => {
+    (note: number, velocity = SCREEN_VELOCITY) => {
       const e = ensure();
       const { perf: p, mutes: m } = live.current;
-      const targets = partsForNote(p, note, m).map((i) => [i, note + (p.parts[i].shift ?? 0)] as [number, number]);
+      const targets = partsForNote(p, note, m, midiVelocity(velocity)).map((i) => [i, note + (p.parts[i].shift ?? 0)] as [number, number]);
       sustain.current.notes.delete(note);
       e.noteOn(note, targets, velocity);
       setHeld((h) => new Set(h).add(note));
@@ -294,9 +298,9 @@ export function ModxPage({ active }: { active: boolean }) {
                   </li>
                 ))}
               </ol>
-              <div className="rack-lcd-row rack-lcd-small">
+              <div className="rack-lcd-row rack-lcd-small flex-wrap gap-x-2">
                 <span>
-                  PART {selected + 1} {part ? `${part.engine} ${noteName(part.low)}–${noteName(part.high)}` : "—"}
+                  PART {selected + 1} {part ? `${part.engine} ${noteName(part.low)}–${noteName(part.high)} VEL ${part.velLow ?? VEL_MIN}–${part.velHigh ?? VEL_MAX}` : "—"}
                   {mutes[selected] ? " MUTE" : ""}
                 </span>
                 <span>{statusText}</span>

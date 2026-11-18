@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { KNOB_POSITION_DEFAULTS, MAX_PARTS, morph, noteName, PERFORMANCES, partControls, partsForNote, pressKnobPosition, pressPartSelect, pressScene, SCENE_COUNT, scenesOf, storeScene } from "../src/lib/sim/modx.ts";
+import { inLimit, KNOB_POSITION_DEFAULTS, MAX_PARTS, midiVelocity, morph, noteName, PERFORMANCES, partControls, partsForNote, pressKnobPosition, pressPartSelect, pressScene, SCENE_COUNT, scenesOf, SCREEN_VELOCITY, storeScene, VEL_MAX, VEL_MIN } from "../src/lib/sim/modx.ts";
 
 const split = PERFORMANCES.find((p) => p.name.includes("Split"))!;
 
@@ -80,4 +80,37 @@ test("[SHIFT] + [PART SELECT] mutes and unmutes only the selected part; a plain 
   assert.deepEqual(once, [false, true, false]);
   assert.deepEqual(pressPartSelect(once, 1, true), mutes);
   assert.deepEqual(pressPartSelect(mutes, 5, true), mutes);
+});
+
+test("Note Limit and Velocity Limit: first value above the second plays outside the gap", () => {
+  assert.equal(inLimit(40, 34, 93), true);
+  assert.equal(inLimit(33, 34, 93), false);
+  // Yamaha's example: 93 to 34 plays 1–34 and 93–127.
+  for (const [v, plays] of [[1, true], [34, true], [35, false], [92, false], [93, true], [127, true]] as const) assert.equal(inLimit(v, 93, 34), plays);
+  // Yamaha's example: C5 to C4 (Yamaha names, MIDI 84 to 72) has no sound between them.
+  const gap = { name: "gap", parts: [{ name: "x", engine: "AN-X" as const, low: 84, high: 72, level: 1 }], knob: [], knobStart: 0 };
+  assert.deepEqual([72, 73, 83, 84].map((n) => partsForNote(gap, n).length), [1, 0, 0, 1]);
+});
+
+test("a part's Velocity Limit decides whether it joins the note", () => {
+  const ep = PERFORMANCES.find((p) => p.name === "MCKY EP & Strings")!;
+  assert.deepEqual(partsForNote(ep, 60, [], 79), [0, 1]);
+  assert.deepEqual(partsForNote(ep, 60, [], 80), [0, 1, 2]);
+  assert.deepEqual(partsForNote(ep, 60), [0, 1, 2], "without a velocity the limit is not used");
+  assert.deepEqual(partsForNote(ep, 60, [false, false, true], 127), [0, 1]);
+});
+
+test("velocity converts to MIDI 1..127", () => {
+  assert.equal(midiVelocity(0), 1);
+  assert.equal(midiVelocity(1), 127);
+  for (let v = 1; v <= 127; v++) assert.equal(midiVelocity(v / 127), v);
+});
+
+test("store parts have valid Velocity Limits and all still sound from the on-screen keys", () => {
+  const screen = midiVelocity(SCREEN_VELOCITY);
+  for (const perf of PERFORMANCES)
+    perf.parts.forEach((p, i) => {
+      for (const v of [p.velLow ?? VEL_MIN, p.velHigh ?? VEL_MAX]) assert.ok(Number.isInteger(v) && v >= VEL_MIN && v <= VEL_MAX, `${perf.name} ${p.name}`);
+      assert.ok(inLimit(screen, p.velLow ?? VEL_MIN, p.velHigh ?? VEL_MAX), `${perf.name} part ${i + 1} is silent from the on-screen keys`);
+    });
 });
