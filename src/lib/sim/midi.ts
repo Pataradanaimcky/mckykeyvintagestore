@@ -2,7 +2,8 @@
  * MIDI in for the simulator pages (read only: nothing is sent to the keyboard).
  * Only the general MIDI 1.0 channel messages every keyboard sends are read here: note on / off,
  * control change and pitch bend. Which CC a keyboard control sends is not assumed; the visitor
- * teaches the page with "learn" (turn a control, the page takes its CC). See docs/SIMULATOR.md, S8.
+ * teaches the page with "learn" (turn a control, the page takes its CC), or turns on a ready map
+ * of the numbers printed in the maker's documents. See docs/SIMULATOR.md, S8 and S8c.
  */
 
 export type MidiEvent =
@@ -68,6 +69,29 @@ export function forget<T extends string>(state: LearnState<T>, target: T): Learn
   const map = { ...state.map };
   delete map[target];
   return { learning: state.learning === target ? null : state.learning, map };
+}
+
+/** True when every control in `ready` is already on its CC. */
+export function hasReadyMap<T extends string>(state: LearnState<T>, ready: Partial<Record<T, number>>): boolean {
+  const entries = Object.entries(ready) as [T, number][];
+  return entries.length > 0 && entries.every(([target, cc]) => state.map[target] === cc);
+}
+
+/**
+ * Puts a ready-made map of control → CC on the learnt map, or takes it off again if it is already
+ * on. A control that had one of these CCs gives it up, as in learn; other learnt controls stay.
+ */
+export function toggleReadyMap<T extends string>(state: LearnState<T>, ready: Partial<Record<T, number>>): LearnState<T> {
+  const entries = Object.entries(ready) as [T, number][];
+  const map = { ...state.map };
+  if (hasReadyMap(state, ready)) {
+    for (const [target] of entries) delete map[target];
+    return { learning: null, map };
+  }
+  const taken = new Set(entries.map(([, cc]) => cc));
+  for (const k of Object.keys(map) as T[]) if (taken.has(map[k] as number)) delete map[k];
+  for (const [target, cc] of entries) map[target] = cc;
+  return { learning: null, map };
 }
 
 /**

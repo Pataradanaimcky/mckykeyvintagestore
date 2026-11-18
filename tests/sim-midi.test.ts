@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { BEND_RANGE, bendCents, emptyLearn, forget, handleCc, listenAll, parseMidi, toggleLearn, type MidiEvent, type MidiInputLike } from "../src/lib/sim/midi.ts";
+import { BEND_RANGE, bendCents, emptyLearn, forget, handleCc, hasReadyMap, listenAll, parseMidi, RESERVED_CCS, toggleLearn, toggleReadyMap, type MidiEvent, type MidiInputLike } from "../src/lib/sim/midi.ts";
+import { MODX_DEFAULT_CC, sceneFromCc } from "../src/lib/sim/modx.ts";
 
 test("parseMidi reads note on/off, CC and pitch bend on any channel", () => {
   assert.deepEqual(parseMidi([0x90, 60, 127]), { type: "noteOn", channel: 0, note: 60, velocity: 1 });
@@ -101,4 +102,45 @@ test("listenAll passes pitch bend from a mocked keyboard", () => {
   assert.deepEqual(got, [{ type: "bend", channel: 0, value: 0.5 }]);
   stop();
   assert.equal(input.onmidimessage, null);
+});
+
+test("MODX M default CCs are the printed numbers and none is reserved", () => {
+  assert.equal(MODX_DEFAULT_CC.superKnob, 0x5f);
+  assert.equal(MODX_DEFAULT_CC.scene, 0x5c);
+  assert.deepEqual([...MODX_DEFAULT_CC.assignKnobs], [17, 18, 19, 20, 21, 22, 23, 24]);
+  for (const cc of [MODX_DEFAULT_CC.superKnob, MODX_DEFAULT_CC.scene, ...MODX_DEFAULT_CC.assignKnobs]) assert.equal(RESERVED_CCS.has(cc), false);
+});
+
+test("sceneFromCc follows the 16-value blocks of Scene CC", () => {
+  const edges: [number, number][] = [[0, 0], [15, 0], [16, 1], [31, 1], [32, 2], [47, 2], [48, 3], [63, 3], [64, 4], [79, 4], [80, 5], [95, 5], [96, 6], [111, 6], [112, 7], [127, 7]];
+  for (const [value, scene] of edges) assert.equal(sceneFromCc(value), scene, `value ${value}`);
+  assert.equal(sceneFromCc(-1), 0);
+  assert.equal(sceneFromCc(200), 7);
+  assert.equal(sceneFromCc(Number.NaN), 0);
+});
+
+test("ready map: goes on, moves its controls, and comes off leaving learnt controls", () => {
+  type T = "super" | "scene" | "part1";
+  const ready = { super: 95, scene: 92 };
+  let s = handleCc(toggleLearn(emptyLearn<T>(), "part1"), 7, 10).state;
+  assert.equal(hasReadyMap(s, ready), false);
+  s = toggleReadyMap(s, ready);
+  assert.equal(hasReadyMap(s, ready), true);
+  assert.deepEqual(s.map, { part1: 7, super: 95, scene: 92 });
+  assert.deepEqual(handleCc(s, 95, 127).set, [{ target: "super", value: 1 }]);
+  assert.deepEqual(handleCc(s, 92, 127).set, [{ target: "scene", value: 1 }]);
+  s = toggleReadyMap(s, ready);
+  assert.deepEqual(s, { learning: null, map: { part1: 7 } });
+});
+
+test("ready map: takes its CC from another control, and learning that CC elsewhere breaks it", () => {
+  type T = "super" | "scene" | "part1";
+  const ready = { super: 95, scene: 92 };
+  let s = handleCc(toggleLearn(emptyLearn<T>(), "part1"), 95, 0).state;
+  s = toggleReadyMap(s, ready);
+  assert.deepEqual(s.map, { super: 95, scene: 92 });
+  s = handleCc(toggleLearn(s, "part1"), 92, 0).state;
+  assert.deepEqual(s.map, { super: 95, part1: 92 });
+  assert.equal(hasReadyMap(s, ready), false);
+  assert.equal(hasReadyMap(emptyLearn<T>(), {}), false);
 });

@@ -173,6 +173,27 @@ export function pressPartSelect(mutes: readonly boolean[], selected: number, shi
   return next;
 }
 
+/**
+ * Control Change numbers a MODX M uses unless the player changed them (MODX M Data List: MIDI
+ * Parameter Change Table, SYSTEM, defaults 5F and 5C; MIDI Data Format note *4 for the knobs).
+ * The keyboard lets the player change them, so LEARN stays. No number is printed for the Control
+ * sliders as far as read. Sources in docs/SIMULATOR.md, S8c.
+ */
+export const MODX_DEFAULT_CC = {
+  superKnob: 95,
+  scene: 92,
+  assignKnobs: [17, 18, 19, 20, 21, 22, 23, 24],
+} as const;
+
+/**
+ * The Scene a Scene CC value selects: 0–15 is Scene 1, 16–31 Scene 2 … 112–127 Scene 8
+ * (MODX M Operation Manual, Scene CC). Returns 0…7.
+ */
+export function sceneFromCc(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.min(SCENE_COUNT - 1, Math.max(0, Math.floor(value / 16)));
+}
+
 /** Name of a note for the display, e.g. 60 → "C3" (Yamaha numbering: middle C is C3). */
 export function noteName(note: number): string {
   const names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];

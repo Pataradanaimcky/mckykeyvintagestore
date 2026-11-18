@@ -10,6 +10,7 @@ import {
   KNOB_POSITION_DEFAULTS,
   KNOB_POSITIONS,
   MAX_PARTS,
+  MODX_DEFAULT_CC,
   noteName,
   PERFORMANCES,
   partControls,
@@ -17,15 +18,19 @@ import {
   pressKnobPosition,
   pressPartSelect,
   pressScene,
+  sceneFromCc,
   scenesOf,
   type Scene,
 } from "@/lib/sim/modx";
-import { emptyLearn, handleCc, toggleLearn, type LearnState, bendCents } from "@/lib/sim/midi";
+import { bendCents, emptyLearn, handleCc, hasReadyMap, toggleLearn, toggleReadyMap, type LearnState } from "@/lib/sim/midi";
 import { SimEngine } from "./engine";
 import { useMidiIn } from "./useMidiIn";
 
-/** Page controls a keyboard knob or slider can be learnt to: the Super Knob and part faders 1–8. */
-type LearnTarget = "super" | `part${number}`;
+/** Page controls a keyboard control can move: the Super Knob, the SCENE buttons and part faders 1–8. */
+type LearnTarget = "super" | "scene" | `part${number}`;
+
+/** The numbers printed in Yamaha's documents for the controls this page has (docs/SIMULATOR.md, S8c). */
+const READY_MAP: Partial<Record<LearnTarget, number>> = { super: MODX_DEFAULT_CC.superKnob, scene: MODX_DEFAULT_CC.scene };
 
 const MIDI_TEXT = {
   off: "ต่อคีย์บอร์ด USB",
@@ -155,6 +160,7 @@ export function ModxPage({ active }: { active: boolean }) {
       if (r.state !== learnRef.current) setLearn(r.state);
       for (const { target, value: v } of r.set) {
         if (target === "super") setKnob(v);
+        else if (target === "scene") recallSceneAt(sceneFromCc(value));
         else {
           const i = Number(target.slice(4)) - 1;
           setLevels((l) => (i < l.length ? l.map((x, p) => (p === i ? v : x)) : l));
@@ -179,17 +185,24 @@ export function ModxPage({ active }: { active: boolean }) {
     </button>
   );
 
-  const recallScene = (i: number) => {
-    const r = pressScene(scenes, i, shift, { levels, mutes, knob });
+  const applyScenePress = (i: number, store: boolean) => {
+    const r = pressScene(scenes, i, store, { levels, mutes, knob });
     setScenes(r.scenes);
     setScene(i);
-    setShift(false);
     const s = r.recall;
     if (!s) return;
     setLevels((l) => l.map((v, p) => s.levels[p] ?? v));
     setMutes((m) => m.map((v, p) => s.mutes[p] ?? v));
     setKnob(s.knob);
   };
+  const recallScene = (i: number) => {
+    applyScenePress(i, shift);
+    setShift(false);
+  };
+  // A SCENE button on the keyboard only ever recalls here; the page's [SHIFT] is left alone.
+  function recallSceneAt(i: number) {
+    applyScenePress(i, false);
+  }
 
   // KNOB POSITION: recall, or [SHIFT] + button saves the current Super Knob value (Quick Guide p. 23).
   const pressPosition = (i: number) => {
@@ -227,6 +240,7 @@ export function ModxPage({ active }: { active: boolean }) {
   );
 
   const part = perf.parts[selected];
+  const readyOn = hasReadyMap(learn, READY_MAP);
   const statusText =
     learn.learning ? "MOVE A CONTROL…" : loading === "loading" ? "LOADING…" : loading === "failed" ? "SAMPLE ERROR" : loading === "ready" ? "READY" : "TOUCH A KEY";
 
@@ -315,6 +329,28 @@ export function ModxPage({ active }: { active: boolean }) {
             <p className="rack-hint leading-snug">
               เล่นจากคีย์บอร์ดจริงผ่าน USB (Chrome / Edge) · LEARN: กดแล้วหมุนปุ่มบนคีย์บอร์ด · ยังไม่ได้ทดสอบกับเครื่องจริง
             </p>
+            <button
+              type="button"
+              className={`rack-mini h-auto px-1.5 py-1 text-[0.6rem] leading-snug ${readyOn ? "sim-shift-on" : ""}`}
+              aria-pressed={readyOn}
+              disabled={midi.state !== "on"}
+              title={midi.state === "on" ? undefined : "ต่อคีย์บอร์ด USB ก่อน"}
+              onClick={() => setLearn(toggleReadyMap(learnRef.current, READY_MAP))}
+            >
+              ใช้เลข CC ตามเอกสาร Yamaha
+            </button>
+            <details className="rack-hint leading-snug">
+              <summary className="cursor-pointer">เลข CC ค่าเริ่มต้น · ยังไม่ได้ทดสอบกับเครื่องจริง</summary>
+              <ul className="mt-1 flex flex-col gap-0.5">
+                <li>Super Knob = CC {MODX_DEFAULT_CC.superKnob}</li>
+                <li>SCENE 1–8 = CC {MODX_DEFAULT_CC.scene} (ค่า 0–15 = Scene 1 … 112–127 = Scene 8)</li>
+                <li>
+                  Knob 1–8 = CC {MODX_DEFAULT_CC.assignKnobs[0]}–{MODX_DEFAULT_CC.assignKnobs[7]} (หน้านี้ยังไม่มีปุ่มชุดนี้)
+                </li>
+                <li>Control slider: ยังไม่พบเลข CC ในเอกสาร ใช้ LEARN</li>
+                <li>ถ้าเปลี่ยนเลขบนเครื่องไว้ ใช้ LEARN แทน</li>
+              </ul>
+            </details>
             <div className="mt-auto flex justify-end">
               <OctaveSwitch octave={octave} onChange={setOctave} />
             </div>
