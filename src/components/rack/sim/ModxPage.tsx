@@ -19,11 +19,19 @@ import {
   pressKnobPosition,
   pressPartSelect,
   pressScene,
+  rangeFromKnob,
+  rangesOf,
+  rangeToKnob,
   sceneFromCc,
   scenesOf,
   SCREEN_VELOCITY,
+  setRangeField,
+  stepRangeField,
   VEL_MAX,
   VEL_MIN,
+  withRanges,
+  type PartRange,
+  type RangeField,
   type Scene,
 } from "@/lib/sim/modx";
 import { bendCents, emptyLearn, handleCc, hasReadyMap, toggleLearn, toggleReadyMap, type LearnState } from "@/lib/sim/midi";
@@ -35,6 +43,15 @@ type LearnTarget = "super" | "scene" | `part${number}`;
 
 /** The numbers printed in Yamaha's documents for the controls this page has (docs/SIMULATOR.md, S8c). */
 const READY_MAP: Partial<Record<LearnTarget, number>> = { super: MODX_DEFAULT_CC.superKnob, scene: MODX_DEFAULT_CC.scene };
+
+/** The two views for setting Part limits; the names are the keyboard's (Operation Manual pp. 19, 80, 83). */
+const RANGE_VIEWS = {
+  note: { label: "Part - Note", limit: "Note Limit", fields: ["low", "high"] },
+  velocity: { label: "Velocity - Note", limit: "Velocity Limit", fields: ["velLow", "velHigh"] },
+} as const satisfies Record<string, { label: string; limit: string; fields: readonly [RangeField, RangeField] }>;
+type RangeView = keyof typeof RANGE_VIEWS;
+
+const rangeText = (field: RangeField, value: number) => (field === "low" || field === "high" ? noteName(value) : String(value));
 
 const MIDI_TEXT = {
   off: "ต่อคีย์บอร์ด USB",
@@ -63,6 +80,14 @@ export function ModxPage({ active }: { active: boolean }) {
   const [octave, setOctave] = useState(0);
   const [held, setHeld] = useState<ReadonlySet<number>>(new Set());
   const [loading, setLoading] = useState<"idle" | "loading" | "ready" | "failed">("idle");
+  // Part limits the player set, and the view for setting them ([SHIFT] + [SPLIT], Operation Manual p. 19).
+  const [ranges, setRanges] = useState<PartRange[]>(() => rangesOf(perf));
+  const [rangeView, setRangeView] = useState<RangeView | null>(null);
+  const [rangeField, setRangeFieldName] = useState<RangeField>("low");
+  const [keyEntry, setKeyEntry] = useState(false);
+  const shown = withRanges(perf, ranges);
+  // While keyboard entry is on, a key sets the Note Limit under the cursor instead of playing.
+  const keyTarget = rangeView === "note" && keyEntry ? { part: selected, field: rangeField } : null;
 
   const [learn, setLearnView] = useState<LearnState<LearnTarget>>(() => emptyLearn());
   const learnRef = useRef(learn);
@@ -74,9 +99,9 @@ export function ModxPage({ active }: { active: boolean }) {
   const engine = useRef<SimEngine | null>(null);
   const loadedFor = useRef(-1);
   const sustain = useRef({ down: false, notes: new Set<number>() });
-  const live = useRef({ perf, mutes, levels, knob });
+  const live = useRef({ perf: shown, mutes, levels, knob, keyTarget });
   useEffect(() => {
-    live.current = { perf, mutes, levels, knob };
+    live.current = { perf: shown, mutes, levels, knob, keyTarget };
   });
 
   const ensure = useCallback(() => {
@@ -116,6 +141,8 @@ export function ModxPage({ active }: { active: boolean }) {
     setScenes(scenesOf(p));
     setScene(0);
     setSelected(0);
+    setRanges(rangesOf(p));
+    setRangeFieldName(rangeView === "velocity" ? "velLow" : "low");
     if (engine.current) loadedFor.current = -1;
   };
 
@@ -126,6 +153,12 @@ export function ModxPage({ active }: { active: boolean }) {
 
   const noteOn = useCallback(
     (note: number, velocity = SCREEN_VELOCITY) => {
+      const target = live.current.keyTarget;
+      if (target) {
+        setRanges((r) => setRangeField(r, target.part, target.field, note));
+        setHeld((h) => new Set(h).add(note));
+        return;
+      }
       const e = ensure();
       const { perf: p, mutes: m } = live.current;
       const targets = partsForNote(p, note, m, midiVelocity(velocity)).map((i) => [i, note + (p.parts[i].shift ?? 0)] as [number, number]);
@@ -222,6 +255,22 @@ export function ModxPage({ active }: { active: boolean }) {
     setShift(false);
   };
 
+  // [SHIFT] + [SPLIT] opens the Part - Note view (Operation Manual p. 19). [SPLIT] alone opens the
+  // keyboard's Split Job screen, which this page does not have, so a plain press changes nothing.
+  const pressSplit = () => {
+    if (shift) {
+      setRangeView("note");
+      setRangeFieldName("low");
+      setKeyEntry(false);
+    }
+    setShift(false);
+  };
+  const chooseRangeView = (view: RangeView) => {
+    setRangeView(view);
+    setRangeFieldName(RANGE_VIEWS[view].fields[0]);
+    setKeyEntry(false);
+  };
+
   // Another page of the rack is showing: let every note go.
   const [wasActive, setWasActive] = useState(active);
   if (active !== wasActive) {
@@ -243,7 +292,8 @@ export function ModxPage({ active }: { active: boolean }) {
     [],
   );
 
-  const part = perf.parts[selected];
+  const part = shown.parts[selected];
+  const rangeValue = ranges[selected]?.[rangeField] ?? 0;
   const readyOn = hasReadyMap(learn, READY_MAP);
   const statusText =
     learn.learning ? "MOVE A CONTROL…" : loading === "loading" ? "LOADING…" : loading === "failed" ? "SAMPLE ERROR" : loading === "ready" ? "READY" : "TOUCH A KEY";
@@ -281,31 +331,99 @@ export function ModxPage({ active }: { active: boolean }) {
           {/* Display: Performance, parts, Scene. */}
           <div className="rack-panel col-span-6 md:col-span-7">
             <p className="rack-title">PERFORMANCE</p>
-            <div className="rack-lcd sim-display" aria-live="polite">
-              <div className="rack-lcd-row">
-                <span className="truncate">{perf.name}</span>
-                <span className="rack-lcd-small">SCENE {scene + 1}</span>
+            {rangeView ? (
+              <div className="flex flex-col gap-2">
+                <div className="rack-lcd sim-display">
+                  <div className="rack-lcd-row">
+                    <span className="truncate">{RANGE_VIEWS[rangeView].limit}</span>
+                    <span className="rack-lcd-small">PART {selected + 1}</span>
+                  </div>
+                  <ol className="sim-ranges">
+                    {shown.parts.map((p, i) => (
+                      <li key={i} className="sim-range">
+                        <span>{i + 1}</span>
+                        <span className="truncate">{p.name}</span>
+                        {RANGE_VIEWS[rangeView].fields.map((field, f) => (
+                          <button
+                            key={field}
+                            type="button"
+                            className={`sim-range-cell ${i === selected && field === rangeField ? "is-sel" : ""}`}
+                            aria-pressed={i === selected && field === rangeField}
+                            aria-label={`PART ${i + 1} ${RANGE_VIEWS[rangeView].limit} ${f === 0 ? "ค่าแรก" : "ค่าที่สอง"} ${rangeText(field, ranges[i]?.[field] ?? 0)}`}
+                            onClick={() => {
+                              setSelected(i);
+                              setRangeFieldName(field);
+                            }}
+                          >
+                            {rangeText(field, ranges[i]?.[field] ?? 0)}
+                          </button>
+                        ))}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Knob
+                    label="DATA"
+                    hint={rangeText(rangeField, rangeValue)}
+                    value={rangeToKnob(rangeField, rangeValue)}
+                    onChange={(k) => setRanges((r) => setRangeField(r, selected, rangeField, rangeFromKnob(rangeField, k)))}
+                  />
+                  <button type="button" className="rack-mini" onClick={() => setRanges((r) => stepRangeField(r, selected, rangeField, -1))}>
+                    DEC
+                  </button>
+                  <button type="button" className="rack-mini" onClick={() => setRanges((r) => stepRangeField(r, selected, rangeField, 1))}>
+                    INC
+                  </button>
+                  {rangeView === "note" && (
+                    <button type="button" className="rack-mini" aria-pressed={keyEntry} onClick={() => setKeyEntry((v) => !v)}>
+                      KEYBOARD
+                    </button>
+                  )}
+                  {(Object.keys(RANGE_VIEWS) as RangeView[]).map((v) => (
+                    <button key={v} type="button" className="rack-mini" aria-pressed={rangeView === v} onClick={() => chooseRangeView(v)}>
+                      {RANGE_VIEWS[v].label}
+                    </button>
+                  ))}
+                  <button type="button" className="rack-mini ml-auto" onClick={() => setRangeView(null)}>
+                    EXIT
+                  </button>
+                </div>
+                <p className="rack-hint leading-snug">
+                  {rangeView === "note"
+                    ? keyEntry
+                      ? "กดคีย์เพื่อใส่โน้ตในช่องที่เลือก (ตอนนี้คีย์จะไม่มีเสียง) · จากคีย์บอร์ด USB ยังไม่ได้ทดสอบกับเครื่องจริง"
+                      : "แตะช่องแล้วหมุน DATA หรือกด INC / DEC · KEYBOARD = กดคีย์เพื่อใส่โน้ต · ค่าแรกสูงกว่าค่าที่สอง = เล่นนอกช่วง"
+                    : `แตะช่องแล้วหมุน DATA หรือกด INC / DEC · คีย์บนจอเล่นที่ velocity ${midiVelocity(SCREEN_VELOCITY)} เสมอ แรงกดอื่นต้องเล่นจากคีย์บอร์ด USB`}
+                </p>
               </div>
-              <ol className="sim-parts">
-                {perf.parts.map((p, i) => (
-                  <li key={i} className={`sim-part ${i === selected ? "is-sel" : ""} ${mutes[i] ? "is-mute" : ""}`}>
-                    <span>{i + 1}</span>
-                    <span className="truncate">{p.name}</span>
-                    <span>{p.engine}</span>
-                    <span className="hidden sm:inline">
-                      {noteName(p.low)}–{noteName(p.high)}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-              <div className="rack-lcd-row rack-lcd-small flex-wrap gap-x-2">
-                <span>
-                  PART {selected + 1} {part ? `${part.engine} ${noteName(part.low)}–${noteName(part.high)} VEL ${part.velLow ?? VEL_MIN}–${part.velHigh ?? VEL_MAX}` : "—"}
-                  {mutes[selected] ? " MUTE" : ""}
-                </span>
-                <span>{statusText}</span>
+            ) : (
+              <div className="rack-lcd sim-display" aria-live="polite">
+                <div className="rack-lcd-row">
+                  <span className="truncate">{perf.name}</span>
+                  <span className="rack-lcd-small">SCENE {scene + 1}</span>
+                </div>
+                <ol className="sim-parts">
+                  {shown.parts.map((p, i) => (
+                    <li key={i} className={`sim-part ${i === selected ? "is-sel" : ""} ${mutes[i] ? "is-mute" : ""}`}>
+                      <span>{i + 1}</span>
+                      <span className="truncate">{p.name}</span>
+                      <span>{p.engine}</span>
+                      <span className="hidden sm:inline">
+                        {noteName(p.low)}–{noteName(p.high)}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+                <div className="rack-lcd-row rack-lcd-small flex-wrap gap-x-2">
+                  <span>
+                    PART {selected + 1} {part ? `${part.engine} ${noteName(part.low)}–${noteName(part.high)} VEL ${part.velLow ?? VEL_MIN}–${part.velHigh ?? VEL_MAX}` : "—"}
+                    {mutes[selected] ? " MUTE" : ""}
+                  </span>
+                  <span>{statusText}</span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Performance select and USB. */}
@@ -419,12 +537,20 @@ export function ModxPage({ active }: { active: boolean }) {
                 </button>
               ))}
             </div>
-            <div className="mt-auto flex items-center gap-1.5">
-              <button type="button" className="rack-preset" aria-pressed={shift} onClick={() => setShift((v) => !v)}>
+            <div className="mt-auto flex flex-wrap items-center gap-1.5">
+              <button type="button" className="rack-preset shrink-0" aria-pressed={shift} onClick={() => setShift((v) => !v)}>
                 SHIFT
               </button>
-              <p className="rack-hint leading-snug">
-                {shift ? "กด SCENE เพื่อเก็บ · KNOB POSITION เพื่อเก็บค่า · PART SELECT เพื่อ MUTE" : "SHIFT + SCENE = STORE"}
+              <button
+                type="button"
+                className={`rack-preset shrink-0 ${shift ? "sim-shift-on" : ""}`}
+                onClick={pressSplit}
+                aria-label={shift ? "เปิดหน้า Part - Note ตั้งช่วงโน้ตของแต่ละ Part" : "SPLIT (กด SHIFT ก่อนเพื่อตั้งช่วงโน้ต)"}
+              >
+                SPLIT
+              </button>
+              <p className="rack-hint w-full leading-snug">
+                {shift ? "กด SCENE เพื่อเก็บ · KNOB POSITION เพื่อเก็บค่า · PART SELECT เพื่อ MUTE · SPLIT เพื่อตั้งช่วงโน้ต" : "SHIFT + SCENE = STORE · SHIFT + SPLIT = ช่วงโน้ต"}
               </p>
             </div>
           </div>

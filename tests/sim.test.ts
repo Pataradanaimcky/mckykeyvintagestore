@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { inLimit, KNOB_POSITION_DEFAULTS, MAX_PARTS, midiVelocity, morph, noteName, PERFORMANCES, partControls, partsForNote, pressKnobPosition, pressPartSelect, pressScene, SCENE_COUNT, scenesOf, SCREEN_VELOCITY, storeScene, VEL_MAX, VEL_MIN } from "../src/lib/sim/modx.ts";
+import { inLimit, KNOB_POSITION_DEFAULTS, NOTE_MAX, NOTE_MIN, rangeFromKnob, rangesOf, rangeToKnob, setRangeField, stepRangeField, withRanges, MAX_PARTS, midiVelocity, morph, noteName, PERFORMANCES, partControls, partsForNote, pressKnobPosition, pressPartSelect, pressScene, SCENE_COUNT, scenesOf, SCREEN_VELOCITY, storeScene, VEL_MAX, VEL_MIN } from "../src/lib/sim/modx.ts";
 
 const split = PERFORMANCES.find((p) => p.name.includes("Split"))!;
 
@@ -113,4 +113,53 @@ test("store parts have valid Velocity Limits and all still sound from the on-scr
       for (const v of [p.velLow ?? VEL_MIN, p.velHigh ?? VEL_MAX]) assert.ok(Number.isInteger(v) && v >= VEL_MIN && v <= VEL_MAX, `${perf.name} ${p.name}`);
       assert.ok(inLimit(screen, p.velLow ?? VEL_MIN, p.velHigh ?? VEL_MAX), `${perf.name} part ${i + 1} is silent from the on-screen keys`);
     });
+});
+
+test("Part limits start from the Performance and leave it untouched when edited", () => {
+  const ep = PERFORMANCES[1];
+  const start = rangesOf(ep);
+  assert.deepEqual(start[0], { low: 0, high: 127, velLow: VEL_MIN, velHigh: VEL_MAX });
+  assert.deepEqual(start[2], { low: 0, high: 127, velLow: 80, velHigh: 127 });
+  const next = setRangeField(start, 0, "high", 59);
+  assert.equal(next[0].high, 59);
+  assert.equal(start[0].high, 127, "the old list is not changed");
+  assert.equal(ep.parts[0].high, 127, "the store's Performance is not changed");
+});
+
+test("Part limits stay inside Yamaha's printed ranges", () => {
+  const start = rangesOf(PERFORMANCES[0]);
+  assert.equal(setRangeField(start, 0, "low", -5)[0].low, NOTE_MIN);
+  assert.equal(setRangeField(start, 0, "high", 200)[0].high, NOTE_MAX);
+  assert.equal(setRangeField(start, 0, "velLow", 0)[0].velLow, VEL_MIN, "velocity starts at 1, notes at 0");
+  assert.equal(setRangeField(start, 0, "velHigh", 60.6)[0].velHigh, 61);
+  assert.deepEqual(setRangeField(start, 0, "low", Number.NaN), start);
+  assert.deepEqual(setRangeField(start, 9, "low", 10), start);
+});
+
+test("INC and DEC stop at the ends", () => {
+  const start = rangesOf(PERFORMANCES[0]);
+  assert.equal(stepRangeField(start, 0, "low", -1)[0].low, NOTE_MIN);
+  assert.equal(stepRangeField(start, 0, "low", 1)[0].low, 1);
+  assert.equal(stepRangeField(start, 0, "velHigh", 1)[0].velHigh, VEL_MAX);
+});
+
+test("DATA knob reaches every value of a limit and returns the same value", () => {
+  for (const field of ["low", "velLow"] as const) {
+    const first = field === "low" ? NOTE_MIN : VEL_MIN;
+    for (let v = first; v <= 127; v++) assert.equal(rangeFromKnob(field, rangeToKnob(field, v)), v);
+  }
+});
+
+test("edited limits decide which parts sound, including a first value above the second", () => {
+  const perf = PERFORMANCES[0];
+  let ranges = setRangeField(rangesOf(perf), 0, "high", 59);
+  ranges = setRangeField(ranges, 1, "low", 60);
+  const split = withRanges(perf, ranges);
+  assert.deepEqual(partsForNote(split, 59), [0]);
+  assert.deepEqual(partsForNote(split, 60), [1]);
+  const gap = withRanges(perf, setRangeField(setRangeField(rangesOf(perf), 0, "low", 84), 0, "high", 72));
+  assert.deepEqual([72, 73, 83, 84].map((n) => partsForNote(gap, n).includes(0)), [true, false, false, true]);
+  const soft = withRanges(perf, setRangeField(rangesOf(perf), 1, "velHigh", 50));
+  assert.deepEqual(partsForNote(soft, 60, [], 51), [0]);
+  assert.deepEqual(partsForNote(soft, 60, [], 50), [0, 1]);
 });

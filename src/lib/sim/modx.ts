@@ -112,6 +112,61 @@ export function partsForNote(perf: Performance, note: number, mutes: readonly bo
   return out;
 }
 
+/** Note Limit range printed by Yamaha, C−2 to G8 (MODX M Operation Manual p. 75; docs/SIMULATOR.md, S1b). */
+export const NOTE_MIN = 0;
+export const NOTE_MAX = 127;
+
+/** One Part's limits as the player has set them on the page. */
+export interface PartRange {
+  low: number;
+  high: number;
+  velLow: number;
+  velHigh: number;
+}
+export type RangeField = keyof PartRange;
+
+/** Lowest and highest value of each limit. */
+export const RANGE_BOUNDS: Record<RangeField, { min: number; max: number }> = {
+  low: { min: NOTE_MIN, max: NOTE_MAX },
+  high: { min: NOTE_MIN, max: NOTE_MAX },
+  velLow: { min: VEL_MIN, max: VEL_MAX },
+  velHigh: { min: VEL_MIN, max: VEL_MAX },
+};
+
+/** The limits a Performance starts with. */
+export const rangesOf = (perf: Performance): PartRange[] =>
+  perf.parts.map((p) => ({ low: p.low, high: p.high, velLow: p.velLow ?? VEL_MIN, velHigh: p.velHigh ?? VEL_MAX }));
+
+/** Sets one limit of one Part, kept to whole numbers inside its printed range. Non-numbers and unknown Parts change nothing. */
+export function setRangeField(ranges: readonly PartRange[], part: number, field: RangeField, value: number): PartRange[] {
+  const next = ranges.slice();
+  const current = next[part];
+  if (!current || !Number.isFinite(value)) return next;
+  const { min, max } = RANGE_BOUNDS[field];
+  next[part] = { ...current, [field]: Math.min(max, Math.max(min, Math.round(value))) };
+  return next;
+}
+
+/** [INC] / [DEC]: moves one limit by `delta`, stopping at the ends of its range. */
+export const stepRangeField = (ranges: readonly PartRange[], part: number, field: RangeField, delta: number) =>
+  setRangeField(ranges, part, field, (ranges[part]?.[field] ?? 0) + delta);
+
+/** A limit's value as a 0..1 position for the page's DATA knob, and back. */
+export const rangeToKnob = (field: RangeField, value: number) => {
+  const { min, max } = RANGE_BOUNDS[field];
+  return (value - min) / (max - min);
+};
+export const rangeFromKnob = (field: RangeField, knob: number) => {
+  const { min, max } = RANGE_BOUNDS[field];
+  return Math.round(min + clamp01(knob) * (max - min));
+};
+
+/** The Performance with the player's limits in place of the store's. */
+export const withRanges = (perf: Performance, ranges: readonly PartRange[]): Performance => ({
+  ...perf,
+  parts: perf.parts.map((p, i) => ({ ...p, ...ranges[i] })),
+});
+
 /** The value one assignment gives at Super Knob position `knob` (straight line from `from` to `to`). */
 export const morph = (a: KnobAssign, knob: number) => a.from + (a.to - a.from) * clamp01(knob);
 
