@@ -10,6 +10,10 @@ interface PartChannel {
   awm?: Promise<Soundfont>;
   /** FM-X parts: one AudioWorklet node (public/worklets/fmx-poly.js); null when the browser has no AudioWorklet. */
   fm?: Promise<AudioWorkletNode | null>;
+  /** FANTOM-0 zone effects (loaded with `fx`): EQ bands and the reverb and chorus sends. */
+  fx?: { low: BiquadFilterNode; mid: BiquadFilterNode; high: BiquadFilterNode; reverb: GainNode; chorus: GainNode };
+  /** Release in seconds for sample notes (FANTOM-0 CTRL RELEASE); unset = the sample player's own. */
+  release?: number;
 }
 
 /**
@@ -26,6 +30,8 @@ export class SimEngine {
   private bendCents = 0;
   private sounding = new Map<number, { part: number; note: number }[]>();
   private fmModule?: Promise<boolean>;
+  private out: AudioNode;
+  private sends?: { reverb: AudioNode; chorus: AudioNode };
 
   constructor() {
     this.ctx = new AudioContext({ latencyHint: "interactive" });
@@ -46,6 +52,39 @@ export class SimEngine {
     const chorus = createChorus(this.ctx, this.bus, limiter);
     chorus.setMode(1);
     limiter.connect(clip).connect(this.analyser).connect(this.ctx.destination);
+    this.out = limiter;
+  }
+
+  /**
+   * Shared reverb and chorus for the FANTOM-0 CTRL sends, made once on first use. The store's own:
+   * a convolver on a decaying noise burst and a wet-only modulated delay; not Roland's effects.
+   */
+  private sendBuses() {
+    if (this.sends) return this.sends;
+    const ctx = this.ctx;
+    const len = Math.round(ctx.sampleRate * 2);
+    const ir = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let c = 0; c < 2; c++) {
+      const d = ir.getChannelData(c);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 3;
+    }
+    const reverb = ctx.createConvolver();
+    reverb.buffer = ir;
+    const revOut = ctx.createGain();
+    revOut.gain.value = 0.5;
+    reverb.connect(revOut).connect(this.out);
+    const chorusIn = ctx.createGain();
+    const delay = ctx.createDelay(0.05);
+    delay.delayTime.value = 0.016;
+    const lfo = ctx.createOscillator();
+    lfo.frequency.value = 0.7;
+    const depth = ctx.createGain();
+    depth.gain.value = 0.004;
+    lfo.connect(depth).connect(delay.delayTime);
+    lfo.start();
+    chorusIn.connect(delay).connect(this.out);
+    this.sends = { reverb, chorus: chorusIn };
+    return this.sends;
   }
 
   resume() {
@@ -64,7 +103,7 @@ export class SimEngine {
    * Sets up one channel per part. Sample parts start loading now; returns when all have loaded (or failed).
    * `pans` (0..1 per part) adds a pan control to each channel; without it the channels are as before.
    */
-  async load(perf: Performance, pans?: readonly number[]): Promise<boolean> {
+  async load(perf: Performance, pans?: readonly number[], fx = false): Promise<boolean> {
     this.allOff();
     for (const p of this.parts)
       setTimeout(() => {
@@ -81,7 +120,28 @@ export class SimEngine {
       if (pans) {
         ch.pan = this.ctx.createStereoPanner();
         ch.pan.pan.value = (pans[i] ?? 0.5) * 2 - 1;
-        gain.connect(ch.pan).connect(this.bus);
+        if (fx) {
+          // FANTOM-0 zone path: EQ (low shelf, peak, high shelf; the store's corner frequencies), pan, then sends.
+          const band = (type: BiquadFilterType, freq: number) => {
+            const f = this.ctx.createBiquadFilter();
+            f.type = type;
+            f.frequency.value = freq;
+            f.gain.value = 0;
+            return f;
+          };
+          const low = band("lowshelf", 200);
+          const mid = band("peaking", 1000);
+          const high = band("highshelf", 4000);
+          const sends = this.sendBuses();
+          const reverb = this.ctx.createGain();
+          const chorus = this.ctx.createGain();
+          reverb.gain.value = 0;
+          chorus.gain.value = 0;
+          gain.connect(low).connect(mid).connect(high).connect(ch.pan).connect(this.bus);
+          ch.pan.connect(reverb).connect(sends.reverb);
+          ch.pan.connect(chorus).connect(sends.chorus);
+          ch.fx = { low, mid, high, reverb, chorus };
+        } else gain.connect(ch.pan).connect(this.bus);
       } else gain.connect(this.bus);
       if (part.engine === "AN-X" && part.an) {
         ch.an = { voices: new PolyVoices(this.ctx, gain, 6), settings: { ...part.an } };
@@ -121,6 +181,26 @@ export class SimEngine {
     this.parts[part]?.pan?.pan.setTargetAtTime(Math.min(1, Math.max(-1, pan * 2 - 1)), this.ctx.currentTime, 0.02);
   }
 
+  /** FANTOM-0 CTRL: EQ gains in dB, reverb and chorus sends 0..1, for channels loaded with `fx`. */
+  setZoneFx(part: number, eq: { low: number; mid: number; high: number }, reverb: number, chorus: number) {
+    const fx = this.parts[part]?.fx;
+    if (!fx) return;
+    const t = this.ctx.currentTime;
+    fx.low.gain.setTargetAtTime(eq.low, t, 0.02);
+    fx.mid.gain.setTargetAtTime(eq.mid, t, 0.02);
+    fx.high.gain.setTargetAtTime(eq.high, t, 0.02);
+    fx.reverb.gain.setTargetAtTime(reverb * 0.8, t, 0.02);
+    fx.chorus.gain.setTargetAtTime(chorus * 0.7, t, 0.02);
+  }
+
+  /** FANTOM-0 CTRL ATTACK / RELEASE: new analog settings for a VA channel (next notes), or a release for sample notes. */
+  setEnvelope(part: number, an: AnSettings | undefined, release: number | undefined) {
+    const ch = this.parts[part];
+    if (!ch) return;
+    if (ch.an && an) ch.an.settings = { ...an };
+    ch.release = release;
+  }
+
   setCutoff(part: number, cutoff: number) {
     const an = this.parts[part]?.an;
     if (!an) return;
@@ -149,7 +229,7 @@ export class SimEngine {
       if (!ch) continue;
       if (ch.an) ch.an.voices.noteOn(note, ch.an.settings, velocity);
       else if (ch.fm) void ch.fm.then((node) => node?.port.postMessage({ type: "on", note, velocity }));
-      else void ch.awm?.then((inst) => inst.start({ note, velocity: Math.round(30 + velocity * 97) })).catch(() => {});
+      else void ch.awm?.then((inst) => inst.start({ note, velocity: Math.round(30 + velocity * 97), ...(ch.release !== undefined ? { ampRelease: ch.release } : {}) })).catch(() => {});
     }
     this.sounding.set(key, targets.map(([part, note]) => ({ part, note })));
   }

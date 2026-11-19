@@ -354,3 +354,74 @@ export const FANTOM_SCENES: FantomScene[] = [
     zones: [zone(pcm("Strings", "string_ensemble_1"), 0.8, true), zone(pcm("Harp", "orchestral_harp"), 0.45, true, { pan: 0.7 }), zone(pcm("Pizz", "pizzicato_strings"), 0.4, false, { pan: 0.3 }), zone(pcm("Cello", "cello"), 0.7, false, { shift: -12 })],
   },
 ];
+
+/**
+ * What knobs [1]–[8] do. PAN/LEVEL: each zone's pan (sliders set each zone's volume in both modes).
+ * CTRL: the knobs control the current zone (Owner's Manual pp. 8, 19).
+ */
+export type KnobMode = "PAN/LEVEL" | "CTRL";
+
+/** With CTRL on, knobs [1]–[8] control these for the current zone, in this order (Owner's Manual p. 19). */
+export const CTRL_KNOBS = ["ATTACK", "RELEASE", "REVERB", "CHORUS", "LOW GAIN", "MID GAIN", "HIGH GAIN", "EQ ON"] as const;
+export type CtrlJob = (typeof CTRL_KNOBS)[number];
+
+/**
+ * A zone's CTRL knob positions (each 0..1). The manual does not print values or ranges, so these are
+ * the store's: ATTACK and RELEASE change the tone's own times (centre = as the tone is), REVERB and
+ * CHORUS are sends from 0, the three gains are ±EQ_RANGE_DB (centre = 0 dB), EQ ON is off in the
+ * left half and on in the right half.
+ */
+export type ZoneCtrl = Record<CtrlJob, number>;
+
+/** Store's starting positions: tone as it is, no sends, flat EQ, EQ on. */
+export const CTRL_START: ZoneCtrl = { ATTACK: 0.5, RELEASE: 0.5, REVERB: 0, CHORUS: 0, "LOW GAIN": 0.5, "MID GAIN": 0.5, "HIGH GAIN": 0.5, "EQ ON": 1 };
+/** Store's EQ gain range in dB either side of 0 (not a keyboard fact). */
+export const EQ_RANGE_DB = 12;
+
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+
+/** Fresh CTRL settings for each zone of a Scene. */
+export const ctrlsForScene = (scene: FantomScene): ZoneCtrl[] => scene.zones.map(() => ({ ...CTRL_START }));
+
+/** Knob `knob` (0–7) of the current zone in CTRL mode moves its job. Other zones and bad indexes are left alone. */
+export function setCtrl(ctrls: readonly ZoneCtrl[], zone: number, knob: number, value: number): ZoneCtrl[] {
+  const job = CTRL_KNOBS[knob];
+  return ctrls.map((c, i) => (job && i === zone ? { ...c, [job]: clamp01(value) } : c));
+}
+
+export const eqOn = (c: ZoneCtrl) => c["EQ ON"] >= 0.5;
+
+/** EQ gains in dB for the audio; all 0 when EQ ON is off. */
+export function eqGainsDb(c: ZoneCtrl): { low: number; mid: number; high: number } {
+  const db = (v: number) => (eqOn(c) ? Math.round((v - 0.5) * 2 * EQ_RANGE_DB * 10) / 10 : 0);
+  return { low: db(c["LOW GAIN"]), mid: db(c["MID GAIN"]), high: db(c["HIGH GAIN"]) };
+}
+
+/** A VA partial's settings with the zone's ATTACK and RELEASE applied (store's offsets, ±0.5 of the knob range). */
+export function vaWithCtrl(settings: AnSettings, c: ZoneCtrl): AnSettings {
+  return { ...settings, attack: clamp01(settings.attack + c.ATTACK - 0.5), release: clamp01(settings.release + c.RELEASE - 0.5) };
+}
+
+/** Release time in seconds for PCM partials: 0.3 s at centre (the sample player's own default), ×8 or ÷8 at the ends (store's range). */
+export const pcmReleaseS = (c: ZoneCtrl) => Math.round(0.3 * 2 ** ((clamp01(c.RELEASE) - 0.5) * 6) * 1000) / 1000;
+
+/** Text under a CTRL knob. */
+export function ctrlText(job: CtrlJob, c: ZoneCtrl): string {
+  const v = clamp01(c[job]);
+  if (job === "EQ ON") return eqOn(c) ? "ON" : "OFF";
+  if (job === "REVERB" || job === "CHORUS") return String(Math.round(v * 127));
+  if (job === "ATTACK" || job === "RELEASE") {
+    const n = Math.round((v - 0.5) * 100);
+    return n > 0 ? `+${n}` : String(n);
+  }
+  const db = Math.round((v - 0.5) * 2 * EQ_RANGE_DB);
+  return `${db > 0 ? "+" : ""}${db}dB`;
+}
+
+/**
+ * [ZONE SELECT] selects the current zone (Owner's Manual p. 8). On this page: press [ZONE SELECT], then
+ * a ZONE INT/EXT button picks that zone (the store's reading of the steps). Returns the new current
+ * zone, or the old one when `index` is not a zone of the Scene.
+ */
+export const pickCurrentZone = (current: number, index: number, zoneCount: number): number =>
+  Number.isInteger(index) && index >= 0 && index < Math.min(zoneCount, PANEL_ZONES) ? index : current;

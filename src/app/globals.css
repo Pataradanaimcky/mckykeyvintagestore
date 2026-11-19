@@ -112,7 +112,7 @@ h3 {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-ink);
+  outline: 2px solid var(--color-blue);
   outline-offset: 3px;
 }
 
@@ -2056,4 +2056,34 @@ html.js [data-reveal].is-in {
 .rack-led,
 .face-led {
   border-radius: 999px !important;
+}
+/* FANTOM-0-style page: PAN/LEVEL, CTRL and ZONE SELECT above the zone strips; the current zone is underlined. */
+.sim-knob-mode {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.sim-zone .rack-label {
+  max-width: 100%;
+  padding-inline: 0;
+  letter-spacing: 0;
+  text-align: center;
+  font-size: 0.45rem;
+  line-height: 1.1;
+  /* Two-word CTRL labels wrap on phones; keep every strip the same height so the sliders line up. */
+  display: flex;
+  min-height: 1.4rem;
+  align-items: center;
+  justify-content: center;
+}
+@media (min-width: 640px) {
+  .sim-zone .rack-label {
+    min-height: 0;
+    font-size: 0.5rem;
+    letter-spacing: 0.05em;
+  }
+}
+.rack-skin-sim .sim-zone .sim-part-btn.is-current {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 1px;
 }
