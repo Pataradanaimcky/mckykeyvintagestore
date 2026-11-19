@@ -8,6 +8,9 @@ import { Knob } from "../Knob";
 import { OctaveSwitch, RackKeys } from "../RackKeys";
 import {
   applySplitJob,
+  ASSIGN_KNOB_COUNT,
+  assignKnobsOf,
+  assignStartsOf,
   clearSplitGroups,
   KNOB_POSITION_DEFAULTS,
   KNOB_POSITIONS,
@@ -50,11 +53,18 @@ import { bendCents, emptyLearn, handleCc, hasReadyMap, toggleLearn, toggleReadyM
 import { SimEngine } from "./engine";
 import { useMidiIn } from "./useMidiIn";
 
-/** Page controls a keyboard control can move: the Super Knob, the SCENE buttons and part faders 1–8. */
-type LearnTarget = "super" | "scene" | `part${number}`;
+/** Page controls a keyboard control can move: the Super Knob, the SCENE buttons, Knobs 1–8 and part faders 1–8. */
+type LearnTarget = "super" | "scene" | `part${number}` | `knob${number}`;
 
 /** The numbers printed in Yamaha's documents for the controls this page has (docs/SIMULATOR.md, S8c). */
-const READY_MAP: Partial<Record<LearnTarget, number>> = { super: MODX_DEFAULT_CC.superKnob, scene: MODX_DEFAULT_CC.scene };
+const READY_MAP: Partial<Record<LearnTarget, number>> = {
+  super: MODX_DEFAULT_CC.superKnob,
+  scene: MODX_DEFAULT_CC.scene,
+  ...Object.fromEntries(MODX_DEFAULT_CC.assignKnobs.map((cc, i) => [`knob${i + 1}`, cc])),
+};
+
+/** Knobs 1–4 or 5–8 on the four knobs (Quick Guide 5-3 prints "Knobs 1–4 (5–8)"). */
+const KNOB_BANKS = [0, 4] as const;
 
 /** The two views for setting Part limits; the names are the keyboard's (Operation Manual pp. 19, 80, 83). */
 const RANGE_VIEWS = {
@@ -88,6 +98,11 @@ export function ModxPage({ active }: { active: boolean }) {
   const [levels, setLevels] = useState<number[]>(() => perf.parts.map((p) => p.level));
   const [mutes, setMutes] = useState<boolean[]>(() => perf.parts.map(() => false));
   const [knob, setKnob] = useState(perf.knobStart);
+  // Knobs 1–8 (Assign knobs): what each moves and where each is now.
+  const assigns = assignKnobsOf(perf);
+  const [assignValues, setAssignValues] = useState<number[]>(() => assignStartsOf(assignKnobsOf(perf)));
+  const [knobBank, setKnobBank] = useState<0 | 4>(0);
+  const [knobFocus, setKnobFocus] = useState(0);
   const [knobPositions, setKnobPositions] = useState<number[]>(() => KNOB_POSITION_DEFAULTS.slice());
   const [scenes, setScenes] = useState<Scene[]>(() => scenesOf(perf));
   const [scene, setScene] = useState(0);
@@ -143,11 +158,11 @@ export function ModxPage({ active }: { active: boolean }) {
     const e = engine.current;
     if (!e || loadedFor.current !== perfIndex) return;
     perf.parts.forEach((_, i) => {
-      const c = partControls(perf, i, levels[i] ?? 0, knob);
+      const c = partControls(perf, i, levels[i] ?? 0, knob, assignKnobsOf(perf), assignValues);
       e.setLevel(i, mutes[i] ? 0 : c.level);
       if (c.cutoff !== undefined) e.setCutoff(i, c.cutoff);
     });
-  }, [perf, perfIndex, levels, mutes, knob, loading]);
+  }, [perf, perfIndex, levels, mutes, knob, assignValues, loading]);
 
   const choosePerformance = (i: number) => {
     const p = PERFORMANCES[(i + PERFORMANCES.length) % PERFORMANCES.length];
@@ -157,6 +172,7 @@ export function ModxPage({ active }: { active: boolean }) {
     setLevels(p.parts.map((x) => x.level));
     setMutes(p.parts.map(() => false));
     setKnob(p.knobStart);
+    setAssignValues(assignStartsOf(assignKnobsOf(p)));
     setKnobPositions(KNOB_POSITION_DEFAULTS.slice());
     setScenes(scenesOf(p));
     setScene(0);
@@ -225,7 +241,10 @@ export function ModxPage({ active }: { active: boolean }) {
       for (const { target, value: v } of r.set) {
         if (target === "super") setKnob(v);
         else if (target === "scene") recallSceneAt(sceneFromCc(value));
-        else {
+        else if (target.startsWith("knob")) {
+          const n = Number(target.slice(4)) - 1;
+          setAssignValues((a) => a.map((x, k) => (k === n ? v : x)));
+        } else {
           const i = Number(target.slice(4)) - 1;
           setLevels((l) => (i < l.length ? l.map((x, p) => (p === i ? v : x)) : l));
         }
@@ -340,7 +359,53 @@ export function ModxPage({ active }: { active: boolean }) {
     <section aria-label="MODX M แบบจำลอง" className="flex flex-col gap-3">
       <div className="rack-case rack-skin-fm rack-skin-sim relative select-none p-2 sm:p-3">
         <div className="grid grid-cols-6 gap-1.5 md:grid-cols-12 md:gap-2">
-          {/* Super Knob and its position buttons, on the left as on the keyboard. */}
+          {/*
+            Knobs 1–4 (5–8) next to the Super Knob, in the Quick Guide's order (top panel 5-3, 5-5).
+            The page's 1–4 / 5–8 button is the store's own: how the keyboard switches is not read yet.
+          */}
+          <div className="rack-panel col-span-6 md:col-span-3">
+            <div className="flex items-center justify-between gap-1">
+              <p className="rack-title">KNOB {knobBank + 1}–{knobBank + 4}</p>
+              <span className="flex gap-1" role="group" aria-label="Knob 1–4 หรือ 5–8">
+                {KNOB_BANKS.map((b) => (
+                  <button
+                    key={b}
+                    type="button"
+                    className="rack-mini px-1.5 text-[0.55rem]"
+                    aria-pressed={knobBank === b}
+                    title="ปุ่มสลับนี้เป็นของร้าน วิธีสลับบนเครื่องจริงยังไม่ได้อ่านจากคู่มือ"
+                    onClick={() => setKnobBank(b)}
+                  >
+                    {b + 1}–{b + 4}
+                  </button>
+                ))}
+              </span>
+            </div>
+            <div className="sim-assign">
+              {Array.from({ length: 4 }, (_, j) => {
+                const n = knobBank + j;
+                const k = assigns[n];
+                return (
+                  <div key={n} className="sim-assign-knob" onPointerDown={() => setKnobFocus(n)} onFocus={() => setKnobFocus(n)}>
+                    <Knob
+                      label={`Knob ${n + 1} ${k.name}`}
+                      hint={k.targets.length ? `${Math.round((assignValues[n] ?? k.start) * 100)}` : "—"}
+                      value={assignValues[n] ?? k.start}
+                      onChange={(v) => setAssignValues((a) => a.map((x, i) => (i === n ? v : x)))}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-auto flex items-center gap-1">
+              {learnButton(`knob${knobFocus + 1}`, `Knob ${knobFocus + 1}`)}
+              <span className="rack-hint truncate">
+                {knobFocus + 1}: {learnHint(`knob${knobFocus + 1}`)}
+              </span>
+            </div>
+          </div>
+
+          {/* Super Knob and its position buttons. */}
           <div className="rack-panel col-span-6 items-center md:col-span-2">
             <p className="rack-title self-stretch">SUPER KNOB</p>
             <div className="sim-superknob">
@@ -572,63 +637,11 @@ export function ModxPage({ active }: { active: boolean }) {
             )}
           </div>
 
-          {/* Performance select and USB. */}
-          <div className="rack-panel col-span-6 md:col-span-3">
-            <p className="rack-title">CATEGORY / USB</p>
-            <div className="flex items-center gap-1.5">
-              <button type="button" className="rack-mini" onClick={() => choosePerformance(perfIndex - 1)} aria-label="Performance ก่อนหน้า">
-                −
-              </button>
-              <select className="rack-select" aria-label="เลือก Performance" value={perfIndex} onChange={(e) => choosePerformance(Number(e.target.value))}>
-                {PERFORMANCES.map((p, i) => (
-                  <option key={p.name} value={i}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-              <button type="button" className="rack-mini" onClick={() => choosePerformance(perfIndex + 1)} aria-label="Performance ถัดไป">
-                +
-              </button>
-            </div>
-            <button type="button" className="rack-preset h-auto py-2 text-left leading-snug" onClick={() => void midi.connect()} aria-pressed={midi.state === "on"}>
-              {MIDI_TEXT[midi.state]}
-              {midi.state === "on" && midi.names.length > 0 && <span className="block font-normal opacity-80">{midi.names.join(", ")}</span>}
-            </button>
-            <p className="rack-hint leading-snug">
-              เล่นจากคีย์บอร์ดจริงผ่าน USB (Chrome / Edge) · LEARN: กดแล้วหมุนปุ่มบนคีย์บอร์ด · ยังไม่ได้ทดสอบกับเครื่องจริง
-            </p>
-            <button
-              type="button"
-              className={`rack-mini h-auto px-1.5 py-1 text-[0.6rem] leading-snug ${readyOn ? "sim-shift-on" : ""}`}
-              aria-pressed={readyOn}
-              disabled={midi.state !== "on"}
-              title={midi.state === "on" ? undefined : "ต่อคีย์บอร์ด USB ก่อน"}
-              onClick={() => setLearn(toggleReadyMap(learnRef.current, READY_MAP))}
-            >
-              ใช้เลข CC ตามเอกสาร Yamaha
-            </button>
-            <details className="rack-hint leading-snug">
-              <summary className="cursor-pointer">เลข CC ค่าเริ่มต้น · ยังไม่ได้ทดสอบกับเครื่องจริง</summary>
-              <ul className="mt-1 flex flex-col gap-0.5">
-                <li>Super Knob = CC {MODX_DEFAULT_CC.superKnob}</li>
-                <li>SCENE 1–8 = CC {MODX_DEFAULT_CC.scene} (ค่า 0–15 = Scene 1 … 112–127 = Scene 8)</li>
-                <li>
-                  Knob 1–8 = CC {MODX_DEFAULT_CC.assignKnobs[0]}–{MODX_DEFAULT_CC.assignKnobs[7]} (หน้านี้ยังไม่มีปุ่มชุดนี้)
-                </li>
-                <li>Control slider: ยังไม่พบเลข CC ในเอกสาร ใช้ LEARN</li>
-                <li>ถ้าเปลี่ยนเลขบนเครื่องไว้ ใช้ LEARN แทน</li>
-              </ul>
-            </details>
-            <div className="mt-auto flex justify-end">
-              <OctaveSwitch octave={octave} onChange={setOctave} />
-            </div>
-          </div>
-
           {/*
             Eight part faders over PART buttons 1–8, as on the keyboard: a PART button selects the
             part; [SHIFT] + [PART SELECT] mutes the selected part (Quick Guide pp. 24–25).
           */}
-          <div className="rack-panel col-span-6 md:col-span-9">
+          <div className="rack-panel col-span-6 md:col-span-6">
             <div className="flex items-center justify-between gap-2">
               <p className="rack-title">PART LEVEL</p>
               <span className="ml-auto flex items-center gap-1">
@@ -698,6 +711,58 @@ export function ModxPage({ active }: { active: boolean }) {
               <p className="rack-hint w-full leading-snug">
                 {shift ? "กด SCENE เพื่อเก็บ · KNOB POSITION เพื่อเก็บค่า · PART SELECT เพื่อ MUTE · SPLIT เพื่อตั้งช่วงโน้ต" : "SPLIT = แบ่งคีย์ · SHIFT + SCENE = STORE · SHIFT + SPLIT = ช่วงโน้ต"}
               </p>
+            </div>
+          </div>
+
+          {/* Performance select and USB. */}
+          <div className="rack-panel col-span-6 md:col-span-3">
+            <p className="rack-title">CATEGORY / USB</p>
+            <div className="flex items-center gap-1.5">
+              <button type="button" className="rack-mini" onClick={() => choosePerformance(perfIndex - 1)} aria-label="Performance ก่อนหน้า">
+                −
+              </button>
+              <select className="rack-select" aria-label="เลือก Performance" value={perfIndex} onChange={(e) => choosePerformance(Number(e.target.value))}>
+                {PERFORMANCES.map((p, i) => (
+                  <option key={p.name} value={i}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+              <button type="button" className="rack-mini" onClick={() => choosePerformance(perfIndex + 1)} aria-label="Performance ถัดไป">
+                +
+              </button>
+            </div>
+            <button type="button" className="rack-preset h-auto py-2 text-left leading-snug" onClick={() => void midi.connect()} aria-pressed={midi.state === "on"}>
+              {MIDI_TEXT[midi.state]}
+              {midi.state === "on" && midi.names.length > 0 && <span className="block font-normal opacity-80">{midi.names.join(", ")}</span>}
+            </button>
+            <p className="rack-hint leading-snug">
+              เล่นจากคีย์บอร์ดจริงผ่าน USB (Chrome / Edge) · LEARN: กดแล้วหมุนปุ่มบนคีย์บอร์ด · ยังไม่ได้ทดสอบกับเครื่องจริง
+            </p>
+            <button
+              type="button"
+              className={`rack-mini h-auto px-1.5 py-1 text-[0.6rem] leading-snug ${readyOn ? "sim-shift-on" : ""}`}
+              aria-pressed={readyOn}
+              disabled={midi.state !== "on"}
+              title={midi.state === "on" ? undefined : "ต่อคีย์บอร์ด USB ก่อน"}
+              onClick={() => setLearn(toggleReadyMap(learnRef.current, READY_MAP))}
+            >
+              ใช้เลข CC ตามเอกสาร Yamaha
+            </button>
+            <details className="rack-hint leading-snug">
+              <summary className="cursor-pointer">เลข CC ค่าเริ่มต้น · ยังไม่ได้ทดสอบกับเครื่องจริง</summary>
+              <ul className="mt-1 flex flex-col gap-0.5">
+                <li>Super Knob = CC {MODX_DEFAULT_CC.superKnob}</li>
+                <li>SCENE 1–8 = CC {MODX_DEFAULT_CC.scene} (ค่า 0–15 = Scene 1 … 112–127 = Scene 8)</li>
+                <li>
+                  Knob 1–8 = CC {MODX_DEFAULT_CC.assignKnobs[0]}–{MODX_DEFAULT_CC.assignKnobs[ASSIGN_KNOB_COUNT - 1]}
+                </li>
+                <li>Control slider: ยังไม่พบเลข CC ในเอกสาร ใช้ LEARN</li>
+                <li>ถ้าเปลี่ยนเลขบนเครื่องไว้ ใช้ LEARN แทน</li>
+              </ul>
+            </details>
+            <div className="mt-auto flex justify-end">
+              <OctaveSwitch octave={octave} onChange={setOctave} />
             </div>
           </div>
 

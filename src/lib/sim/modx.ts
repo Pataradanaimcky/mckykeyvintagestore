@@ -258,10 +258,51 @@ export function applySplitJob(ranges: readonly PartRange[], job: SplitJob): Part
 export const morph = (a: KnobAssign, knob: number) => a.from + (a.to - a.from) * clamp01(knob);
 
 /**
- * A part's level and cutoff after its fader and the Super Knob. The knob's level assignment
- * scales the fader; its cutoff assignment replaces the part's cutoff.
+ * Knobs 1–4 (5–8): the keyboard's eight Assign knobs (MODX M Quick Guide, top panel 5-3; default
+ * CC 17–24, Data List note *4). What each moves in a Performance is set per Performance; these are
+ * the store's own settings, not Yamaha's. A level target scales the part (1 = as it was); a cutoff
+ * target is added to the part's cutoff (0 = as it was), on AN-X parts only.
  */
-export function partControls(perf: Performance, index: number, fader: number, knob: number): { level: number; cutoff?: number } {
+export const ASSIGN_KNOB_COUNT = 8;
+export interface AssignKnob {
+  /** Short name shown under the knob, or "—" when the knob moves nothing. */
+  name: string;
+  targets: KnobAssign[];
+  /** Position the knob starts at; at this position the Performance sounds as written. */
+  start: number;
+}
+
+const EMPTY_KNOB: AssignKnob = { name: "—", targets: [], start: 0.5 };
+
+/**
+ * The store's Knob 1–8 settings for a Performance: Knob 1 CUTOFF opens or closes every AN-X part
+ * (±0.3), Knob 2 LAYER turns down every part but Part 1. Knobs 3–8 move nothing yet.
+ */
+export function assignKnobsOf(perf: Performance): AssignKnob[] {
+  const out: AssignKnob[] = Array.from({ length: ASSIGN_KNOB_COUNT }, () => EMPTY_KNOB);
+  const an = perf.parts.flatMap((p, i) => (p.engine === "AN-X" && i < MAX_PARTS ? [i] : []));
+  if (an.length > 0) out[0] = { name: "CUTOFF", start: 0.5, targets: an.map((part) => ({ part, param: "cutoff", from: -0.3, to: 0.3 })) };
+  const layers = perf.parts.flatMap((_, i) => (i > 0 && i < MAX_PARTS ? [i] : []));
+  if (layers.length > 0) out[1] = { name: "LAYER", start: 1, targets: layers.map((part) => ({ part, param: "level", from: 0, to: 1 })) };
+  return out;
+}
+
+/** Knob positions a Performance starts with. */
+export const assignStartsOf = (knobs: readonly AssignKnob[]) => knobs.map((k) => k.start);
+
+/**
+ * A part's level and cutoff after its fader, the Super Knob and Knobs 1–8. The Super Knob's level
+ * assignment scales the fader; its cutoff assignment replaces the part's cutoff. Knobs 1–8 then
+ * scale the level and move the cutoff (see AssignKnob).
+ */
+export function partControls(
+  perf: Performance,
+  index: number,
+  fader: number,
+  knob: number,
+  assigns: readonly AssignKnob[] = [],
+  assignValues: readonly number[] = [],
+): { level: number; cutoff?: number } {
   const part = perf.parts[index];
   let level = clamp01(fader);
   let cutoff = part.an?.cutoff;
@@ -270,6 +311,14 @@ export function partControls(perf: Performance, index: number, fader: number, kn
     if (a.param === "level") level *= clamp01(morph(a, knob));
     else cutoff = clamp01(morph(a, knob));
   }
+  assigns.forEach((k, n) => {
+    const value = assignValues[n] ?? k.start;
+    for (const a of k.targets) {
+      if (a.part !== index) continue;
+      if (a.param === "level") level *= clamp01(morph(a, value));
+      else if (cutoff !== undefined) cutoff = clamp01(cutoff + morph(a, value));
+    }
+  });
   return { level, cutoff };
 }
 
