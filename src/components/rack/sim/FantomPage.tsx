@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { packsHref } from "@/components/studio/packsLink";
 import { Fader } from "../Fader";
 import { Knob } from "../Knob";
-import { OctaveSwitch, RackKeys } from "../RackKeys";
+import { RackKeys } from "../RackKeys";
 import {
   applyZoneControl,
   asPerformance,
@@ -19,6 +19,7 @@ import {
   learnTargets,
   noteName,
   noteTargets,
+  OCTAVE_RANGE,
   PAD_COUNT,
   PAD_START,
   padFace,
@@ -33,7 +34,10 @@ import {
   pressPadMode,
   setCtrl,
   setSplit,
+  signedText,
+  stepKeyShift,
   toggleZone,
+  TRANSPOSE_RANGE,
   vaWithCtrl,
   zoneRange,
   type FantomLearnTarget,
@@ -81,7 +85,16 @@ export function FantomPage({ active }: { active: boolean }) {
   const [zoneSelectArmed, setZoneSelectArmed] = useState(false);
   const [ctrls, setCtrls] = useState<ZoneCtrl[]>(() => ctrlsForScene(scene));
   const audible = audibleZones(on, pads);
+  // Octave ±3 and Transpose −5..+6 (Owner's Manual p. 18), for the on-screen and computer keys only.
   const [octave, setOctave] = useState(0);
+  const [transpose, setTranspose] = useState(0);
+  const transposeRef = useRef(0);
+  useEffect(() => {
+    transposeRef.current = transpose;
+  }, [transpose]);
+  // Screen key → note it is playing, so a key lets go of the right note after Transpose changes.
+  const screenNotes = useRef(new Map<number, number>());
+  const [screenView, setScreenView] = useState<ReadonlyMap<number, number>>(new Map());
   const [held, setHeld] = useState<ReadonlySet<number>>(new Set());
   const [loading, setLoading] = useState<"idle" | "loading" | "ready" | "failed">("idle");
   // CC learn: which zone control the LEARN button is for, and the CCs learnt so far (kept across Scenes).
@@ -191,6 +204,29 @@ export function FantomPage({ active }: { active: boolean }) {
       return next;
     });
   }, []);
+
+  // On-screen and computer keys go through Octave (RackKeys) and Transpose; USB notes do not.
+  const screenOn = useCallback(
+    (key: number) => {
+      const note = key + transposeRef.current;
+      screenNotes.current.set(key, note);
+      setScreenView(new Map(screenNotes.current));
+      noteOn(note);
+    },
+    [noteOn],
+  );
+  const screenOff = useCallback(
+    (key: number) => {
+      const note = screenNotes.current.get(key) ?? key;
+      screenNotes.current.delete(key);
+      setScreenView(new Map(screenNotes.current));
+      noteOff(note);
+    },
+    [noteOff],
+  );
+  // Light the key that was pressed, not the transposed note it plays.
+  const playedBy = new Map([...screenView].map(([key, note]) => [note, key]));
+  const litKeys = transpose === 0 ? held : new Set([...held].map((n) => playedBy.get(n) ?? n));
 
   const midi = useMidiIn(active, {
     noteOn,
@@ -382,7 +418,6 @@ export function FantomPage({ active }: { active: boolean }) {
                 SPLIT
               </button>
               <span className="rack-hint leading-snug">{splitArmed ? "กดคีย์เพื่อตั้งจุดแบ่ง" : "SPLIT + คีย์ = ZONE 1 บน / ZONE 4 ล่าง"}</span>
-              <OctaveSwitch octave={octave} onChange={setOctave} />
             </div>
           </div>
 
@@ -479,9 +514,31 @@ export function FantomPage({ active }: { active: boolean }) {
           <div className="rack-panel rack-keys col-span-6 md:col-span-12">
             <div className="flex items-center justify-between gap-3">
               <p className="rack-title">KEYS</p>
-              <p className="rack-hint hidden sm:block">ซ้อนเสียงด้วย ZONE · แบ่งคีย์ด้วย SPLIT · CTRL ปรับเสียง ZONE ปัจจุบัน · PAD MODE เปลี่ยนหน้าที่ Pad</p>
+              <div className="sim-keyshift" role="group" aria-label="OCTAVE และ TRANSPOSE ของคีย์บนจอ">
+                <span className="sim-keyshift-pair">
+                  <span className="rack-hint">OCTAVE</span>
+                  <button type="button" className="rack-mini" disabled={octave <= OCTAVE_RANGE.min} onClick={() => setOctave(stepKeyShift(octave, -1, OCTAVE_RANGE))} aria-label="OCTAVE ลง">
+                    −
+                  </button>
+                  <span className="sim-keyshift-value" aria-live="polite">{signedText(octave)}</span>
+                  <button type="button" className="rack-mini" disabled={octave >= OCTAVE_RANGE.max} onClick={() => setOctave(stepKeyShift(octave, 1, OCTAVE_RANGE))} aria-label="OCTAVE ขึ้น">
+                    +
+                  </button>
+                </span>
+                <span className="sim-keyshift-pair">
+                  <span className="rack-hint">TRANSPOSE</span>
+                  <button type="button" className="rack-mini" disabled={transpose <= TRANSPOSE_RANGE.min} onClick={() => setTranspose(stepKeyShift(transpose, -1, TRANSPOSE_RANGE))} aria-label="TRANSPOSE ลง">
+                    −
+                  </button>
+                  <span className="sim-keyshift-value" aria-live="polite">{signedText(transpose)}</span>
+                  <button type="button" className="rack-mini" disabled={transpose >= TRANSPOSE_RANGE.max} onClick={() => setTranspose(stepKeyShift(transpose, 1, TRANSPOSE_RANGE))} aria-label="TRANSPOSE ขึ้น">
+                    +
+                  </button>
+                </span>
+              </div>
+              <p className="rack-hint hidden lg:block">ซ้อนเสียงด้วย ZONE · แบ่งคีย์ด้วย SPLIT · CTRL ปรับเสียง ZONE ปัจจุบัน · PAD MODE เปลี่ยนหน้าที่ Pad</p>
             </div>
-            <RackKeys active={active} held={held} octave={octave} onNoteOn={(n) => noteOn(n)} onNoteOff={noteOff} />
+            <RackKeys active={active} held={litKeys} octave={octave} onNoteOn={screenOn} onNoteOff={screenOff} />
           </div>
         </div>
       </div>

@@ -425,3 +425,18 @@ export function ctrlText(job: CtrlJob, c: ZoneCtrl): string {
  */
 export const pickCurrentZone = (current: number, index: number, zoneCount: number): number =>
   Number.isInteger(index) && index >= 0 && index < Math.min(zoneCount, PANEL_ZONES) ? index : current;
+
+/**
+ * Octave and Transpose for the keys (Owner's Manual p. 18): octave ±3, transpose −5 to +6 semitones.
+ * Here they shift only the on-screen and computer keys; a USB keyboard plays the notes it sends.
+ * Which buttons the keyboard uses for each step is not in the stored notes, so the page's −/+ pairs
+ * are the store's own.
+ */
+export const OCTAVE_RANGE = { min: -3, max: 3 } as const;
+export const TRANSPOSE_RANGE = { min: -5, max: 6 } as const;
+
+export const stepKeyShift = (value: number, delta: number, range: { min: number; max: number }) =>
+  Math.min(range.max, Math.max(range.min, Math.round(value + delta)));
+
+/** Text for the display, e.g. "+2", "0", "−5". */
+export const signedText = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : "0");

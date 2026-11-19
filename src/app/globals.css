@@ -2075,6 +2075,28 @@ html.js [data-reveal].is-in {
   flex-wrap: wrap;
   gap: 0.35rem;
 }
+/* FANTOM-0-style page: OCTAVE and TRANSPOSE −/+ in the KEYS panel; wraps on phones. */
+.sim-keyshift {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.3rem;
+  min-width: 0;
+}
+.sim-keyshift-pair {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+}
+.sim-keyshift-value {
+  min-width: 1.6rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.7rem;
+  color: var(--color-ink);
+}
 .sim-zone .rack-label {
   max-width: 100%;
   padding-inline: 0;
