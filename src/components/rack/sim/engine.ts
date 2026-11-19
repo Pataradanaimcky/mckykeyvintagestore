@@ -1,6 +1,7 @@
 import type { Soundfont } from "smplr";
 import { createChorus, PolyVoices } from "../poly/voices";
 import type { AnSettings, Performance } from "@/lib/sim/modx";
+import { SIM_LIMITER, softClipCurve } from "@/lib/sim/output";
 
 interface PartChannel {
   gain: GainNode;
@@ -15,7 +16,7 @@ interface PartChannel {
  * Audio for the MODX M-style page: one channel per part (AN-X parts use the POLY page's
  * analog-style voices, AWM2 parts play FluidR3_GM samples through smplr, FM-X parts run the
  * store's own 8-operator FM voice in an AudioWorklet), a shared chorus
- * and a limiter. Built for the Performance in use; `load` swaps it.
+ * and a limiter with a soft clip after it. Built for the Performance in use; `load` swaps it.
  */
 export class SimEngine {
   readonly ctx: AudioContext;
@@ -30,14 +31,21 @@ export class SimEngine {
     this.ctx = new AudioContext({ latencyHint: "interactive" });
     this.bus = this.ctx.createGain();
     this.bus.gain.value = 0.55;
+    // Limiter then soft clip, so large chords stay under full scale (src/lib/sim/output.ts, SIMULATOR.md S7b).
     const limiter = this.ctx.createDynamicsCompressor();
-    limiter.threshold.value = -8;
-    limiter.ratio.value = 6;
+    limiter.threshold.value = SIM_LIMITER.threshold;
+    limiter.knee.value = SIM_LIMITER.knee;
+    limiter.ratio.value = SIM_LIMITER.ratio;
+    limiter.attack.value = SIM_LIMITER.attack;
+    limiter.release.value = SIM_LIMITER.release;
+    const clip = this.ctx.createWaveShaper();
+    clip.curve = softClipCurve();
+    clip.oversample = "2x";
     this.analyser = this.ctx.createAnalyser();
     this.analyser.fftSize = 2048;
     const chorus = createChorus(this.ctx, this.bus, limiter);
     chorus.setMode(1);
-    limiter.connect(this.analyser).connect(this.ctx.destination);
+    limiter.connect(clip).connect(this.analyser).connect(this.ctx.destination);
   }
 
   resume() {

@@ -157,6 +157,17 @@ Limits of this check:
 - To load the audio thread, an extra worklet burned time in each 2.9 ms audio block on the three heaviest presets. With 1.8 ms extra: 0 underruns on all three, with 6 keys held. With 3.2 ms extra (more than the block itself): 326–383 underruns in 4 seconds, which shows the counter does detect dropouts. So these presets keep working with the audio thread doing roughly 7× its normal work (MCKY EP & Strings: 0.28 ms normal, about 2.1 ms in total). How a given phone compares with this machine is unknown (S7c).
 - Output latency on phones is unknown: it depends on the device and is not visible here.
 
+## Loudness on large chords (S7b, measured 2026-11-19)
+
+How: production build, desktop Chromium 1280px, a mocked MIDI keyboard playing every MODX M Performance and FANTOM-0 Scene at velocity 127, peak read at the page's output for 2.5 s. 6 notes: C3 G3 C4 E4 G4 C5. 16 notes: C2 to C7 spread over both split sides. The sample host cannot be reached from the sandbox, so sample parts played a synthetic stand-in (harmonic tone, peak 0.9), louder than the earlier S7 stand-in.
+
+| | Before (old limiter) | After (limiter + soft clip) |
+|---|---|---|
+| 16 notes, presets over 1.0 | 13 of 16 (up to 1.72, MCKY Strings & Harp) | 0 of 16 (0.77–0.93, highest MCKY Bass & Lead) |
+| 6 notes, peak range | 0.38–0.85 | 0.48–0.81 |
+
+No console errors. Quiet playing is a little louder than before (the limiter's automatic makeup gain, about +3.4 dB below its threshold, against the old soft knee's). Not checked on a real phone or with the real FluidR3_GM samples.
+
 ## Checklist (work top to bottom; tick with the date)
 
 - [x] S0 (2026-11-16: MODX M top panel from Yamaha's Quick Guide; FANTOM-0 panel, Scene/zone structure and layer/split from Roland's Owner's Manual, partials from the ZENOLOGY manual; unknowns listed in Confirmed facts, Reference Manual items in S0b) Research, with sources in this file: from Yamaha's MODX M / MONTAGE M manuals, the Performance structure (parts, key and velocity ranges, Scenes, Super Knob assign), the three engines and their main parameters (FM-X operator count and algorithm count). From Roland's FANTOM-0 manuals, Scene / Zone / Tone / Partial structure and pad modes. Write down only what a manual confirms; list unknowns.
@@ -194,7 +205,7 @@ Limits of this check:
 - [ ] S5b FANTOM-0 [SPLIT] details from the Reference Manual (S0b): whether SPLIT also switches other zones off, and the default split key. The page keeps other zones as they are and turns zones 1 and 4 on (store's reading of Owner's Manual p. 17).
 - [ ] S5c FANTOM-0 CTRL knob mode for the current zone (ATTACK, RELEASE, REVERB, CHORUS, LOW/MID/HIGH GAIN, EQ ON, Owner's Manual pp. 8, 19), now that [ZONE SELECT] is confirmed (Reference Manual pp. 8, 35; which knob job each CTRL position has is in the Owner's Manual).
 - [~] S7 (2026-11-18: budget and desktop-Chromium check written in "Performance budget" below; no limit needed lowering, sound and pages unchanged; `tests/sim-budget.test.ts` keeps store presets inside the measured budget. Still open: a real phone, see S7c) Sound quality pass on real phones' limits (CPU, latency), and a performance budget written here.
-- [ ] S7b Loudness on very large chords: with 16 notes held at once the mix went over full scale in 6 of the 16 presets (peak 1.04–1.45, MCKY Bass & Lead highest, which has no samples, so it is not caused by the stand-in samples), and a real output would clip. With 6 notes every preset stayed under 0.9. Fix on the simulator bus only (not the shared POLY code path), then re-measure.
+- [x] S7b (2026-11-19: the simulator bus now ends in a hard-knee limiter (threshold −6 dB, ratio 20, knee 0) and a soft clip that is untouched up to 0.8 and never passes 0.98 (`SIM_LIMITER`, `softClip` in src/lib/sim/output.ts, tests in tests/sim-output.test.ts; only src/components/rack/sim/engine.ts uses them). Re-measured all 16 presets at velocity 127, see "Loudness on large chords" below: 16 notes peak 0.77–0.93, 6 notes 0.48–0.81. MODULAR, FM 6-OP and POLY unchanged.) Loudness on very large chords: with 16 notes held at once the mix went over full scale in 6 of the 16 presets (peak 1.04–1.45, MCKY Bass & Lead highest, which has no samples, so it is not caused by the stand-in samples), and a real output would clip. With 6 notes every preset stayed under 0.9. Fix on the simulator bus only (not the shared POLY code path), then re-measure.
 - [ ] S7c Real phone check by the owner or a tester: does a held 6-note chord crackle on MCKY EP & Strings (MODX M) and MCKY Supersaw Stack (FANTOM-0), how long LOADING lasts on mobile data, and how late the sound feels. Not measurable from the agent's sandbox.
 
 ## Rules for the simulator agent
