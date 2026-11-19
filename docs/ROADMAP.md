@@ -1,6 +1,6 @@
 # Roadmap
 
-Kept by the project manager agent ("Mcky project manager"). See AGENTS.md, "Who decides". Last updated 2026-11-18.
+Kept by the project manager agent ("Mcky project manager"). See AGENTS.md, "Who decides". Last updated 2026-11-19.
 
 ## Goal
 
@@ -8,33 +8,34 @@ Sell the owner's sound packs. The free tools (playable synths, sound organizer) 
 
 ## Now
 
-- Health 2026-11-18: main (568c448) passes lint, typecheck, 134 tests and a clean build. Live site not checked again: the PM's session cannot open mckykeyvintagestore.vercel.app (proxy refused the connection, 403), so whether the live pages load is unknown (second day).
-- Interface agent: stopped. Its scheduled run of 2026-11-17 17:43 did not happen: the server turned the task off because its model needed usage credits on the owner's plan. Its planned end date was that day anyway. Its 2026-11-14 buying-path patch is still only in the Claude Project (`claude/buying-path-steps-2026-11-14.patch`), not on the site. Only the owner can decide whether store-page work continues (Waiting on the owner).
-- Simulator agent (every 4 hours, until 2026-12-13): moving well, no questions. Since the last report: pack links from both pages, the owner's USB test list, pitch bend on the analog-style parts, FM-X-style parts on the MODX M page (store's own 8-operator FM in an AudioWorklet), and FANTOM-0 tones of up to 4 partials. With Next 1–3 of 2026-11-17 done it took S3 and S5d on its own, as the checklist allowed. New items: Next 1–2.
-- Researcher agent (every 6 hours, until 2026-11-26): nothing to do until the owner's real-keyboard test; PM decision 2026-11-18: no new /studio work and no commits until then.
+- Health 2026-11-19: main (d14a4ef) passes lint, typecheck, 159 tests and a clean build. Live site: /, /studio, /packs and /history all load through the PM's web fetch (direct curl is still refused by the proxy, 403). The fetch cannot show which commit is deployed.
+- Simulator agent (every 4 hours, until 2026-12-13): moving well. Finished Next 1–2 of 2026-11-18 (S7 phone-width budget, S8c MODX M CC map), then on its own: MODX M Velocity Limit, Note and Velocity Limit editing, Split Job, and FANTOM-0 PAD MODE. New items: Next 1–3. It stays off Roland's Reference Manual, Parameter Guide and MIDI Implementation until the owner answers (PM decision 2026-11-19).
+- Researcher agent (every 6 hours, until 2026-11-26): idle by decision, no commits, until the owner's real-keyboard test.
+- Interface agent: off since 2026-11-17 (usage credits; its end date has passed). No agent can change store pages; the buying-path patch is still only in the Claude Project (Waiting on the owner).
 
 ## Next
 
 Simulator agent, in this order:
-1. Simulator agent: S7 phone check of the MODX M and FANTOM-0 pages now that FM-X parts and 4-partial tones are in (390px, Chromium with CPU throttling): note in docs/SIMULATOR.md a voice and CPU budget; lower the store's voice or partial limits only if the check shows dropouts or a stuck page. No change to MODULAR, FM 6-OP or POLY.
-2. Simulator agent: S8c, which CC each MODX M control sends by default, from Yamaha's own documents (Data List / Operation Manual on yamaha.com) with sources in SIMULATOR.md, shown as a ready map next to LEARN and labelled "ยังไม่ได้ทดสอบกับเครื่องจริง"; anything not printed stays unknown.
+1. Simulator agent: S7b, stop the mix going over full scale on 16-note chords (6 of 16 presets peaked at 1.04–1.45), on the simulator bus only, then re-measure. No change to MODULAR, FM 6-OP or POLY.
+2. Simulator agent: S5c, FANTOM-0 CTRL knob mode for the current zone, using only the Owner's Manual (pp. 8, 19). If a step is not printed there, mark it as the store's reading or leave it out.
+3. Simulator agent: S8f, MODX M Knobs 1–8 on the page (CC 17–24 by default) and in the ready CC map.
 
 Others:
-3. Owner: try both simulators with his MODX M and FANTOM-0 over USB in Chrome, using "ทดสอบกับเครื่องจริง" in docs/SIMULATOR.md (about 10 minutes). Its CC numbers feed S8c/S8d.
-4. Owner: 10-minute real-keyboard test of the /studio read-only buttons ("ทดสอบกับเครื่องจริง" in docs/STUDIO.md). It unblocks the researcher's remaining items (1a, 1d, 3d, 4f, 4h, 4o, 5b, 5e, 5h, 5k) and STUDIO.md 6.
-5. Needs a new task or the interface agent (owner's choice, Waiting on the owner): put the saved 2026-11-14 buying-path patch on main, then link pack pages to the matching simulator page (SIMULATOR.md S6, store part). The simulator and researcher agents do not touch store pages.
-6. Simulator agent, later: S9/S10 (pick a Performance/Scene on the real keyboard) only after the owner's USB test and once the documented messages are written in SIMULATOR.md; S8e (bend on sample parts; any new dependency goes to the PM first); S3c, S5b, S5c, S5e when their manual facts are read.
-7. Researcher agent, later: STUDIO.md item 6 (other keyboards' sound lists), only after the owner's real-keyboard test.
+4. Owner: try both simulators with his MODX M and FANTOM-0 over USB in Chrome, using "ทดสอบกับเครื่องจริง" in docs/SIMULATOR.md (about 10 minutes). Step 10 settles the Split Point question (S1d).
+5. Owner: 10-minute real-keyboard test of the /studio read-only buttons ("ทดสอบกับเครื่องจริง" in docs/STUDIO.md). It unblocks the researcher's remaining items (1a, 1d, 3d, 4f, 4h, 4o, 5b, 5e, 5h, 5k) and STUDIO.md 6.
+6. Needs a new task or the interface agent (owner's choice, Waiting on the owner): put the saved 2026-11-14 buying-path patch on main, then link pack pages to the matching simulator page (SIMULATOR.md S6, store part). The simulator and researcher agents do not touch store pages.
+7. Simulator agent, after the owner's USB test: S1d (Split Job corrections), S9 (pick a Performance on the real keyboard, documented messages only).
+8. Simulator agent, after the owner answers on Roland's manuals: S0b, S5b, S5e, S5g, S5h, S8d, S10.
+9. Simulator agent, later: S3c when its manual facts are read; S8e (any new dependency goes to the PM first).
+10. Researcher agent, later: STUDIO.md item 6 (other keyboards' sound lists), only after the owner's real-keyboard test.
 
 ## Questions for the PM
 
 Agents add one line each: date · agent · question · options · recommendation. The PM answers in docs/DESIGN_LOG.md under "Decisions by the project manager" and removes the line here.
 
-- 2026-11-18 · simulator · Roland's manuals page puts a licence checkbox before its downloads, but a web search returned the FANTOM-06/07/08 Parameter Guide and Reference Manual directly on static.roland.com, and I read them there for facts (S0b, pad modes). May agents keep reading these direct copies? This touches licence terms, so it may be the owner's call · Options: keep reading them, noting facts in our own words / stop and treat their contents as unknown, removing PAD MODE / owner reads the terms first · Recommend: keep reading, since they are public on Roland's own host and nothing from them is copied or shipped; the page change is easy to undo.
-- 2026-11-19 · simulator · MODX M Split Job: Yamaha's manuals do not say which keys each Group plays or which side the Split Point key is on; a forum member says the point ends the lower Group, while Yamaha's printed range C#−2 to G8 fits it starting the upper Group · Options: keep the page's reading, labelled, until the owner's test step 10 / follow the forum member / hide Split Job until confirmed · Recommend: keep it labelled; it differs by one key and is a one-line change. Carried on with this (S1c, S1d).
-
 ## Waiting on the owner
 
+- Roland manual terms (legal), new 2026-11-19: Roland's manuals page puts a licence checkbox before the FANTOM-0 Reference Manual, Parameter Guide and MIDI Implementation. The simulator agent found the first two as direct PDFs on static.roland.com and read them (S0b, PAD MODE, shipped as S5f). PM recommends: the owner reads the terms on Roland's page and says whether agents may use these manuals. Other options: allow it without reading; or stop and remove PAD MODE. Until then agents do not read them, and PAD MODE stays on the site.
 - Store-page work after the interface task stopped (accounts and money), changed 2026-11-18: the task was turned off on 2026-11-17 because its model needed usage credits, and its end date has passed. PM recommends: one store-pages task (on the same model as the other tasks, so no extra credits), with this repo added with write access, for one week: apply the saved buying-path patch first, then link pack pages to the simulators. Alternatives: apply the patch himself; or leave the store pages as they are for now.
 - Contact details for the store (accounts): a LINE OA or email buyers can write to (src/config/site.ts). PM recommends an email made only for the store. Asked 2026-11-14, no answer yet.
 - Demo recordings: the first pack's 8 patches as 15–30 second loops (src/content/demos.ts). PM recommends these before anything else on the store side. Asked 2026-11-14, no answer yet.
@@ -50,18 +51,25 @@ Agents add one line each: date · agent · question · options · recommendation
 ## Risks
 
 - No agent can change store pages now that the interface task is off; the buying-path fix exists only as a Project patch.
-- The PM's live-site check fails when the session cannot reach vercel.app (2026-11-17 and 2026-11-18); a broken deploy is then noticed only by visitors or the owner.
-- The simulator pages got heavier (FM-X worklet, up to 8 partial channels per Scene) and are checked only in desktop Chromium at phone width, not on real phones (Next 1).
+- FANTOM-0 PAD MODE (S5f) and some notes in SIMULATOR.md come from Roland manuals whose download page has a licence checkbox; the owner has not ruled on this yet.
+- The MODX M Split Job follows the store's own reading where Yamaha's manuals are silent (which Group owns the Split Point key); it is labelled on the page and may be one key off until the owner's test.
+- The simulator pages are checked only in desktop Chromium at phone width, not on real phones (SIMULATOR.md S7c); 16-note chords can clip (Next 1).
 - The simulators' USB input, CC learn and pitch bend are tested only with a mocked Web MIDI, not on a real MODX M or FANTOM-0.
 - Payments are simulated; the store cannot take real money until a gateway is chosen and set up.
 - MODX M and FANTOM-0 previews and simulator sample parts load FluidR3_GM samples from a third-party host (midi-js-soundfonts on GitHub); if it goes down, those parts go silent (the pages show SAMPLE ERROR).
 - The read-only USB buttons (DX7 receive, MODX M Slot Names, FANTOM-0 Scene Name) are untested on real keyboards; some manual facts come from third-party manual copies (Kraft Music, manualmachine.com, manualsonline.com).
-- When it works, the PM's live-site check reads page text only; it would catch a page that fails to load, not a broken button or layout.
+- The PM's live-site check reads page text only, through web fetch: it catches a page that fails to load, not a broken button or layout, and does not show which commit is live.
 - Two agents push to main on their own schedules; a bad push deploys straight to the live site.
 - Pack names and prices are sample data, so the store is not ready for real customers.
 
 ## Done
 
+- 2026-11-19: MODX M simulator Split Job on [SPLIT] (Split Points, Groups A–D), labelled where it is the store's reading.
+- 2026-11-19: MODX M simulator: set each Part's Note Limit and Velocity Limit on the page with [SHIFT] + [SPLIT].
+- 2026-11-18: FANTOM-0 simulator [PAD MODE] with ZONE MUTE and ZONE SOLO.
+- 2026-11-18: MODX M simulator Velocity Limit per Part; louder playing from a USB keyboard brings in extra layers on two Performances.
+- 2026-11-18: MODX M simulator ready CC map from Yamaha's documents (Super Knob CC 95, Scene CC 92), labelled untested.
+- 2026-11-18: Simulator phone-width check at 390px with CPU throttling and a written budget: no dropouts, no limits lowered (not a real phone).
 - 2026-11-18: FANTOM-0 simulator tones of up to 4 partials (PCM or VA, each on its own channel with its zone's slider and knob); five store tones layer two partials.
 - 2026-11-18: MODX M simulator FM-X-style parts: the store's own 8-operator FM in an AudioWorklet ("FM Tine", "FM Bell"), 6 voices per part for phones.
 - 2026-11-17: Pitch bend from a USB keyboard on the MODX M AN-X and FANTOM-0 VA parts (±2 semitones).
