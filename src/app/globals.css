@@ -1962,6 +1962,25 @@ html.js [data-reveal].is-in {
   color: var(--color-screen);
   text-shadow: none;
 }
+/* Split Job: the keys of each Group, then one row per part with Group buttons A–D and ×. */
+.sim-split-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.1rem 0.75rem;
+}
+.sim-split {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr) repeat(5, 2rem);
+  align-items: center;
+  gap: 0.25rem;
+}
+.sim-split-btn {
+  min-width: 2rem;
+  min-height: 2rem;
+}
+.sim-split-btn:disabled {
+  opacity: 0.3;
+}
 .sim-faders {
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));

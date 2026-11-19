@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { inLimit, KNOB_POSITION_DEFAULTS, NOTE_MAX, NOTE_MIN, rangeFromKnob, rangesOf, rangeToKnob, setRangeField, stepRangeField, withRanges, MAX_PARTS, midiVelocity, morph, noteName, PERFORMANCES, partControls, partsForNote, pressKnobPosition, pressPartSelect, pressScene, SCENE_COUNT, scenesOf, SCREEN_VELOCITY, storeScene, VEL_MAX, VEL_MIN } from "../src/lib/sim/modx.ts";
+import { applySplitJob, clearSplitGroups, newSplitJob, pressSplitGroup, setSplitCount, setSplitPoint, SPLIT_POINT_MAX, SPLIT_POINT_MIN, splitGroupRanges, inLimit, KNOB_POSITION_DEFAULTS, NOTE_MAX, NOTE_MIN, rangeFromKnob, rangesOf, rangeToKnob, setRangeField, stepRangeField, withRanges, MAX_PARTS, midiVelocity, morph, noteName, PERFORMANCES, partControls, partsForNote, pressKnobPosition, pressPartSelect, pressScene, SCENE_COUNT, scenesOf, SCREEN_VELOCITY, storeScene, VEL_MAX, VEL_MIN } from "../src/lib/sim/modx.ts";
 
 const split = PERFORMANCES.find((p) => p.name.includes("Split"))!;
 
@@ -162,4 +162,75 @@ test("edited limits decide which parts sound, including a first value above the 
   const soft = withRanges(perf, setRangeField(rangesOf(perf), 1, "velHigh", 50));
   assert.deepEqual(partsForNote(soft, 60, [], 51), [0]);
   assert.deepEqual(partsForNote(soft, 60, [], 50), [0, 1]);
+});
+
+test("Split Job: Groups cover the whole keyboard with no gap, whatever the Split Points", () => {
+  for (const count of [1, 2, 3] as const) {
+    const keys = splitGroupRanges(setSplitCount(newSplitJob(2), count));
+    assert.equal(keys.length, count + 1);
+    assert.equal(keys[0].low, NOTE_MIN);
+    assert.equal(keys[count].high, NOTE_MAX);
+    keys.slice(1).forEach((k, i) => assert.equal(k.low, keys[i].high + 1));
+  }
+});
+
+test("Split Points stay in Yamaha's printed range and keep at least one key per Group", () => {
+  let job = setSplitCount(newSplitJob(1), 3);
+  job = setSplitPoint(job, 0, -4);
+  assert.equal(job.points[0], SPLIT_POINT_MIN, "C#-2 is the lowest");
+  job = setSplitPoint(job, 2, 500);
+  assert.equal(job.points[2], SPLIT_POINT_MAX, "G8 is the highest");
+  job = setSplitPoint(job, 1, 200);
+  assert.equal(job.points[1], SPLIT_POINT_MAX - 1, "stops under the next point");
+  job = setSplitPoint(job, 0, 200);
+  assert.equal(job.points[0], SPLIT_POINT_MAX - 2);
+  for (const k of splitGroupRanges(job)) assert.ok(k.low <= k.high);
+  assert.deepEqual(setSplitPoint(job, 0, Number.NaN), job);
+  assert.deepEqual(setSplitPoint(setSplitCount(job, 1), 2, 40).points, setSplitCount(job, 1).points, "a point not in use does not move");
+});
+
+test("adding Split Points keeps them rising", () => {
+  const high = setSplitPoint(newSplitJob(1), 0, SPLIT_POINT_MAX);
+  const three = setSplitCount(high, 3);
+  assert.deepEqual(three.points, [SPLIT_POINT_MAX - 2, SPLIT_POINT_MAX - 1, SPLIT_POINT_MAX]);
+});
+
+test("Group buttons: a press replaces, SHIFT adds or removes, × clears", () => {
+  let job = setSplitCount(newSplitJob(2), 3);
+  job = pressSplitGroup(job, 0, 2, false);
+  job = pressSplitGroup(job, 0, 0, false);
+  assert.deepEqual(job.groups[0], [0]);
+  job = pressSplitGroup(job, 0, 3, true);
+  assert.deepEqual(job.groups[0], [0, 3]);
+  job = pressSplitGroup(job, 0, 0, true);
+  assert.deepEqual(job.groups[0], [3]);
+  assert.deepEqual(clearSplitGroups(job, 0).groups[0], []);
+  assert.deepEqual(pressSplitGroup(newSplitJob(1), 0, 2, false).groups[0], [], "with one Split Point there are only Groups A and B");
+  assert.deepEqual(pressSplitGroup(job, 9, 0, false), job);
+});
+
+test("Done writes Note Limits for Parts in a Group and leaves the rest", () => {
+  const perf = PERFORMANCES[1];
+  const start = rangesOf(perf);
+  let job = setSplitPoint(newSplitJob(perf.parts.length), 0, 60);
+  job = pressSplitGroup(job, 0, 0, false);
+  job = pressSplitGroup(job, 1, 1, false);
+  const done = applySplitJob(start, job);
+  assert.deepEqual([done[0].low, done[0].high], [NOTE_MIN, 59]);
+  assert.deepEqual([done[1].low, done[1].high], [60, NOTE_MAX]);
+  assert.deepEqual(done[2], start[2], "a Part in no Group stays as it was");
+  assert.equal(done[0].velLow, start[0].velLow, "Velocity Limit is not touched");
+  const played = withRanges(perf, done);
+  assert.deepEqual(partsForNote(played, 59), [0, 2]);
+  assert.deepEqual(partsForNote(played, 60), [1, 2]);
+});
+
+test("a Part in Groups A and C also plays B between them; Groups no longer in use are dropped", () => {
+  let job = setSplitCount(newSplitJob(1), 3);
+  job = pressSplitGroup(pressSplitGroup(job, 0, 0, false), 0, 2, true);
+  const [r] = applySplitJob(rangesOf({ ...PERFORMANCES[0], parts: [PERFORMANCES[0].parts[0]] }), job);
+  assert.deepEqual([r.low, r.high], [NOTE_MIN, job.points[2] - 1]);
+  const fewer = setSplitCount(pressSplitGroup(job, 0, 3, false), 1);
+  const start = rangesOf({ ...PERFORMANCES[0], parts: [PERFORMANCES[0].parts[0]] });
+  assert.deepEqual(applySplitJob(start, fewer), start);
 });

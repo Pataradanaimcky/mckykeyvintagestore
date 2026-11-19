@@ -167,6 +167,93 @@ export const withRanges = (perf: Performance, ranges: readonly PartRange[]): Per
   parts: perf.parts.map((p, i) => ({ ...p, ...ranges[i] })),
 });
 
+/**
+ * Split Job ([SPLIT], MODX M Operation Manual pp. 19, 389): 1–3 Split Points, C#−2 to G8, and Parts
+ * put into Groups A–D ([SHIFT] + a Group button adds another Group). The manual's "Off" is not
+ * offered because the manual does not say what it does. Yamaha's manuals also do not say which
+ * keys each Group plays. The page's reading (docs/SIMULATOR.md, S1c): Groups run upward from A, a
+ * Split Point is the lowest key of the next Group, and a Part in several Groups plays them and any
+ * Group between them.
+ */
+export const SPLIT_GROUPS = ["A", "B", "C", "D"] as const;
+export const SPLIT_POINT_MIN = 1;
+export const SPLIT_POINT_MAX = NOTE_MAX;
+export const SPLIT_POINT_COUNTS = [1, 2, 3] as const;
+export type SplitPointCount = (typeof SPLIT_POINT_COUNTS)[number];
+
+export interface SplitJob {
+  count: SplitPointCount;
+  /** Split Points 1–3 as MIDI notes; only the first `count` are in use. */
+  points: number[];
+  /** For each Part, the Groups it is in (0 = A … 3 = D), lowest first. */
+  groups: number[][];
+}
+
+/** Keeps the Split Points in use rising, one key apart at least, inside C#−2 to G8. */
+function orderedPoints(points: readonly number[], count: number): number[] {
+  const next = points.slice();
+  for (let i = 0; i < count; i++) next[i] = Math.max(next[i], SPLIT_POINT_MIN + i, i > 0 ? next[i - 1] + 1 : SPLIT_POINT_MIN);
+  for (let i = count - 1; i >= 0; i--) next[i] = Math.min(next[i], SPLIT_POINT_MAX - (count - 1 - i), i < count - 1 ? next[i + 1] - 1 : SPLIT_POINT_MAX);
+  return next;
+}
+
+/** The screen as it opens: one Split Point at C3 (the store's starting values) and no Part in a Group. */
+export const newSplitJob = (partCount: number): SplitJob => ({
+  count: 1,
+  points: [60, 72, 84],
+  groups: Array.from({ length: partCount }, () => []),
+});
+
+export const setSplitCount = (job: SplitJob, count: SplitPointCount): SplitJob => ({
+  ...job,
+  count,
+  points: orderedPoints(job.points, count),
+});
+
+/** Sets one Split Point; it stops at its neighbours so every Group keeps at least one key. */
+export function setSplitPoint(job: SplitJob, index: number, note: number): SplitJob {
+  if (index < 0 || index >= job.count || !Number.isFinite(note)) return job;
+  const low = index > 0 ? job.points[index - 1] + 1 : SPLIT_POINT_MIN;
+  const high = index < job.count - 1 ? job.points[index + 1] - 1 : SPLIT_POINT_MAX - (job.count - 1 - index);
+  const points = job.points.slice();
+  points[index] = Math.min(high, Math.max(low, Math.round(note)));
+  return { ...job, points };
+}
+
+/** The keys of each Group in use: one more Group than Split Points, from C−2 up to G8. */
+export function splitGroupRanges(job: SplitJob): { low: number; high: number }[] {
+  const edges = job.points.slice(0, job.count);
+  return [...edges, NOTE_MAX + 1].map((next, i) => ({ low: i === 0 ? NOTE_MIN : edges[i - 1], high: next - 1 }));
+}
+
+/** A Group button: puts the Part in that Group alone, or with [SHIFT] adds or removes it. */
+export function pressSplitGroup(job: SplitJob, part: number, group: number, shift: boolean): SplitJob {
+  const current = job.groups[part];
+  if (!current || group < 0 || group > job.count) return job;
+  const groups = job.groups.slice();
+  if (!shift) groups[part] = [group];
+  else groups[part] = current.includes(group) ? current.filter((g) => g !== group) : [...current, group].sort((a, b) => a - b);
+  return { ...job, groups };
+}
+
+/** × on a Part's row: cancels its Group assignment. */
+export function clearSplitGroups(job: SplitJob, part: number): SplitJob {
+  if (!job.groups[part]) return job;
+  const groups = job.groups.slice();
+  groups[part] = [];
+  return { ...job, groups };
+}
+
+/** Done / [EXIT]: Parts in a Group get that key range as their Note Limit; other Parts stay as they were. */
+export function applySplitJob(ranges: readonly PartRange[], job: SplitJob): PartRange[] {
+  const keys = splitGroupRanges(job);
+  return ranges.map((range, part) => {
+    const inUse = (job.groups[part] ?? []).filter((g) => g < keys.length);
+    if (inUse.length === 0) return range;
+    return { ...range, low: keys[Math.min(...inUse)].low, high: keys[Math.max(...inUse)].high };
+  });
+}
+
 /** The value one assignment gives at Super Knob position `knob` (straight line from `from` to `to`). */
 export const morph = (a: KnobAssign, knob: number) => a.from + (a.to - a.from) * clamp01(knob);
 

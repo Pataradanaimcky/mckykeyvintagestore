@@ -7,11 +7,14 @@ import { Fader } from "../Fader";
 import { Knob } from "../Knob";
 import { OctaveSwitch, RackKeys } from "../RackKeys";
 import {
+  applySplitJob,
+  clearSplitGroups,
   KNOB_POSITION_DEFAULTS,
   KNOB_POSITIONS,
   MAX_PARTS,
   midiVelocity,
   MODX_DEFAULT_CC,
+  newSplitJob,
   noteName,
   PERFORMANCES,
   partControls,
@@ -19,6 +22,7 @@ import {
   pressKnobPosition,
   pressPartSelect,
   pressScene,
+  pressSplitGroup,
   rangeFromKnob,
   rangesOf,
   rangeToKnob,
@@ -26,6 +30,13 @@ import {
   scenesOf,
   SCREEN_VELOCITY,
   setRangeField,
+  setSplitCount,
+  setSplitPoint,
+  SPLIT_GROUPS,
+  SPLIT_POINT_COUNTS,
+  SPLIT_POINT_MAX,
+  SPLIT_POINT_MIN,
+  splitGroupRanges,
   stepRangeField,
   VEL_MAX,
   VEL_MIN,
@@ -33,6 +44,7 @@ import {
   type PartRange,
   type RangeField,
   type Scene,
+  type SplitJob,
 } from "@/lib/sim/modx";
 import { bendCents, emptyLearn, handleCc, hasReadyMap, toggleLearn, toggleReadyMap, type LearnState } from "@/lib/sim/midi";
 import { SimEngine } from "./engine";
@@ -52,6 +64,10 @@ const RANGE_VIEWS = {
 type RangeView = keyof typeof RANGE_VIEWS;
 
 const rangeText = (field: RangeField, value: number) => (field === "low" || field === "high" ? noteName(value) : String(value));
+
+/** Split Point as a 0..1 position for the DATA knob, and back (C#−2 to G8). */
+const pointToKnob = (note: number) => (note - SPLIT_POINT_MIN) / (SPLIT_POINT_MAX - SPLIT_POINT_MIN);
+const pointFromKnob = (k: number) => Math.round(SPLIT_POINT_MIN + k * (SPLIT_POINT_MAX - SPLIT_POINT_MIN));
 
 const MIDI_TEXT = {
   off: "ต่อคีย์บอร์ด USB",
@@ -85,9 +101,13 @@ export function ModxPage({ active }: { active: boolean }) {
   const [rangeView, setRangeView] = useState<RangeView | null>(null);
   const [rangeField, setRangeFieldName] = useState<RangeField>("low");
   const [keyEntry, setKeyEntry] = useState(false);
+  // The Split Job screen ([SPLIT], Operation Manual pp. 19, 389); nothing changes until Done or [EXIT].
+  const [splitJob, setSplitJob] = useState<SplitJob | null>(null);
+  const [splitIndex, setSplitIndex] = useState(0);
   const shown = withRanges(perf, ranges);
-  // While keyboard entry is on, a key sets the Note Limit under the cursor instead of playing.
+  // While keyboard entry is on, a key sets the value under the cursor instead of playing.
   const keyTarget = rangeView === "note" && keyEntry ? { part: selected, field: rangeField } : null;
+  const splitKeyTarget = splitJob && keyEntry ? splitIndex : null;
 
   const [learn, setLearnView] = useState<LearnState<LearnTarget>>(() => emptyLearn());
   const learnRef = useRef(learn);
@@ -99,9 +119,9 @@ export function ModxPage({ active }: { active: boolean }) {
   const engine = useRef<SimEngine | null>(null);
   const loadedFor = useRef(-1);
   const sustain = useRef({ down: false, notes: new Set<number>() });
-  const live = useRef({ perf: shown, mutes, levels, knob, keyTarget });
+  const live = useRef({ perf: shown, mutes, levels, knob, keyTarget, splitKeyTarget });
   useEffect(() => {
-    live.current = { perf: shown, mutes, levels, knob, keyTarget };
+    live.current = { perf: shown, mutes, levels, knob, keyTarget, splitKeyTarget };
   });
 
   const ensure = useCallback(() => {
@@ -143,6 +163,7 @@ export function ModxPage({ active }: { active: boolean }) {
     setSelected(0);
     setRanges(rangesOf(p));
     setRangeFieldName(rangeView === "velocity" ? "velLow" : "low");
+    setSplitJob(null);
     if (engine.current) loadedFor.current = -1;
   };
 
@@ -153,6 +174,12 @@ export function ModxPage({ active }: { active: boolean }) {
 
   const noteOn = useCallback(
     (note: number, velocity = SCREEN_VELOCITY) => {
+      const splitTarget = live.current.splitKeyTarget;
+      if (splitTarget !== null) {
+        setSplitJob((j) => j && setSplitPoint(j, splitTarget, note));
+        setHeld((h) => new Set(h).add(note));
+        return;
+      }
       const target = live.current.keyTarget;
       if (target) {
         setRanges((r) => setRangeField(r, target.part, target.field, note));
@@ -255,14 +282,25 @@ export function ModxPage({ active }: { active: boolean }) {
     setShift(false);
   };
 
-  // [SHIFT] + [SPLIT] opens the Part - Note view (Operation Manual p. 19). [SPLIT] alone opens the
-  // keyboard's Split Job screen, which this page does not have, so a plain press changes nothing.
+  // [SHIFT] + [SPLIT] opens the Part - Note view; [SPLIT] alone opens Split Job (Operation Manual p. 19).
   const pressSplit = () => {
+    setKeyEntry(false);
     if (shift) {
+      setSplitJob(null);
       setRangeView("note");
       setRangeFieldName("low");
-      setKeyEntry(false);
+    } else if (!splitJob) {
+      setRangeView(null);
+      setSplitJob(newSplitJob(perf.parts.length));
+      setSplitIndex(0);
     }
+    setShift(false);
+  };
+  // Done or [EXIT] confirms; × at the top left closes without confirming (p. 389).
+  const closeSplitJob = (confirm: boolean) => {
+    if (confirm && splitJob) setRanges((r) => applySplitJob(r, splitJob));
+    setSplitJob(null);
+    setKeyEntry(false);
     setShift(false);
   };
   const chooseRangeView = (view: RangeView) => {
@@ -331,7 +369,115 @@ export function ModxPage({ active }: { active: boolean }) {
           {/* Display: Performance, parts, Scene. */}
           <div className="rack-panel col-span-6 md:col-span-7">
             <p className="rack-title">PERFORMANCE</p>
-            {rangeView ? (
+            {splitJob ? (
+              <div className="flex flex-col gap-2">
+                <div className="rack-lcd sim-display">
+                  <div className="rack-lcd-row">
+                    <span className="flex items-center gap-2">
+                      <button type="button" className="sim-range-cell sim-split-btn" aria-label="ปิดหน้า Split Job โดยไม่ยืนยัน" onClick={() => closeSplitJob(false)}>
+                        ×
+                      </button>
+                      Split Job
+                    </span>
+                    <span className="rack-lcd-small">{perf.name}</span>
+                  </div>
+                  <div className="sim-split-keys rack-lcd-small">
+                    {splitGroupRanges(splitJob).map((k, g) => (
+                      <span key={g}>
+                        {SPLIT_GROUPS[g]} {noteName(k.low)}–{noteName(k.high)}
+                      </span>
+                    ))}
+                  </div>
+                  <ol className="sim-ranges">
+                    {shown.parts.map((p, i) => (
+                      <li key={i} className="sim-split">
+                        <span>{i + 1}</span>
+                        <span className="truncate">{p.name}</span>
+                        {SPLIT_GROUPS.map((name, g) => (
+                          <button
+                            key={name}
+                            type="button"
+                            className={`sim-range-cell sim-split-btn ${splitJob.groups[i]?.includes(g) ? "is-sel" : ""}`}
+                            aria-pressed={splitJob.groups[i]?.includes(g) ?? false}
+                            aria-label={`PART ${i + 1} Group ${name}`}
+                            disabled={g > splitJob.count}
+                            onClick={() => setSplitJob((j) => j && pressSplitGroup(j, i, g, shift))}
+                          >
+                            {name}
+                          </button>
+                        ))}
+                        <button
+                          type="button"
+                          className="sim-range-cell sim-split-btn"
+                          aria-label={`ยกเลิก Group ของ PART ${i + 1}`}
+                          onClick={() => setSplitJob((j) => j && clearSplitGroups(j, i))}
+                        >
+                          ×
+                        </button>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="rack-hint">Split Points</span>
+                  {SPLIT_POINT_COUNTS.map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      className="rack-mini"
+                      aria-pressed={splitJob.count === n}
+                      aria-label={`Split Points ${n}`}
+                      onClick={() => {
+                        setSplitJob((j) => j && setSplitCount(j, n));
+                        setSplitIndex((i) => Math.min(i, n - 1));
+                      }}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                  <span className="rack-hint ml-1">Split Point</span>
+                  {splitJob.points.slice(0, splitJob.count).map((note, i) => (
+                    <button key={i} type="button" className="rack-mini px-1.5" aria-pressed={splitIndex === i} aria-label={`Split Point ${i + 1} ${noteName(note)}`} onClick={() => setSplitIndex(i)}>
+                      {noteName(note)}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Knob
+                    label="DATA"
+                    hint={noteName(splitJob.points[splitIndex])}
+                    value={pointToKnob(splitJob.points[splitIndex])}
+                    onChange={(k) => setSplitJob((j) => j && setSplitPoint(j, splitIndex, pointFromKnob(k)))}
+                  />
+                  <button type="button" className="rack-mini" onClick={() => setSplitJob((j) => j && setSplitPoint(j, splitIndex, j.points[splitIndex] - 1))}>
+                    DEC
+                  </button>
+                  <button type="button" className="rack-mini" onClick={() => setSplitJob((j) => j && setSplitPoint(j, splitIndex, j.points[splitIndex] + 1))}>
+                    INC
+                  </button>
+                  <button type="button" className="rack-mini" aria-pressed={keyEntry} onClick={() => setKeyEntry((v) => !v)}>
+                    KEYBOARD
+                  </button>
+                  <button type="button" className={`rack-mini ${shift ? "sim-shift-on" : ""}`} aria-pressed={shift} onClick={() => setShift((v) => !v)}>
+                    SHIFT
+                  </button>
+                  <span className="ml-auto flex gap-1.5">
+                    <button type="button" className="rack-mini" onClick={() => closeSplitJob(true)}>
+                      EXIT
+                    </button>
+                    <button type="button" className="rack-mini" onClick={() => closeSplitJob(true)}>
+                      Done
+                    </button>
+                  </span>
+                </div>
+                <p className="rack-hint leading-snug">
+                  {keyEntry
+                    ? "กดคีย์เพื่อตั้ง Split Point ที่เลือก (ตอนนี้คีย์จะไม่มีเสียง) · จากคีย์บอร์ด USB ยังไม่ได้ทดสอบกับเครื่องจริง"
+                    : "แตะ Group ให้แต่ละ Part · SHIFT + Group = เพิ่มอีก Group · Done หรือ EXIT = ใช้ค่า · × มุมซ้ายบน = ปิดโดยไม่ใช้ค่า"}
+                </p>
+                <p className="rack-hint leading-snug">คู่มือไม่ได้บอกว่า Group ไหนอยู่ช่วงคีย์ไหน หน้านี้เรียง A จากคีย์ต่ำขึ้นไป และให้คีย์ Split Point อยู่กลุ่มบน เป็นการตีความของร้าน</p>
+              </div>
+            ) : rangeView ? (
               <div className="flex flex-col gap-2">
                 <div className="rack-lcd sim-display">
                   <div className="rack-lcd-row">
@@ -545,12 +691,12 @@ export function ModxPage({ active }: { active: boolean }) {
                 type="button"
                 className={`rack-preset shrink-0 ${shift ? "sim-shift-on" : ""}`}
                 onClick={pressSplit}
-                aria-label={shift ? "เปิดหน้า Part - Note ตั้งช่วงโน้ตของแต่ละ Part" : "SPLIT (กด SHIFT ก่อนเพื่อตั้งช่วงโน้ต)"}
+                aria-label={shift ? "เปิดหน้า Part - Note ตั้งช่วงโน้ตของแต่ละ Part" : "SPLIT เปิดหน้า Split Job"}
               >
                 SPLIT
               </button>
               <p className="rack-hint w-full leading-snug">
-                {shift ? "กด SCENE เพื่อเก็บ · KNOB POSITION เพื่อเก็บค่า · PART SELECT เพื่อ MUTE · SPLIT เพื่อตั้งช่วงโน้ต" : "SHIFT + SCENE = STORE · SHIFT + SPLIT = ช่วงโน้ต"}
+                {shift ? "กด SCENE เพื่อเก็บ · KNOB POSITION เพื่อเก็บค่า · PART SELECT เพื่อ MUTE · SPLIT เพื่อตั้งช่วงโน้ต" : "SPLIT = แบ่งคีย์ · SHIFT + SCENE = STORE · SHIFT + SPLIT = ช่วงโน้ต"}
               </p>
             </div>
           </div>
