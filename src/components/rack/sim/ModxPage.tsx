@@ -10,6 +10,8 @@ import {
   applySplitJob,
   ASSIGN_KNOB_COUNT,
   assignKnobsOf,
+  type AssignSet,
+  pressAssign,
   assignStartsOf,
   clearSplitGroups,
   KNOB_POSITION_DEFAULTS,
@@ -63,9 +65,6 @@ const READY_MAP: Partial<Record<LearnTarget, number>> = {
   ...Object.fromEntries(MODX_DEFAULT_CC.assignKnobs.map((cc, i) => [`knob${i + 1}`, cc])),
 };
 
-/** Knobs 1–4 or 5–8 on the four knobs (Quick Guide 5-3 prints "Knobs 1–4 (5–8)"). */
-const KNOB_BANKS = [0, 4] as const;
-
 /** The two views for setting Part limits; the names are the keyboard's (Operation Manual pp. 19, 80, 83). */
 const RANGE_VIEWS = {
   note: { label: "Part - Note", limit: "Note Limit", fields: ["low", "high"] },
@@ -101,7 +100,7 @@ export function ModxPage({ active }: { active: boolean }) {
   // Knobs 1–8 (Assign knobs): what each moves and where each is now.
   const assigns = assignKnobsOf(perf);
   const [assignValues, setAssignValues] = useState<number[]>(() => assignStartsOf(assignKnobsOf(perf)));
-  const [knobBank, setKnobBank] = useState<0 | 4>(0);
+  const [knobBank, setKnobBank] = useState<AssignSet>(0);
   const [knobFocus, setKnobFocus] = useState(0);
   const [knobPositions, setKnobPositions] = useState<number[]>(() => KNOB_POSITION_DEFAULTS.slice());
   const [scenes, setScenes] = useState<Scene[]>(() => scenesOf(perf));
@@ -360,26 +359,24 @@ export function ModxPage({ active }: { active: boolean }) {
       <div className="rack-case rack-skin-fm rack-skin-sim relative select-none p-2 sm:p-3">
         <div className="grid grid-cols-6 gap-1.5 md:grid-cols-12 md:gap-2">
           {/*
-            Knobs 1–4 (5–8) next to the Super Knob, in the Quick Guide's order (top panel 5-3, 5-5).
-            The page's 1–4 / 5–8 button is the store's own: how the keyboard switches is not read yet.
+            [ASSIGN], then Knobs 1–4 (5–8), next to the Super Knob, in the Quick Guide's order
+            (top panel 5-2, 5-3, 5-5). [ASSIGN] switches the knobs between Assign 1–4 and 5–8
+            (Quick Guide p. 22); that each press alternates is the store's reading. [QUICK EDIT]
+            is not built: which parameter each knob controls in its rows is not printed there.
           */}
           <div className="rack-panel col-span-6 md:col-span-3">
             <div className="flex items-center justify-between gap-1">
               <p className="rack-title">KNOB {knobBank + 1}–{knobBank + 4}</p>
-              <span className="flex gap-1" role="group" aria-label="Knob 1–4 หรือ 5–8">
-                {KNOB_BANKS.map((b) => (
-                  <button
-                    key={b}
-                    type="button"
-                    className="rack-mini px-1.5 text-[0.55rem]"
-                    aria-pressed={knobBank === b}
-                    title="ปุ่มสลับนี้เป็นของร้าน วิธีสลับบนเครื่องจริงยังไม่ได้อ่านจากคู่มือ"
-                    onClick={() => setKnobBank(b)}
-                  >
-                    {b + 1}–{b + 4}
-                  </button>
-                ))}
-              </span>
+              <button
+                type="button"
+                className="rack-mini px-1.5 text-[0.55rem]"
+                aria-pressed
+                aria-label={`ASSIGN: ตอนนี้ Knob ${knobBank + 1}–${knobBank + 4} กดเพื่อสลับเป็น Knob ${pressAssign(knobBank) + 1}–${pressAssign(knobBank) + 4}`}
+                title="[ASSIGN] สลับ Knob ระหว่าง Assign 1–4 กับ 5–8 (Quick Guide หน้า 22) กดแต่ละครั้งสลับไปอีกชุด เป็นการอ่านของร้าน"
+                onClick={() => setKnobBank(pressAssign)}
+              >
+                ASSIGN {knobBank + 1}–{knobBank + 4}
+              </button>
             </div>
             <div className="sim-assign">
               {Array.from({ length: 4 }, (_, j) => {

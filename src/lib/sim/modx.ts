@@ -287,6 +287,15 @@ export function assignKnobsOf(perf: Performance): AssignKnob[] {
   return out;
 }
 
+/**
+ * The four knobs show Assign 1–4 or Assign 5–8. The keyboard's [ASSIGN] button "switches the knobs
+ * to function as Assign 1–4 or as Assign 5–8" (MODX M Quick Guide p. 22, top panel 5-2). That each
+ * press goes to the other set, and that 1–4 comes first, is the store's reading; the guide does not
+ * print the order. Returns the first knob index shown: 0 (Knobs 1–4) or 4 (Knobs 5–8).
+ */
+export type AssignSet = 0 | 4;
+export const pressAssign = (set: AssignSet): AssignSet => (set === 0 ? 4 : 0);
+
 /** Knob positions a Performance starts with. */
 export const assignStartsOf = (knobs: readonly AssignKnob[]) => knobs.map((k) => k.start);
 

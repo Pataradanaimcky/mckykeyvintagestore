@@ -1,6 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ASSIGN_KNOB_COUNT, assignKnobsOf, assignStartsOf, MODX_DEFAULT_CC, PERFORMANCES, partControls } from "../src/lib/sim/modx.ts";
+import { ASSIGN_KNOB_COUNT, assignKnobsOf, assignStartsOf, MODX_DEFAULT_CC, PERFORMANCES, partControls, pressAssign } from "../src/lib/sim/modx.ts";
+
+test("[ASSIGN] switches the four knobs between Assign 1–4 and Assign 5–8", () => {
+  assert.equal(pressAssign(0), 4);
+  assert.equal(pressAssign(4), 0);
+  assert.equal(pressAssign(pressAssign(0)), 0);
+  // Two sets of four cover all eight knobs.
+  assert.equal(pressAssign(0) + 4, ASSIGN_KNOB_COUNT);
+});
 
 test("every Performance has Knobs 1–8, one per default CC 17–24", () => {
   assert.equal(MODX_DEFAULT_CC.assignKnobs.length, ASSIGN_KNOB_COUNT);
