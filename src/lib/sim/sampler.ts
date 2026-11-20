@@ -172,3 +172,74 @@ export class VoicePool {
     return all;
   }
 }
+
+/* ---- S2b: feeding the voice from the FluidR3_GM files the pages already load ---- */
+
+const NOTE_STEPS: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+
+/** "C4" = 60, "Db4" / "C#4" = 61, "A0" = 21, "C-1" = 0 (the names used in midi-js soundfont files). Null if not a note. */
+export function noteNameToMidi(name: string): number | null {
+  const m = /^([A-G])(b|#)?(-?\d)$/.exec(name.trim());
+  if (!m) return null;
+  const midi = NOTE_STEPS[m[1]] + (m[2] === "b" ? -1 : m[2] === "#" ? 1 : 0) + (Number(m[3]) + 1) * 12;
+  return midi >= 0 && midi <= 127 ? midi : null;
+}
+
+/**
+ * Reads a midi-js soundfont file (`MIDI.Soundfont.<name> = { "A0": "data:audio/...;base64,...", ... }`),
+ * the format smplr reads for the same files. Returns note name → data URL; throws when it is not one.
+ */
+export function parseMidiJs(source: string): Record<string, string> {
+  const header = source.indexOf("MIDI.Soundfont.");
+  if (header < 0) throw new Error("not a midi-js soundfont file");
+  const open = source.indexOf("{", header);
+  const close = source.lastIndexOf("}");
+  if (open < 0 || close <= open) throw new Error("not a midi-js soundfont file");
+  // The files end their last entry with a comma before "}", which JSON does not allow.
+  const body = source.slice(open, close + 1).replace(/,\s*}$/, "}");
+  const json: unknown = JSON.parse(body);
+  if (!json || typeof json !== "object" || Array.isArray(json)) throw new Error("not a midi-js soundfont file");
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(json)) if (typeof v === "string") out[k] = v;
+  return out;
+}
+
+/** The base64 part of a data URL ("data:audio/ogg;base64,AAAA" → "AAAA"). */
+export function base64Body(dataUrl: string): string {
+  return dataUrl.slice(dataUrl.indexOf(",") + 1);
+}
+
+/** Recorded notes of a parsed file as MIDI numbers with their names, low to high; unknown names are skipped. */
+export function recordedNotes(file: Record<string, string>): { midi: number; name: string }[] {
+  const out: { midi: number; name: string }[] = [];
+  for (const name of Object.keys(file)) {
+    const midi = noteNameToMidi(name);
+    if (midi !== null) out.push({ midi, name });
+  }
+  return out.sort((a, b) => a.midi - b.midi);
+}
+
+/** Same choice as smplr: ogg where the browser plays it, but never on Safari; else mp3. */
+export function pickFormat(canPlayOgg: boolean, isSafari: boolean): "ogg" | "mp3" {
+  return canPlayOgg && !isSafari ? "ogg" : "mp3";
+}
+
+/** The file smplr loads for a General MIDI instrument, so both voices use the same recordings. */
+export function soundfontUrl(instrument: string, format: "ogg" | "mp3", kit = "FluidR3_GM"): string {
+  if (!/^[a-z0-9_]+$/.test(instrument) || !/^[A-Za-z0-9_]+$/.test(kit)) throw new Error("bad instrument name");
+  return `https://gleitz.github.io/midi-js-soundfonts/${kit}/${instrument}-${format}.js`;
+}
+
+/**
+ * Peak gain of a sample note at MIDI velocity 1..127, the same level the pages had with smplr
+ * (its note gain velocity²/127², times its channel volume 90, i.e. 90²/127², times the −3 dB
+ * (1/√2) its centred stereo panner puts on each side of a mono recording), so switching to the
+ * store's voice is neither louder nor softer. Measured in Chromium against smplr 1.1.0 (S2b).
+ */
+export function smplrMatchedPeak(velocity: number): number {
+  const v = Math.min(127, Math.max(0, velocity));
+  return ((v * v) / 16129) * ((90 * 90) / 16129) * Math.SQRT1_2;
+}
+
+/** The MODX M AWM2 envelope: no audible attack, held at full level, 0.3 s release, as smplr played them. */
+export const AWM_ENV: Adsr = { attack: MIN_STAGE_S, decay: MIN_STAGE_S, sustain: 1, release: 0.3 };

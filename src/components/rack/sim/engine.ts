@@ -1,13 +1,14 @@
-import type { Soundfont } from "smplr";
 import { createChorus, PolyVoices } from "../poly/voices";
 import type { AnSettings, Performance } from "@/lib/sim/modx";
 import { SIM_LIMITER, softClipCurve } from "@/lib/sim/output";
+import { SamplePart, type SampleVoice } from "./samplePart";
 
 interface PartChannel {
   gain: GainNode;
   pan?: StereoPannerNode;
   an?: { voices: PolyVoices; settings: AnSettings };
-  awm?: Promise<Soundfont>;
+  /** AWM2 / PCM parts: the store's own sample voice (MODX M) or smplr (FANTOM-0, and the MODX M fallback). */
+  awm?: Promise<SampleVoice>;
   /** FM-X parts: one AudioWorklet node (public/worklets/fmx-poly.js); null when the browser has no AudioWorklet. */
   fm?: Promise<AudioWorkletNode | null>;
   /** FANTOM-0 zone effects (loaded with `fx`): EQ bands and the reverb and chorus sends. */
@@ -18,7 +19,8 @@ interface PartChannel {
 
 /**
  * Audio for the MODX M-style page: one channel per part (AN-X parts use the POLY page's
- * analog-style voices, AWM2 parts play FluidR3_GM samples through smplr, FM-X parts run the
+ * analog-style voices, AWM2 parts play FluidR3_GM samples through the store's own sample voice
+ * (SamplePart, SIMULATOR.md S2b; smplr if it cannot load), FM-X parts run the
  * store's own 8-operator FM voice in an AudioWorklet), a shared chorus
  * and a limiter with a soft clip after it. Built for the Performance in use; `load` swaps it.
  */
@@ -102,8 +104,9 @@ export class SimEngine {
   /**
    * Sets up one channel per part. Sample parts start loading now; returns when all have loaded (or failed).
    * `pans` (0..1 per part) adds a pan control to each channel; without it the channels are as before.
+   * `voice` picks the sample player: "own" (the store's SamplePart, MODX M) or "smplr" (FANTOM-0 for now).
    */
-  async load(perf: Performance, pans?: readonly number[], fx = false): Promise<boolean> {
+  async load(perf: Performance, pans?: readonly number[], fx = false, voice: "own" | "smplr" = pans ? "smplr" : "own"): Promise<boolean> {
     this.allOff();
     for (const p of this.parts)
       setTimeout(() => {
@@ -160,11 +163,16 @@ export class SimEngine {
           return node;
         });
       } else if (part.gm) {
-        ch.awm = import("smplr").then(async ({ Soundfont }) => {
-          const inst = new Soundfont(this.ctx, { instrument: part.gm!, kit: "FluidR3_GM", destination: gain, loadLoopData: false, extraGain: 1, volume: 90 });
-          await inst.load;
-          return inst;
-        });
+        const gm = part.gm;
+        const smplr = () => smplrVoice(this.ctx, gm, gain);
+        ch.awm =
+          voice === "own"
+            ? (async () => {
+                const own = new SamplePart(this.ctx, gain);
+                await own.load(gm);
+                return own as SampleVoice;
+              })().catch(smplr)
+            : smplr();
       }
       return ch;
     });
@@ -229,7 +237,7 @@ export class SimEngine {
       if (!ch) continue;
       if (ch.an) ch.an.voices.noteOn(note, ch.an.settings, velocity);
       else if (ch.fm) void ch.fm.then((node) => node?.port.postMessage({ type: "on", note, velocity }));
-      else void ch.awm?.then((inst) => inst.start({ note, velocity: Math.round(30 + velocity * 97), ...(ch.release !== undefined ? { ampRelease: ch.release } : {}) })).catch(() => {});
+      else void ch.awm?.then((v) => v.noteOn(note, Math.round(30 + velocity * 97), ch.release)).catch(() => {});
     }
     this.sounding.set(key, targets.map(([part, note]) => ({ part, note })));
   }
@@ -239,7 +247,7 @@ export class SimEngine {
       const ch = this.parts[part];
       if (ch?.an) ch.an.voices.noteOff(note, ch.an.settings);
       else if (ch?.fm) void ch.fm.then((node) => node?.port.postMessage({ type: "off", note }));
-      else void ch?.awm?.then((inst) => inst.stop(note)).catch(() => {});
+      else void ch?.awm?.then((v) => v.noteOff(note)).catch(() => {});
     }
     this.sounding.delete(key);
   }
@@ -249,11 +257,23 @@ export class SimEngine {
     for (const ch of this.parts) {
       if (ch.an) ch.an.voices.allOff(ch.an.settings);
       else if (ch.fm) void ch.fm.then((node) => node?.port.postMessage({ type: "allOff" }));
-      else void ch.awm?.then((inst) => inst.stop()).catch(() => {});
+      else void ch.awm?.then((v) => v.allOff()).catch(() => {});
     }
   }
 
   close() {
     void this.ctx.close();
   }
+}
+
+/** smplr 1.1.0 playing the same FluidR3_GM file, as the pages did before S2b. */
+async function smplrVoice(ctx: AudioContext, instrument: string, destination: AudioNode): Promise<SampleVoice> {
+  const { Soundfont } = await import("smplr");
+  const inst = new Soundfont(ctx, { instrument, kit: "FluidR3_GM", destination, loadLoopData: false, extraGain: 1, volume: 90 });
+  await inst.load;
+  return {
+    noteOn: (note, velocity, release) => void inst.start({ note, velocity, ...(release !== undefined ? { ampRelease: release } : {}) }),
+    noteOff: (note) => void inst.stop(note),
+    allOff: () => void inst.stop(),
+  };
 }
