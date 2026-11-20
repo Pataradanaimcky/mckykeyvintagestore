@@ -7,7 +7,7 @@ interface PartChannel {
   gain: GainNode;
   pan?: StereoPannerNode;
   an?: { voices: PolyVoices; settings: AnSettings };
-  /** AWM2 / PCM parts: the store's own sample voice (MODX M) or smplr (FANTOM-0, and the MODX M fallback). */
+  /** AWM2 / PCM parts: the store's own sample voice (both pages), or smplr when it cannot load. */
   awm?: Promise<SampleVoice>;
   /** FM-X parts: one AudioWorklet node (public/worklets/fmx-poly.js); null when the browser has no AudioWorklet. */
   fm?: Promise<AudioWorkletNode | null>;
@@ -104,9 +104,10 @@ export class SimEngine {
   /**
    * Sets up one channel per part. Sample parts start loading now; returns when all have loaded (or failed).
    * `pans` (0..1 per part) adds a pan control to each channel; without it the channels are as before.
-   * `voice` picks the sample player: "own" (the store's SamplePart, MODX M) or "smplr" (FANTOM-0 for now).
+   * `voice` picks the sample player: "own" (the store's SamplePart, both pages since S2c, smplr if it cannot
+   * load) or "smplr" (smplr only).
    */
-  async load(perf: Performance, pans?: readonly number[], fx = false, voice: "own" | "smplr" = pans ? "smplr" : "own"): Promise<boolean> {
+  async load(perf: Performance, pans?: readonly number[], fx = false, voice: "own" | "smplr" = "own"): Promise<boolean> {
     this.allOff();
     for (const p of this.parts)
       setTimeout(() => {
@@ -218,9 +219,9 @@ export class SimEngine {
   }
 
   /**
-   * Pitch bend in cents. Heard on the AN-X / VA and FM-X parts and on the MODX M AWM2 parts played by
-   * the store's own sample voice, held notes included (S8e). Parts on smplr (FANTOM-0 PCM, and the MODX M
-   * fallback) do not bend: smplr 1.1.0 has no way to change the pitch of a note already playing.
+   * Pitch bend in cents. Heard on the AN-X / VA and FM-X parts and on the MODX M AWM2 and FANTOM-0 PCM
+   * parts played by the store's own sample voice, held notes included (S8e, S2c). Parts on the smplr
+   * fallback do not bend: smplr 1.1.0 has no way to change the pitch of a note already playing.
    */
   bend(cents: number) {
     this.bendCents = cents;

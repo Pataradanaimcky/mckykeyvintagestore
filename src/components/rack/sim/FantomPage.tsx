@@ -231,7 +231,7 @@ export function FantomPage({ active }: { active: boolean }) {
   const midi = useMidiIn(active, {
     noteOn,
     noteOff,
-    // Pitch bend wheel: ±2 semitones (store's choice), heard on the AN-X / VA parts only for now.
+    // Pitch bend wheel: ±2 semitones (store's choice), heard on the VA and PCM partials (PCM through the store's own sample voice, S2c; not on the smplr fallback).
     bend: (v) => engine.current?.bend(bendCents(v)),
     sustain: (down) => {
       sustain.current.down = down;
