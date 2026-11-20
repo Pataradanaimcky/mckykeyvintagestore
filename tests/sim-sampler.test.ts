@@ -8,6 +8,7 @@ import {
   MIN_STAGE_S,
   pickSample,
   playbackRate,
+  bendRates,
   releasedLevel,
   releaseSteps,
   SAMPLE_MAX_VOICES,
@@ -143,4 +144,21 @@ test("default pool size is the phone limit and a bad size is refused", () => {
   const pool = new VoicePool();
   for (let i = 0; i < 40; i++) pool.noteOn(40 + i, i);
   assert.equal(pool.active.length, SAMPLE_MAX_VOICES);
+});
+
+test("bendRates: held sample notes bend on their own recording and come back at 0", () => {
+  const held = [
+    { id: 1, note: 60, root: 60 },
+    { id: 2, note: 65, root: 64 },
+  ];
+  const up = bendRates(held, 200);
+  assert.deepEqual(up.map((r) => r.id), [1, 2]);
+  near(up[0].rate, playbackRate(62, 60));
+  near(up[1].rate, playbackRate(67, 64));
+  const down = bendRates(held, -200);
+  near(down[0].rate, playbackRate(58, 60));
+  const back = bendRates(held, 0);
+  near(back[0].rate, 1);
+  near(back[1].rate, playbackRate(65, 64));
+  assert.deepEqual(bendRates([], 200), []);
 });

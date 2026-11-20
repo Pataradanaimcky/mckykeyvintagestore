@@ -1,6 +1,8 @@
 import {
   AWM_ENV,
+  BEND_GLIDE_S,
   base64Body,
+  bendRates,
   pickFormat,
   pickSample,
   playbackRate,
@@ -20,9 +22,11 @@ export interface SampleVoice {
   noteOn(note: number, velocity: number, release?: number): void;
   noteOff(note: number): void;
   allOff(): void;
+  /** Pitch bend in cents for held and new notes; the smplr fallback has none (held notes cannot bend there). */
+  bend?(cents: number): void;
 }
 
-type Live = { src: AudioBufferSourceNode; env: GainNode; startedAt: number; peak: number; release: number };
+type Live = { src: AudioBufferSourceNode; env: GainNode; startedAt: number; peak: number; release: number; note: number; root: number };
 
 function applySteps(param: AudioParam, steps: EnvStep[]) {
   for (const s of steps) {
@@ -57,6 +61,7 @@ export class SamplePart implements SampleVoice {
   private pool = new VoicePool();
   private live = new Map<number, Live>();
   private env: Adsr;
+  private bendCents = 0;
 
   constructor(
     private ctx: BaseAudioContext,
@@ -95,7 +100,7 @@ export class SamplePart implements SampleVoice {
     for (const v of cut) this.cut(v.id, now);
     const src = this.ctx.createBufferSource();
     src.buffer = buffer;
-    src.playbackRate.value = playbackRate(note, pick.root);
+    src.playbackRate.value = playbackRate(note, pick.root, this.bendCents);
     const env = this.ctx.createGain();
     const peak = smplrMatchedPeak(velocity);
     applySteps(env.gain, attackSteps(now, peak, this.env));
@@ -108,7 +113,7 @@ export class SamplePart implements SampleVoice {
       this.live.delete(id);
       this.pool.ended(id);
     };
-    this.live.set(id, { src, env, startedAt: now, peak, release: release ?? this.env.release });
+    this.live.set(id, { src, env, startedAt: now, peak, release: release ?? this.env.release, note, root: pick.root });
   }
 
   noteOff(note: number) {
@@ -124,6 +129,19 @@ export class SamplePart implements SampleVoice {
       } catch {
         /* already stopped */
       }
+    }
+  }
+
+  /** S8e: held notes follow the bend wheel on the recording they started on; new notes start bent. */
+  bend(cents: number) {
+    this.bendCents = cents;
+    const now = this.ctx.currentTime;
+    const held = [...this.live].map(([id, l]) => ({ id, note: l.note, root: l.root }));
+    for (const { id, rate } of bendRates(held, cents)) {
+      const param = this.live.get(id)?.src.playbackRate;
+      if (!param) continue;
+      param.cancelScheduledValues(now);
+      param.setTargetAtTime(rate, now, BEND_GLIDE_S);
     }
   }
 

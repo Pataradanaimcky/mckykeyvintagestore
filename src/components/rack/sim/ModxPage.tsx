@@ -224,7 +224,7 @@ export function ModxPage({ active }: { active: boolean }) {
   const midi = useMidiIn(active, {
     noteOn,
     noteOff,
-    // Pitch bend wheel: ±2 semitones (store's choice), heard on the AN-X and FM-X parts (not the AWM2 sample parts yet).
+    // Pitch bend wheel: ±2 semitones (store's choice), heard on the AN-X, FM-X and AWM2 parts, held notes included (S8e).
     bend: (v) => engine.current?.bend(bendCents(v)),
     sustain: (down) => {
       sustain.current.down = down;

@@ -170,6 +170,7 @@ export class SimEngine {
             ? (async () => {
                 const own = new SamplePart(this.ctx, gain);
                 await own.load(gm);
+                if (this.bendCents) own.bend(this.bendCents);
                 return own as SampleVoice;
               })().catch(smplr)
             : smplr();
@@ -217,14 +218,16 @@ export class SimEngine {
   }
 
   /**
-   * Pitch bend in cents. Heard on the AN-X / VA and FM-X parts, held notes included. Sample (AWM2 / PCM)
-   * parts do not bend yet: smplr 1.1.0 has no way to change the pitch of a note already playing.
+   * Pitch bend in cents. Heard on the AN-X / VA and FM-X parts and on the MODX M AWM2 parts played by
+   * the store's own sample voice, held notes included (S8e). Parts on smplr (FANTOM-0 PCM, and the MODX M
+   * fallback) do not bend: smplr 1.1.0 has no way to change the pitch of a note already playing.
    */
   bend(cents: number) {
     this.bendCents = cents;
     for (const ch of this.parts) {
       ch.an?.voices.setBend(cents);
       void ch.fm?.then((node) => node?.port.postMessage({ type: "bend", cents }));
+      void ch.awm?.then((v) => v.bend?.(cents)).catch(() => {});
     }
   }
 

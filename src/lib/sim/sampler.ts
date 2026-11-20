@@ -243,3 +243,14 @@ export function smplrMatchedPeak(velocity: number): number {
 
 /** The MODX M AWM2 envelope: no audible attack, held at full level, 0.3 s release, as smplr played them. */
 export const AWM_ENV: Adsr = { attack: MIN_STAGE_S, decay: MIN_STAGE_S, sustain: 1, release: 0.3 };
+
+/** Time constant in seconds for a held sample note to follow the bend wheel: quick, but no zipper steps. */
+export const BEND_GLIDE_S = 0.005;
+
+/**
+ * New playback rates for held sample notes when the bend changes (docs/SIMULATOR.md S8e): each voice
+ * keeps the recording it started on (`root`), so a bend never jumps to another sample mid-note.
+ */
+export function bendRates(held: readonly { id: number; note: number; root: number }[], cents: number): { id: number; rate: number }[] {
+  return held.map(({ id, note, root }) => ({ id, rate: playbackRate(note, root, cents) }));
+}
