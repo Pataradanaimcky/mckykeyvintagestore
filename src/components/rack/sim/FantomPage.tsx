@@ -28,6 +28,7 @@ import {
   panText,
   partialChannels,
   partialText,
+  pcmAttackS,
   pcmReleaseS,
   pickCurrentZone,
   pressPad,
@@ -141,7 +142,7 @@ export function FantomPage({ active }: { active: boolean }) {
     });
   }, [scene, sceneIndex, levels, pans, audibleKey, loading]);
 
-  // CTRL knobs: each zone's EQ and sends, and ATTACK / RELEASE on its partials (VA: both; PCM: RELEASE only).
+  // CTRL knobs: each zone's EQ and sends, and ATTACK / RELEASE on its partials (VA and PCM: both; PCM ATTACK through the store's sample voice, S5j).
   useEffect(() => {
     const e = engine.current;
     if (!e || loadedFor.current !== sceneIndex) return;
@@ -149,7 +150,7 @@ export function FantomPage({ active }: { active: boolean }) {
       const k = ctrls[c.zone];
       if (!k) return;
       e.setZoneFx(i, eqGainsDb(k), k.REVERB, k.CHORUS);
-      e.setEnvelope(i, c.partial.va ? vaWithCtrl(c.partial.va, k) : undefined, c.partial.type === "PCM" ? pcmReleaseS(k) : undefined);
+      e.setEnvelope(i, c.partial.va ? vaWithCtrl(c.partial.va, k) : undefined, c.partial.type === "PCM" ? pcmReleaseS(k) : undefined, c.partial.type === "PCM" ? pcmAttackS(k) : undefined);
     });
   }, [scene, sceneIndex, ctrls, loading]);
 

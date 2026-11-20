@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { CTRL_KNOBS, CTRL_START, ctrlsForScene, ctrlText, eqGainsDb, EQ_RANGE_DB, FANTOM_SCENES, pcmReleaseS, pickCurrentZone, setCtrl, vaWithCtrl } from "../src/lib/sim/fantom.ts";
+import { CTRL_KNOBS, CTRL_START, ctrlsForScene, ctrlText, eqGainsDb, EQ_RANGE_DB, FANTOM_SCENES, pcmAttackS, PCM_MAX_ATTACK_S, pcmReleaseS, pickCurrentZone, setCtrl, vaWithCtrl } from "../src/lib/sim/fantom.ts";
 
 test("CTRL knobs [1]–[8] in the Owner's Manual order", () => {
   assert.deepEqual([...CTRL_KNOBS], ["ATTACK", "RELEASE", "REVERB", "CHORUS", "LOW GAIN", "MID GAIN", "HIGH GAIN", "EQ ON"]);
@@ -41,4 +41,18 @@ test("ZONE SELECT then a zone button picks the current zone; bad presses keep it
   assert.equal(pickCurrentZone(0, 2, 4), 2);
   assert.equal(pickCurrentZone(2, 5, 4), 2);
   assert.equal(pickCurrentZone(2, -1, 4), 2);
+});
+
+test("PCM ATTACK (S5j): as the tone is at centre and to the left, a fade-in to the right", () => {
+  assert.equal(pcmAttackS(CTRL_START), 0);
+  assert.equal(pcmAttackS({ ...CTRL_START, ATTACK: 0 }), 0);
+  assert.equal(pcmAttackS({ ...CTRL_START, ATTACK: 0.75 }), 0.5);
+  assert.equal(pcmAttackS({ ...CTRL_START, ATTACK: 1 }), PCM_MAX_ATTACK_S);
+  assert.equal(pcmAttackS({ ...CTRL_START, ATTACK: 7 }), PCM_MAX_ATTACK_S);
+  let last = 0;
+  for (let v = 0.5; v <= 1; v += 0.05) {
+    const a = pcmAttackS({ ...CTRL_START, ATTACK: v });
+    assert.ok(a >= last);
+    last = a;
+  }
 });

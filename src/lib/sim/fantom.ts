@@ -405,6 +405,17 @@ export function vaWithCtrl(settings: AnSettings, c: ZoneCtrl): AnSettings {
 /** Release time in seconds for PCM partials: 0.3 s at centre (the sample player's own default), ×8 or ÷8 at the ends (store's range). */
 export const pcmReleaseS = (c: ZoneCtrl) => Math.round(0.3 * 2 ** ((clamp01(c.RELEASE) - 0.5) * 6) * 1000) / 1000;
 
+/**
+ * Attack time in seconds for PCM partials (S5j), played by the store's own sample voice. Centre and
+ * the left half = as the tone is (no audible attack, the recordings start at once and cannot start
+ * sooner); the right half fades in, up to 2 s at the end on a squared curve (store's range).
+ */
+export const PCM_MAX_ATTACK_S = 2;
+export const pcmAttackS = (c: ZoneCtrl) => {
+  const v = clamp01(c.ATTACK);
+  return v <= 0.5 ? 0 : Math.round(PCM_MAX_ATTACK_S * ((v - 0.5) / 0.5) ** 2 * 1000) / 1000;
+};
+
 /** Text under a CTRL knob. */
 export function ctrlText(job: CtrlJob, c: ZoneCtrl): string {
   const v = clamp01(c[job]);

@@ -19,14 +19,15 @@ import {
 
 /** What the engine needs from a sample part; the store's voice and the smplr fallback both give it. */
 export interface SampleVoice {
-  noteOn(note: number, velocity: number, release?: number): void;
+  /** `release` / `attack` in seconds override the part's envelope for this note (FANTOM-0 CTRL); the smplr fallback uses only `release`. */
+  noteOn(note: number, velocity: number, release?: number, attack?: number): void;
   noteOff(note: number): void;
   allOff(): void;
   /** Pitch bend in cents for held and new notes; the smplr fallback has none (held notes cannot bend there). */
   bend?(cents: number): void;
 }
 
-type Live = { src: AudioBufferSourceNode; env: GainNode; startedAt: number; peak: number; release: number; note: number; root: number };
+type Live = { src: AudioBufferSourceNode; env: GainNode; startedAt: number; peak: number; adsr: Adsr; note: number; root: number };
 
 function applySteps(param: AudioParam, steps: EnvStep[]) {
   for (const s of steps) {
@@ -90,7 +91,7 @@ export class SamplePart implements SampleVoice {
     return this.roots;
   }
 
-  noteOn(note: number, velocity: number, release?: number) {
+  noteOn(note: number, velocity: number, release?: number, attack?: number) {
     const pick = pickSample(note, this.roots);
     if (!pick) return;
     const buffer = this.buffers.get(pick.root);
@@ -103,7 +104,8 @@ export class SamplePart implements SampleVoice {
     src.playbackRate.value = playbackRate(note, pick.root, this.bendCents);
     const env = this.ctx.createGain();
     const peak = smplrMatchedPeak(velocity);
-    applySteps(env.gain, attackSteps(now, peak, this.env));
+    const adsr: Adsr = { ...this.env, release: release ?? this.env.release, attack: attack ?? this.env.attack };
+    applySteps(env.gain, attackSteps(now, peak, adsr));
     src.connect(env).connect(this.dest);
     src.start(now);
     const id = voice.id;
@@ -113,7 +115,7 @@ export class SamplePart implements SampleVoice {
       this.live.delete(id);
       this.pool.ended(id);
     };
-    this.live.set(id, { src, env, startedAt: now, peak, release: release ?? this.env.release, note, root: pick.root });
+    this.live.set(id, { src, env, startedAt: now, peak, adsr, note, root: pick.root });
   }
 
   noteOff(note: number) {
@@ -121,7 +123,7 @@ export class SamplePart implements SampleVoice {
     for (const v of this.pool.noteOff(note)) {
       const l = this.live.get(v.id);
       if (!l) continue;
-      const steps = releaseSteps(now, l.startedAt, l.peak, { ...this.env, release: l.release });
+      const steps = releaseSteps(now, l.startedAt, l.peak, l.adsr);
       l.env.gain.cancelScheduledValues(now);
       applySteps(l.env.gain, steps);
       try {

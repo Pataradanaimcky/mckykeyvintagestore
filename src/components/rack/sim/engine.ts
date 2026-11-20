@@ -15,6 +15,8 @@ interface PartChannel {
   fx?: { low: BiquadFilterNode; mid: BiquadFilterNode; high: BiquadFilterNode; reverb: GainNode; chorus: GainNode };
   /** Release in seconds for sample notes (FANTOM-0 CTRL RELEASE); unset = the sample player's own. */
   release?: number;
+  /** Attack in seconds for sample notes (FANTOM-0 CTRL ATTACK, S5j); unset = the sample voice's own. Not heard on the smplr fallback. */
+  attack?: number;
 }
 
 /**
@@ -203,12 +205,13 @@ export class SimEngine {
     fx.chorus.gain.setTargetAtTime(chorus * 0.7, t, 0.02);
   }
 
-  /** FANTOM-0 CTRL ATTACK / RELEASE: new analog settings for a VA channel (next notes), or a release for sample notes. */
-  setEnvelope(part: number, an: AnSettings | undefined, release: number | undefined) {
+  /** FANTOM-0 CTRL ATTACK / RELEASE: new analog settings for a VA channel (next notes), or attack and release for sample notes. */
+  setEnvelope(part: number, an: AnSettings | undefined, release: number | undefined, attack?: number) {
     const ch = this.parts[part];
     if (!ch) return;
     if (ch.an && an) ch.an.settings = { ...an };
     ch.release = release;
+    ch.attack = attack;
   }
 
   setCutoff(part: number, cutoff: number) {
@@ -241,7 +244,7 @@ export class SimEngine {
       if (!ch) continue;
       if (ch.an) ch.an.voices.noteOn(note, ch.an.settings, velocity);
       else if (ch.fm) void ch.fm.then((node) => node?.port.postMessage({ type: "on", note, velocity }));
-      else void ch.awm?.then((v) => v.noteOn(note, Math.round(30 + velocity * 97), ch.release)).catch(() => {});
+      else void ch.awm?.then((v) => v.noteOn(note, Math.round(30 + velocity * 97), ch.release, ch.attack)).catch(() => {});
     }
     this.sounding.set(key, targets.map(([part, note]) => ({ part, note })));
   }
