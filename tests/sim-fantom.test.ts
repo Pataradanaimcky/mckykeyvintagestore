@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { activePartials, applyZoneControl, audibleZones, PAD_START, padFace, padsForNewScene, pressPad, pressPadMode, asPerformance, channelLevel, learnTargets, MAX_SCENE_PARTIALS, noteTargets, PARTIAL_COUNT, partialChannels, partialText, zoneChannels, readLearnTarget, FANTOM_SCENES, noteName, PAD_COUNT, panText, setSplit, SPLIT_LOWER, SPLIT_UPPER, toggleZone, ZONE_COUNT, zoneRange, zonesForNote } from "../src/lib/sim/fantom.ts";
+import { activePartials, applyZoneControl, audibleZones, PAD_START, padFace, padsForNewScene, pressPad, pressPadMode, asPerformance, channelLevel, learnTargets, learnTargetLabel, MAX_SCENE_PARTIALS, noteTargets, PARTIAL_COUNT, partialChannels, partialText, zoneChannels, readLearnTarget, FANTOM_SCENES, noteName, PAD_COUNT, panText, setSplit, SPLIT_LOWER, SPLIT_UPPER, toggleZone, ZONE_COUNT, zoneRange, zonesForNote } from "../src/lib/sim/fantom.ts";
 
 const grand = FANTOM_SCENES[0];
 const onOf = (s: (typeof FANTOM_SCENES)[number]) => s.zones.map((z) => z.on);
@@ -102,9 +102,16 @@ test("display text", () => {
 });
 
 test("CC learn targets: LEVEL then PAN for each zone on the panel, at most [1]–[8]", () => {
-  assert.deepEqual(learnTargets(4), ["level1", "level2", "level3", "level4", "pan1", "pan2", "pan3", "pan4"]);
+  // Sliders follow the Scene's zones; knobs 1–8 are always there, since CTRL uses all eight.
+  assert.deepEqual(learnTargets(4), ["level1", "level2", "level3", "level4", "pan1", "pan2", "pan3", "pan4", "pan5", "pan6", "pan7", "pan8"]);
   assert.equal(learnTargets(16).length, 16);
-  assert.deepEqual(learnTargets(0), []);
+  assert.deepEqual(learnTargets(0), ["pan1", "pan2", "pan3", "pan4", "pan5", "pan6", "pan7", "pan8"]);
+  for (const s of FANTOM_SCENES) assert.equal(learnTargets(s.zones.length).filter((t) => t.startsWith("pan")).length, 8, s.name);
+  assert.equal(learnTargetLabel("level2", 4), "SLIDER 2 (LEVEL)");
+  assert.equal(learnTargetLabel("pan4", 4), "KNOB 4 (PAN / CTRL)");
+  assert.equal(learnTargetLabel("pan5", 4), "KNOB 5 (CTRL)");
+  // With PAN/LEVEL on, a knob past the Scene's zones moves no pan.
+  assert.deepEqual(applyZoneControl([0.1, 0.2, 0.3, 0.4], [0.5, 0.5, 0.5, 0.5], "pan5", 0), { levels: [0.1, 0.2, 0.3, 0.4], pans: [0.5, 0.5, 0.5, 0.5] });
   assert.deepEqual(readLearnTarget("pan3"), { control: "pan", zone: 2 });
   assert.equal(readLearnTarget("pan9"), null);
   assert.equal(readLearnTarget("level0"), null);

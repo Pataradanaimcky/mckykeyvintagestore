@@ -17,6 +17,7 @@ import {
   eqGainsDb,
   FANTOM_SCENES,
   learnTargets,
+  learnTargetLabel,
   noteName,
   noteTargets,
   OCTAVE_RANGE,
@@ -257,7 +258,7 @@ export function FantomPage({ active }: { active: boolean }) {
   });
 
   const targets = learnTargets(Math.min(scene.zones.length, PANEL_ZONES));
-  const targetLabel = (t: FantomLearnTarget) => (t.startsWith("level") ? `SLIDER ${t.slice(5)} (LEVEL)` : `KNOB ${t.slice(3)} (PAN / CTRL)`);
+  const targetLabel = (t: FantomLearnTarget) => learnTargetLabel(t, scene.zones.length);
   const learnHint = learn.learning === learnFor ? "หมุนปุ่มบนคีย์บอร์ด…" : learn.map[learnFor] !== undefined ? `CC ${learn.map[learnFor]}` : "ยังไม่ได้ผูก";
 
   // [SPLIT]: off → waiting for a key; waiting → cancel; on → off.

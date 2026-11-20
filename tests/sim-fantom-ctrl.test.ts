@@ -56,3 +56,10 @@ test("PCM ATTACK (S5j): as the tone is at centre and to the left, a fade-in to t
     last = a;
   }
 });
+
+test("a learnt KNOB 8 in CTRL reaches EQ ON of the current zone, as the page routes it (pan8 → knob index 7)", () => {
+  const start = ctrlsForScene(FANTOM_SCENES[0]);
+  const knob = Number("pan8".slice(3)) - 1;
+  assert.equal(CTRL_KNOBS[knob], "EQ ON");
+  assert.equal(setCtrl(start, 0, knob, 0)[0]["EQ ON"], 0);
+});

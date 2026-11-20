@@ -190,11 +190,26 @@ export function padFace(state: PadState, pad: number, zoneCount: number, sceneNa
 export type ZoneControl = "level" | "pan";
 export type FantomLearnTarget = `${ZoneControl}${number}`;
 
-/** Learn targets for the zones on the panel: LEVEL 1… then PAN 1…, at most [1]–[8]. */
+/**
+ * Learn targets on the panel: SLIDER (LEVEL) 1… for the Scene's zones, then KNOB 1–8. All eight knobs
+ * can be learnt whatever the zone count, because with CTRL on, knobs [1]–[8] are the current zone's
+ * eight jobs (Owner's Manual p. 19), so knobs 5–8 (LOW / MID / HIGH GAIN, EQ ON) are needed even in a
+ * 4-zone Scene. With PAN/LEVEL on, a knob of a zone the Scene does not have moves nothing.
+ */
 export function learnTargets(zoneCount: number): FantomLearnTarget[] {
   const n = Math.max(0, Math.min(PANEL_ZONES, Math.floor(zoneCount)));
   const zones = Array.from({ length: n }, (_, i) => i + 1);
-  return [...zones.map((z) => `level${z}` as const), ...zones.map((z) => `pan${z}` as const)];
+  const knobs = Array.from({ length: PANEL_ZONES }, (_, i) => i + 1);
+  return [...zones.map((z) => `level${z}` as const), ...knobs.map((k) => `pan${k}` as const)];
+}
+
+/** The page's name for a learn target; a knob past the Scene's zones only has its CTRL job. */
+export function learnTargetLabel(target: FantomLearnTarget, zoneCount: number): string {
+  const t = readLearnTarget(target);
+  if (!t) return target;
+  const n = t.zone + 1;
+  if (t.control === "level") return `SLIDER ${n} (LEVEL)`;
+  return t.zone < zoneCount ? `KNOB ${n} (PAN / CTRL)` : `KNOB ${n} (CTRL)`;
 }
 
 /** Reads a learn target back: which control of which zone (index from 0), or null if not valid. */
