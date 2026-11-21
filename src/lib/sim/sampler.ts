@@ -34,6 +34,17 @@ export function pickSample(note: number, roots: readonly number[], maxStretch: n
   return best;
 }
 
+/**
+ * The recording the store's sample voice plays for `note` (S2e): the same as smplr 1.1.0, whose
+ * Soundfont spreads each recorded note's keys halfway to its neighbours (lower root on a tie) and the
+ * lowest / highest recording to the ends of 0..127, with no stretch limit; silent outside 0..127.
+ * So falling back to smplr never makes a note sound from another recording, or go silent.
+ */
+export function pickRecording(note: number, roots: readonly number[]): SamplePick | null {
+  if (!Number.isInteger(note) || note < 0 || note > 127) return null;
+  return pickSample(note, roots, 127);
+}
+
 /** Playback rate for a recording at `root` to sound `note`, plus bend and fine tune in cents. */
 export function playbackRate(note: number, root: number, cents = 0): number {
   return 2 ** ((note - root) / 12 + cents / 1200);

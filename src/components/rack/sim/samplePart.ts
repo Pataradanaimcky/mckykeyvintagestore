@@ -4,7 +4,7 @@ import {
   base64Body,
   bendRates,
   pickFormat,
-  pickSample,
+  pickRecording,
   playbackRate,
   recordedNotes,
   releaseSteps,
@@ -92,7 +92,7 @@ export class SamplePart implements SampleVoice {
   }
 
   noteOn(note: number, velocity: number, release?: number, attack?: number) {
-    const pick = pickSample(note, this.roots);
+    const pick = pickRecording(note, this.roots);
     if (!pick) return;
     const buffer = this.buffers.get(pick.root);
     if (!buffer) return;
