@@ -109,6 +109,20 @@ export function velocityCutoff(base: number, velocity: number, amount: number): 
   return Math.min(20000, Math.max(40, base * 2 ** octaves));
 }
 
+/** S2d: the darkest Knob 3 BRIGHT setting of an AWM2 part, in Hz (the store's choice). */
+export const BRIGHT_MIN_HZ = 400;
+
+/**
+ * Low-pass cutoff in Hz for an AWM2 part's BRIGHT value 0..1, on an octave scale from BRIGHT_MIN_HZ
+ * (0) to `nyquist` (1). At the Nyquist frequency a Web Audio low-pass passes everything unchanged,
+ * so 1 sounds exactly as the sample was recorded.
+ */
+export function brightCutoff(bright: number, nyquist: number): number {
+  const b = Math.min(1, Math.max(0, Number.isFinite(bright) ? bright : 1));
+  if (b >= 1) return nyquist;
+  return Math.min(nyquist, BRIGHT_MIN_HZ * (nyquist / BRIGHT_MIN_HZ) ** b);
+}
+
 /** Loop points in seconds against the recording's length; reason when they cannot be used. */
 export function checkLoop(start: number, end: number, duration: number): string | null {
   if (![start, end, duration].every(Number.isFinite)) return "not a number";

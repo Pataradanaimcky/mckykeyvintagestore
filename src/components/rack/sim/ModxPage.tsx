@@ -160,6 +160,7 @@ export function ModxPage({ active }: { active: boolean }) {
       const c = partControls(perf, i, levels[i] ?? 0, knob, assignKnobsOf(perf), assignValues);
       e.setLevel(i, mutes[i] ? 0 : c.level);
       if (c.cutoff !== undefined) e.setCutoff(i, c.cutoff);
+      if (c.bright !== undefined) e.setBright(i, c.bright);
     });
   }, [perf, perfIndex, levels, mutes, knob, assignValues, loading]);
 

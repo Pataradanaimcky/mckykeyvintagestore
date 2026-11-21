@@ -1,6 +1,7 @@
 import { createChorus, PolyVoices } from "../poly/voices";
 import type { AnSettings, Performance } from "@/lib/sim/modx";
 import { SIM_LIMITER, softClipCurve } from "@/lib/sim/output";
+import { brightCutoff } from "@/lib/sim/sampler";
 import { SamplePart, type SampleVoice } from "./samplePart";
 
 interface PartChannel {
@@ -9,6 +10,8 @@ interface PartChannel {
   an?: { voices: PolyVoices; settings: AnSettings };
   /** AWM2 / PCM parts: the store's own sample voice (both pages), or smplr when it cannot load. */
   awm?: Promise<SampleVoice>;
+  /** AWM2 / PCM parts: low-pass before the part gain, open (pass-through at Nyquist) unless Knob 3 BRIGHT closes it (S2d). */
+  tone?: BiquadFilterNode;
   /** FM-X parts: one AudioWorklet node (public/worklets/fmx-poly.js); null when the browser has no AudioWorklet. */
   fm?: Promise<AudioWorkletNode | null>;
   /** FANTOM-0 zone effects (loaded with `fx`): EQ bands and the reverb and chorus sends. */
@@ -167,11 +170,17 @@ export class SimEngine {
         });
       } else if (part.gm) {
         const gm = part.gm;
-        const smplr = () => smplrVoice(this.ctx, gm, gain);
+        const tone = this.ctx.createBiquadFilter();
+        tone.type = "lowpass";
+        tone.frequency.value = this.ctx.sampleRate / 2;
+        tone.Q.value = 0.7071;
+        tone.connect(gain);
+        ch.tone = tone;
+        const smplr = () => smplrVoice(this.ctx, gm, tone);
         ch.awm =
           voice === "own"
             ? (async () => {
-                const own = new SamplePart(this.ctx, gain);
+                const own = new SamplePart(this.ctx, tone);
                 await own.load(gm);
                 if (this.bendCents) own.bend(this.bendCents);
                 return own as SampleVoice;
@@ -219,6 +228,17 @@ export class SimEngine {
     if (!an) return;
     an.settings = { ...an.settings, cutoff };
     an.voices.update(an.settings);
+  }
+
+  /** Knob 3 BRIGHT on an AWM2 part (S2d): 1 = open as recorded, 0 = darkest (src/lib/sim/sampler.ts brightCutoff). */
+  setBright(part: number, bright: number) {
+    const tone = this.parts[part]?.tone;
+    if (!tone) return;
+    const t = this.ctx.currentTime;
+    const hz = brightCutoff(bright, this.ctx.sampleRate / 2);
+    tone.frequency.cancelScheduledValues(t);
+    if (bright >= 1) tone.frequency.setValueAtTime(hz, t);
+    else tone.frequency.setTargetAtTime(hz, t, 0.02);
   }
 
   /**

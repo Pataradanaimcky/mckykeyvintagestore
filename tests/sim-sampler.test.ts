@@ -162,3 +162,22 @@ test("bendRates: held sample notes bend on their own recording and come back at 
   near(back[1].rate, playbackRate(65, 64));
   assert.deepEqual(bendRates([], 200), []);
 });
+
+test("brightCutoff: 1 is the Nyquist pass-through, 0 the store's darkest, octave steps between", async () => {
+  const { brightCutoff, BRIGHT_MIN_HZ } = await import("../src/lib/sim/sampler.ts");
+  for (const ny of [22050, 24000]) {
+    assert.equal(brightCutoff(1, ny), ny);
+    assert.equal(brightCutoff(2, ny), ny);
+    assert.equal(brightCutoff(0, ny), BRIGHT_MIN_HZ);
+    assert.equal(brightCutoff(-1, ny), BRIGHT_MIN_HZ);
+    assert.equal(brightCutoff(Number.NaN, ny), ny);
+    const mid = brightCutoff(0.5, ny);
+    assert.ok(Math.abs(mid - Math.sqrt(BRIGHT_MIN_HZ * ny)) < 1e-6);
+    let last = 0;
+    for (let b = 0; b <= 1; b += 0.1) {
+      const hz = brightCutoff(b, ny);
+      assert.ok(hz >= last && hz <= ny);
+      last = hz;
+    }
+  }
+});

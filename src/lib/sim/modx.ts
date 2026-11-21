@@ -48,7 +48,8 @@ export interface Part {
 /** What the Super Knob does to one part as it turns from 0 to 1. */
 export interface KnobAssign {
   part: number;
-  param: "level" | "cutoff";
+  /** "bright" (Knobs 1–8 only): AWM2 parts' low-pass, 1 = open as the sample is, 0 = darkest (S2d). */
+  param: "level" | "cutoff" | "bright";
   from: number;
   to: number;
 }
@@ -261,7 +262,8 @@ export const morph = (a: KnobAssign, knob: number) => a.from + (a.to - a.from) *
  * Knobs 1–4 (5–8): the keyboard's eight Assign knobs (MODX M Quick Guide, top panel 5-3; default
  * CC 17–24, Data List note *4). What each moves in a Performance is set per Performance; these are
  * the store's own settings, not Yamaha's. A level target scales the part (1 = as it was); a cutoff
- * target is added to the part's cutoff (0 = as it was), on AN-X parts only.
+ * target is added to the part's cutoff (0 = as it was), on AN-X parts only. A bright target
+ * scales the low-pass of AWM2 parts (1 = open, as the sample was recorded; S2d).
  */
 export const ASSIGN_KNOB_COUNT = 8;
 export interface AssignKnob {
@@ -276,7 +278,8 @@ const EMPTY_KNOB: AssignKnob = { name: "—", targets: [], start: 0.5 };
 
 /**
  * The store's Knob 1–8 settings for a Performance: Knob 1 CUTOFF opens or closes every AN-X part
- * (±0.3), Knob 2 LAYER turns down every part but Part 1. Knobs 3–8 move nothing yet.
+ * (±0.3), Knob 2 LAYER turns down every part but Part 1, Knob 3 BRIGHT closes a low-pass on every
+ * AWM2 part (starts fully open, so the Performance sounds as written). Knobs 4–8 move nothing yet.
  */
 export function assignKnobsOf(perf: Performance): AssignKnob[] {
   const out: AssignKnob[] = Array.from({ length: ASSIGN_KNOB_COUNT }, () => EMPTY_KNOB);
@@ -284,6 +287,8 @@ export function assignKnobsOf(perf: Performance): AssignKnob[] {
   if (an.length > 0) out[0] = { name: "CUTOFF", start: 0.5, targets: an.map((part) => ({ part, param: "cutoff", from: -0.3, to: 0.3 })) };
   const layers = perf.parts.flatMap((_, i) => (i > 0 && i < MAX_PARTS ? [i] : []));
   if (layers.length > 0) out[1] = { name: "LAYER", start: 1, targets: layers.map((part) => ({ part, param: "level", from: 0, to: 1 })) };
+  const awm = perf.parts.flatMap((p, i) => (p.engine === "AWM2" && i < MAX_PARTS ? [i] : []));
+  if (awm.length > 0) out[2] = { name: "BRIGHT", start: 1, targets: awm.map((part) => ({ part, param: "bright", from: 0, to: 1 })) };
   return out;
 }
 
@@ -302,7 +307,7 @@ export const assignStartsOf = (knobs: readonly AssignKnob[]) => knobs.map((k) =>
 /**
  * A part's level and cutoff after its fader, the Super Knob and Knobs 1–8. The Super Knob's level
  * assignment scales the fader; its cutoff assignment replaces the part's cutoff. Knobs 1–8 then
- * scale the level and move the cutoff (see AssignKnob).
+ * scale the level, move the cutoff and set `bright` (AWM2 parts only, 1 = open; see AssignKnob).
  */
 export function partControls(
   perf: Performance,
@@ -311,24 +316,27 @@ export function partControls(
   knob: number,
   assigns: readonly AssignKnob[] = [],
   assignValues: readonly number[] = [],
-): { level: number; cutoff?: number } {
+): { level: number; cutoff?: number; bright?: number } {
   const part = perf.parts[index];
   let level = clamp01(fader);
   let cutoff = part.an?.cutoff;
+  let bright = part.engine === "AWM2" ? 1 : undefined;
   for (const a of perf.knob) {
     if (a.part !== index) continue;
     if (a.param === "level") level *= clamp01(morph(a, knob));
-    else cutoff = clamp01(morph(a, knob));
+    else if (a.param === "cutoff") cutoff = clamp01(morph(a, knob));
   }
   assigns.forEach((k, n) => {
     const value = assignValues[n] ?? k.start;
     for (const a of k.targets) {
       if (a.part !== index) continue;
       if (a.param === "level") level *= clamp01(morph(a, value));
-      else if (cutoff !== undefined) cutoff = clamp01(cutoff + morph(a, value));
+      else if (a.param === "bright") {
+        if (bright !== undefined) bright *= clamp01(morph(a, value));
+      } else if (cutoff !== undefined) cutoff = clamp01(cutoff + morph(a, value));
     }
   });
-  return { level, cutoff };
+  return bright === undefined ? { level, cutoff } : { level, cutoff, bright };
 }
 
 /** Default scenes: Scene 1 is the Performance as written; the others are filled from the knob positions. */
