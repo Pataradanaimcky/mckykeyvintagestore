@@ -40,3 +40,13 @@ export function softClipCurve(size: number = SIM_CLIP.size): Float32Array<ArrayB
   for (let i = 0; i < size; i++) curve[i] = softClip((i / (size - 1)) * 2 - 1);
   return curve;
 }
+
+/**
+ * FANTOM-0 reverb send (docs/SIMULATOR.md S7d): a zone's send joins the shared reverb only once its
+ * REVERB knob is above 0, then stays joined so a ringing tail is never cut. Chromium keeps a
+ * convolver working while any input is joined, even a silent one (about 3% of real time measured
+ * on the agent's machine), so Scenes whose REVERB knobs are all at 0 pay nothing for it.
+ */
+export function joinReverbSend(joined: boolean, level: number): boolean {
+  return !joined && level > 0;
+}

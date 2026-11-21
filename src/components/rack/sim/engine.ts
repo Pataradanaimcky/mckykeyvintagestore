@@ -1,6 +1,6 @@
 import { createChorus, PolyVoices } from "../poly/voices";
 import type { AnSettings, Performance } from "@/lib/sim/modx";
-import { SIM_LIMITER, softClipCurve } from "@/lib/sim/output";
+import { joinReverbSend, SIM_LIMITER, softClipCurve } from "@/lib/sim/output";
 import { brightCutoff } from "@/lib/sim/sampler";
 import { SamplePart, type SampleVoice } from "./samplePart";
 
@@ -15,7 +15,7 @@ interface PartChannel {
   /** FM-X parts: one AudioWorklet node (public/worklets/fmx-poly.js); null when the browser has no AudioWorklet. */
   fm?: Promise<AudioWorkletNode | null>;
   /** FANTOM-0 zone effects (loaded with `fx`): EQ bands and the reverb and chorus sends. */
-  fx?: { low: BiquadFilterNode; mid: BiquadFilterNode; high: BiquadFilterNode; reverb: GainNode; chorus: GainNode };
+  fx?: { low: BiquadFilterNode; mid: BiquadFilterNode; high: BiquadFilterNode; reverb: GainNode; chorus: GainNode; reverbJoined: boolean };
   /** Release in seconds for sample notes (FANTOM-0 CTRL RELEASE); unset = the sample player's own. */
   release?: number;
   /** Attack in seconds for sample notes (FANTOM-0 CTRL ATTACK, S5j); unset = the sample voice's own. Not heard on the smplr fallback. */
@@ -117,6 +117,7 @@ export class SimEngine {
     for (const p of this.parts)
       setTimeout(() => {
         p.gain.disconnect();
+        if (p.fx?.reverbJoined) p.fx.reverb.disconnect();
         void p.fm?.then((node) => {
           node?.port.postMessage({ type: "stop" });
           node?.disconnect();
@@ -147,9 +148,10 @@ export class SimEngine {
           reverb.gain.value = 0;
           chorus.gain.value = 0;
           gain.connect(low).connect(mid).connect(high).connect(ch.pan).connect(this.bus);
-          ch.pan.connect(reverb).connect(sends.reverb);
+          // The reverb send joins the convolver only when its REVERB knob first goes above 0 (S7d, setZoneFx).
+          ch.pan.connect(reverb);
           ch.pan.connect(chorus).connect(sends.chorus);
-          ch.fx = { low, mid, high, reverb, chorus };
+          ch.fx = { low, mid, high, reverb, chorus, reverbJoined: false };
         } else gain.connect(ch.pan).connect(this.bus);
       } else gain.connect(this.bus);
       if (part.engine === "AN-X" && part.an) {
@@ -211,6 +213,10 @@ export class SimEngine {
     fx.mid.gain.setTargetAtTime(eq.mid, t, 0.02);
     fx.high.gain.setTargetAtTime(eq.high, t, 0.02);
     fx.reverb.gain.setTargetAtTime(reverb * 0.8, t, 0.02);
+    if (joinReverbSend(fx.reverbJoined, reverb)) {
+      fx.reverb.connect(this.sendBuses().reverb);
+      fx.reverbJoined = true;
+    }
     fx.chorus.gain.setTargetAtTime(chorus * 0.7, t, 0.02);
   }
 

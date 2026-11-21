@@ -158,6 +158,37 @@ Limits of this check:
 - To load the audio thread, an extra worklet burned time in each 2.9 ms audio block on the three heaviest presets. With 1.8 ms extra: 0 underruns on all three, with 6 keys held. With 3.2 ms extra (more than the block itself): 326–383 underruns in 4 seconds, which shows the counter does detect dropouts. So these presets keep working with the audio thread doing roughly 7× its normal work (MCKY EP & Strings: 0.28 ms normal, about 2.1 ms in total). How a given phone compares with this machine is unknown (S7c).
 - Output latency on phones is unknown: it depends on the device and is not visible here.
 
+## Re-check after the store's sample voice (S7d, measured 2026-11-21)
+
+How: production build, Chromium at 390 × 844 on the agent's 2-core cloud machine, Chrome CPU throttling 1×, 4× and 6×, every Performance and Scene, a mocked MIDI keyboard holding C3 G3 C4 E4 G4 C5 at velocity 110 for 4 s with a pitch bend up and back while held. MODX M: Knob 3 BRIGHT turned half down first; FANTOM-0: zone 1 CTRL ATTACK and RELEASE turned fully up first. Sample parts played through the store's own sample voice (S2b, S2c) from a stand-in bank (88 notes, a decaying 3-harmonic tone, one Ogg file per note), because the sample host cannot be reached from the sandbox. **Not a real phone** (S7c is still open).
+
+Audio work is now read as Chrome's own render capacity (DevTools protocol `WebAudio.getRealtimeData`, share of each audio block spent rendering), median and peak over 4 s. This is a different reading from the S7 table above, so the S7d numbers are compared only with S7d numbers. The same reading on the S7 build (commit eab5715, smplr, no CTRL effects) gave the "before" column.
+
+| 6 notes held, 1× | S7 build | Before the fix below | After |
+|---|---|---|---|
+| MCKY EP & Strings (MODX M) | 15.6% | 16.7% (12.4% with BRIGHT half down) | unchanged (no MODX M change) |
+| MCKY Sweep Pad (MODX M) | 12.6% | 12.5% | unchanged |
+| MCKY Supersaw Stack (FANTOM-0) | 12.4% | 18.3% (19.4% with ATTACK/RELEASE up) | 14.1% (15.4% with ATTACK/RELEASE up) |
+| MCKY Brass Hits (FANTOM-0) | 8.2% | 17.0% | 9.5% |
+| MCKY Organ & Bass (FANTOM-0) | 1.3% | 6.8% | 2.9% |
+| FANTOM-0 Scene with no key held | 0.6% (Organ & Bass) | 4.3–4.5% | 1.0–2.5% |
+
+Found: since the FANTOM-0 CTRL effects (S5c), every FANTOM-0 Scene sent each zone into the shared reverb's convolver even with every REVERB knob at 0. Chromium kept the 2-second convolver working on that silent input, about 3% of real time all the time on this machine (switching the convolver off in the measurement removed it: 4.5% → 1.7% idle). Fix: a zone's send joins the reverb only when its REVERB knob first goes above 0, then stays joined so a tail is never cut (`joinReverbSend` in src/lib/sim/output.ts, tests/sim-output.test.ts). Checked: REVERB at 0 makes no connection to the convolver; turning it up joins it and the tail after a released note is louder (0.0041 → 0.0056 RMS on the stand-in). Sound with REVERB at 0 is unchanged.
+
+Results after the fix, all 16 presets at 390px:
+
+| | 1× | 4× | 6× |
+|---|---|---|---|
+| Audio underruns (`AudioContext.playbackStats`), all presets | 0 | 0 FANTOM-0; 1 MODX M (MCKY Sweep Pad, once) | 0 |
+| Heaviest audio work, median / peak | 15.4% / 25.8% MCKY Supersaw Stack | 15.8% / 18.7% | 14.0% / 23.5% |
+| MCKY EP & Strings, median / peak (BRIGHT half down) | 12.4% / 17.3% | 14.0% / 23.8% | 18.0% / 25.0% |
+| Key press to READY, slowest MODX M / FANTOM-0 | 0.8 s / 1.5 s | 0.9 s / 1.9 s | 1.2 s / 2.4 s |
+| Frame time while playing, 95th percentile | 17 ms | 17 ms | 17 ms |
+| Slowest frame while playing | 17 ms | 33 ms | 50 ms MODX M (100 ms once, MCKY Strings Layer) / 50 ms FANTOM-0 |
+| Long tasks while playing | 0 | 0 | 1 (MCKY Supersaw Stack) |
+
+No sideways scroll and no console errors at 390px and 1280px. Voice limits are unchanged: no preset dropped out, and the one underrun at 4× did not repeat at 6× (CPU throttling slows the page, not the audio thread, see the S7 limits). MCKY Supersaw Stack sits at the store's 15% line and MCKY EP & Strings goes over it under throttling, so these two stay the presets to listen to on a real phone (S7c). The "before" FANTOM-0 rise also includes the EQ (three filters per zone, about 0.7% at idle), which was kept.
+
 ## Loudness on large chords (S7b, measured 2026-11-19)
 
 How: production build, desktop Chromium 1280px, a mocked MIDI keyboard playing every MODX M Performance and FANTOM-0 Scene at velocity 127, peak read at the page's output for 2.5 s. 6 notes: C3 G3 C4 E4 G4 C5. 16 notes: C2 to C7 spread over both split sides. The sample host cannot be reached from the sandbox, so sample parts played a synthetic stand-in (harmonic tone, peak 0.9), louder than the earlier S7 stand-in.
@@ -219,6 +250,7 @@ No console errors. Quiet playing is a little louder than before (the limiter's a
 - [x] S5j (2026-11-20: CTRL ATTACK now works on PCM partials played by the store's own sample voice. Store's choice, the manual prints no values: centre and the left half = as the tone is (the recordings start at once and cannot start sooner), the right half fades the note in, up to 2 s at +50 on a squared curve (+25 ≈ 0.5 s); `pcmAttackS`, `PCM_MAX_ATTACK_S` in src/lib/sim/fantom.ts, tests in tests/sim-fantom-ctrl.test.ts; `SamplePart.noteOn(..., release, attack)` keeps each note's own envelope so letting go mid-fade releases from the level reached. On the smplr fallback ATTACK is not heard on PCM. Checked in Chromium at 1280 and 390 px with a mocked requestMIDIAccess and a stand-in sample file: ATTACK +50, note on → gain reaches its peak 2.0 s later; no console errors, no sideways scroll. Not listened to with the real FluidR3_GM files, not tested on a real keyboard.) FANTOM-0 CTRL ATTACK on PCM partials: needs a per-note attack in the sample player (smplr 1.1.0 has only a per-note release), or the store's own sample voice.
 - [~] S7 (2026-11-18: budget and desktop-Chromium check written in "Performance budget" below; no limit needed lowering, sound and pages unchanged; `tests/sim-budget.test.ts` keeps store presets inside the measured budget. Still open: a real phone, see S7c) Sound quality pass on real phones' limits (CPU, latency), and a performance budget written here.
 - [x] S7b (2026-11-19: the simulator bus now ends in a hard-knee limiter (threshold −6 dB, ratio 20, knee 0) and a soft clip that is untouched up to 0.8 and never passes 0.98 (`SIM_LIMITER`, `softClip` in src/lib/sim/output.ts, tests in tests/sim-output.test.ts; only src/components/rack/sim/engine.ts uses them). Re-measured all 16 presets at velocity 127, see "Loudness on large chords" below: 16 notes peak 0.77–0.93, 6 notes 0.48–0.81. MODULAR, FM 6-OP and POLY unchanged.) Loudness on very large chords: with 16 notes held at once the mix went over full scale in 6 of the 16 presets (peak 1.04–1.45, MCKY Bass & Lead highest, which has no samples, so it is not caused by the stand-in samples), and a real output would clip. With 6 notes every preset stayed under 0.9. Fix on the simulator bus only (not the shared POLY code path), then re-measure.
+- [x] S7d (2026-11-21: re-measured all 16 presets at 390px, CPU 1×/4×/6×, 6-note chords with BRIGHT / ATTACK / RELEASE turned, see "Re-check after the store's sample voice" above. No dropouts, so no voice limit lowered. Found and fixed: FANTOM-0 kept its reverb convolver working with every REVERB knob at 0 (about 3% of real time all the time); the send now joins only when REVERB goes above 0. Supersaw Stack 18.3% → 14.1%, Brass Hits 17.0% → 9.5%. Sound with REVERB at 0 unchanged.) Repeat the S7 phone-width budget check now that sample parts play through the store's own voice with BRIGHT and ATTACK.
 - [ ] S7c Real phone check by the owner or a tester: does a held 6-note chord crackle on MCKY EP & Strings (MODX M) and MCKY Supersaw Stack (FANTOM-0), how long LOADING lasts on mobile data, and how late the sound feels. Not measurable from the agent's sandbox.
 
 ## Rules for the simulator agent
