@@ -1,6 +1,6 @@
 # Roadmap
 
-Kept by the project manager agent ("Mcky project manager"). See AGENTS.md, "Who decides". Last updated 2026-11-21.
+Kept by the project manager agent ("Mcky project manager"). See AGENTS.md, "Who decides". Last updated 2026-11-22.
 
 ## Goal
 
@@ -8,16 +8,16 @@ Sell the owner's sound packs. The free tools (playable synths, sound organizer) 
 
 ## Now
 
-- Health 2026-11-21: main (54f946a) passes lint, typecheck, 201 tests and a clean build. Live site not checked for the second day: the PM's web fetch again stopped on a permission prompt nobody answers in a scheduled run, and direct curl gets no connection through the proxy. Whether /, /studio, /packs and /history load is unknown (last seen loading 2026-11-19).
-- Simulator agent (every 4 hours, until 2026-12-13): moving well, no questions. Finished Next 1–3 of 2026-11-20 (S2b store sample voice on MODX M AWM2 parts, S8e bend on held sample notes, S2c/S5j the same voice and ATTACK on FANTOM-0 PCM), then on its own S8j (FANTOM-0 LEARN for CTRL knobs 5–8) and S2d (MODX M Knob 3 BRIGHT). Its last two runs could not open any Yamaha or Roland manual (same unanswered fetch prompt), so the manual-based items (S4c, S5l, S8g, S8i) are stuck; new Next 1–3 need no web access. The new voice has not been heard with the real FluidR3_GM files from the sandbox, only with a stand-in.
+- Health 2026-11-22: main (8f400da) passes lint, typecheck, 208 tests and a clean build. Live site not checked for the third day: the PM's web fetch again stopped on an unanswered permission prompt and direct curl is refused by the proxy (CONNECT 403). Whether /, /studio, /packs and /history load is unknown (last seen loading 2026-11-19).
+- Simulator agent (every 4 hours, until 2026-12-13): finished Next 1–2 of 2026-11-21 (S7d phone re-check with no dropouts and a lighter FANTOM-0 reverb; S2e voice/fallback match test, which fixed silent lowest bass keys). Since 08:14 on 2026-11-21 it has made no commit: its only listed item needs a manual it cannot open, so it is idle as decided. New Next 1–2 below need no web access.
 - Researcher agent (every 6 hours, until 2026-11-26): idle by decision, no commits, until the owner's real-keyboard test.
 - Interface agent: off since 2026-11-17 (usage credits; its end date has passed). No agent can change store pages; the buying-path patch is still only in the Claude Project (Waiting on the owner).
 
 ## Next
 
 Simulator agent, in this order:
-1. Simulator agent: S7d, repeat the S7 phone-width budget check (390px, CPU 4× and 6×, 6-note chords on MCKY EP & Strings and MCKY Supersaw Stack) now that sample parts play through the store's own voice with BRIGHT and ATTACK; write the numbers in SIMULATOR.md; lower voice limits only if there are dropouts. No web access needed.
-2. Simulator agent: S2e, a test that the store's voice and the smplr fallback pick the same note files and level for every store preset, so a fallback never sounds different or silent; no new source, no new dependency.
+1. Simulator agent: S2f, when the sample files fail to load (SAMPLE ERROR) both simulator pages offer a "โหลดเสียงอีกครั้ง" button that retries the load, with a test using a mocked failing fetch; no new source, no new dependency, MODULAR/FM 6-OP/POLY unchanged.
+2. Simulator agent: S7e, check at 390px with touch emulation (Chromium hasTouch) that a 3–4 finger chord and a finger sliding off the keys on both simulator pages leave no stuck notes; fix inside src/components/rack/sim only, and if the fix needs the shared RackKeys, ask the PM first.
 3. Simulator agent: S4c, S5l, then S8g/S8i only on a run where the Yamaha or Roland Owner's Manual / Quick Guide actually opens; if no manual opens and 1–2 are done, make no commit rather than adding new store-made controls.
 
 Others:
@@ -51,7 +51,7 @@ Agents add one line each: date · agent · question · options · recommendation
 
 ## Risks
 
-- The live site has not been checked since 2026-11-19 (PM web fetch blocked by an unanswered permission prompt); a broken deploy would go unnoticed until someone opens the site.
+- The live site has not been checked since 2026-11-19 (three days) (PM web fetch blocked by an unanswered permission prompt); a broken deploy would go unnoticed until someone opens the site.
 - No agent can change store pages now that the interface task is off; the buying-path fix exists only as a Project patch.
 - FANTOM-0 PAD MODE (S5f) and some notes in SIMULATOR.md come from Roland manuals whose download page has a licence checkbox; the owner has not ruled on this yet.
 - The MODX M Split Job follows the store's own reading where Yamaha's manuals are silent (which Group owns the Split Point key); it is labelled on the page and may be one key off until the owner's test.
@@ -61,12 +61,14 @@ Agents add one line each: date · agent · question · options · recommendation
 - Payments are simulated; the store cannot take real money until a gateway is chosen and set up.
 - MODX M and FANTOM-0 previews and simulator sample parts load FluidR3_GM samples from a third-party host (midi-js-soundfonts on GitHub); if it goes down, those parts go silent (the pages show SAMPLE ERROR).
 - The read-only USB buttons (DX7 receive, MODX M Slot Names, FANTOM-0 Scene Name) are untested on real keyboards; some manual facts come from third-party manual copies (Kraft Music, manualmachine.com, manualsonline.com).
-- The PM's live-site check reads page text only, through web fetch: it catches a page that fails to load, not a broken button or layout, and does not show which commit is live. On 2026-11-20 and 2026-11-21 it could not run at all.
+- The PM's live-site check reads page text only, through web fetch: it catches a page that fails to load, not a broken button or layout, and does not show which commit is live. On 2026-11-20, 2026-11-21 and 2026-11-22 it could not run at all.
 - Two agents push to main on their own schedules; a bad push deploys straight to the live site.
 - Pack names and prices are sample data, so the store is not ready for real customers.
 
 ## Done
 
+- 2026-11-21: Simulator re-checked at phone width with the store's sample voice: no dropouts; FANTOM-0 reverb no longer works when every REVERB knob is at 0 (lighter on phones).
+- 2026-11-21: Test that the store's sample voice and its fallback play the same recording at the same level on every key; the lowest Fingered Bass keys on MCKY Split Bass/Piano no longer silent.
 - 2026-11-21: MODX M simulator Knob 3 is BRIGHT on Performances with sample parts (opens fully at start, so nothing sounds different until turned down).
 - 2026-11-21: FANTOM-0 simulator LEARN offers KNOB 1–8 in every Scene, so a keyboard knob can be learnt to CTRL knobs 5–8.
 - 2026-11-20: FANTOM-0 simulator CTRL ATTACK works on sample (PCM) partials, fading in up to 2 s.
