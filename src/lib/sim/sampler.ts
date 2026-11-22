@@ -255,6 +255,24 @@ export function soundfontUrl(instrument: string, format: "ogg" | "mp3", kit = "F
   return `https://gleitz.github.io/midi-js-soundfonts/${kit}/${instrument}-${format}.js`;
 }
 
+/** The part of `fetch` the sample loader uses, so tests can pass a mocked one. */
+export type FetchText = (url: string) => Promise<{ ok: boolean; status: number; text(): Promise<string> }>;
+
+/**
+ * Fetches and reads one midi-js sample file (S2f). Nothing is remembered between calls, so after a
+ * failure (host down, 404, cut-off file) the next call, e.g. from "โหลดเสียงอีกครั้ง", asks the host again.
+ */
+export async function fetchSampleFile(url: string, fetchText: FetchText): Promise<Record<string, string>> {
+  const res = await fetchText(url);
+  if (!res.ok) throw new Error(`sample file ${res.status}`);
+  return parseMidiJs(await res.text());
+}
+
+/** Which load states show the "โหลดเสียงอีกครั้ง" button on the simulator pages (S2f): only a failed one. */
+export function canRetryLoad(state: "idle" | "loading" | "ready" | "failed"): boolean {
+  return state === "failed";
+}
+
 /**
  * Peak gain of a sample note at MIDI velocity 1..127, the same level the pages had with smplr
  * (its note gain velocity²/127², times its channel volume 90, i.e. 90²/127², times the −3 dB

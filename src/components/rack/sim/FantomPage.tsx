@@ -49,6 +49,7 @@ import {
   type ZoneCtrl,
 } from "@/lib/sim/fantom";
 import { emptyLearn, forget, handleCc, toggleLearn, type LearnState, bendCents } from "@/lib/sim/midi";
+import { canRetryLoad } from "@/lib/sim/sampler";
 import { SimEngine } from "./engine";
 import { useMidiIn } from "./useMidiIn";
 
@@ -130,6 +131,12 @@ export function FantomPage({ active }: { active: boolean }) {
     }
     return e;
   }, [sceneIndex]);
+
+  // S2f: after SAMPLE ERROR, load the same Scene's sounds again without reloading the page.
+  const retryLoad = () => {
+    loadedFor.current = -1;
+    ensure();
+  };
 
   // Sliders, knobs, ZONE INT/EXT and the pads' MUTE / SOLO drive every partial channel of their zone.
   const audibleKey = audible.join();
@@ -348,6 +355,14 @@ export function FantomPage({ active }: { active: boolean }) {
                 <span>{statusText}</span>
               </div>
             </div>
+            {canRetryLoad(loading) && (
+              <div className="sim-retry">
+                <button type="button" className="rack-mini" onClick={retryLoad}>
+                  โหลดเสียงอีกครั้ง
+                </button>
+                <span className="rack-hint leading-snug">โหลดไฟล์เสียงตัวอย่างไม่สำเร็จ เสียงส่วนนั้นจะเงียบจนกว่าจะโหลดได้</span>
+              </div>
+            )}
           </div>
 
           {/* Scene select and USB. */}

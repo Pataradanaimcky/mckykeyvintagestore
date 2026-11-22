@@ -11,7 +11,7 @@ import {
   smplrMatchedPeak,
   soundfontUrl,
   attackSteps,
-  parseMidiJs,
+  fetchSampleFile,
   VoicePool,
   type Adsr,
   type EnvStep,
@@ -74,9 +74,7 @@ export class SamplePart implements SampleVoice {
 
   /** Fetches and decodes every recorded note; throws when none could be decoded. */
   async load(instrument: string, kit = "FluidR3_GM") {
-    const res = await fetch(soundfontUrl(instrument, browserFormat(), kit));
-    if (!res.ok) throw new Error(`sample file ${res.status}`);
-    const file = parseMidiJs(await res.text());
+    const file = await fetchSampleFile(soundfontUrl(instrument, browserFormat(), kit), (url) => fetch(url));
     await Promise.allSettled(
       recordedNotes(file).map(async ({ midi, name }) => {
         const buf = await this.ctx.decodeAudioData(base64ToBuffer(base64Body(file[name])));

@@ -52,6 +52,7 @@ import {
   type SplitJob,
 } from "@/lib/sim/modx";
 import { bendCents, emptyLearn, handleCc, hasReadyMap, toggleLearn, toggleReadyMap, type LearnState } from "@/lib/sim/midi";
+import { canRetryLoad } from "@/lib/sim/sampler";
 import { SimEngine } from "./engine";
 import { useMidiIn } from "./useMidiIn";
 
@@ -151,6 +152,12 @@ export function ModxPage({ active }: { active: boolean }) {
     }
     return e;
   }, [perfIndex]);
+
+  // S2f: after SAMPLE ERROR, load the same Performance's sounds again without reloading the page.
+  const retryLoad = () => {
+    loadedFor.current = -1;
+    ensure();
+  };
 
   // Faders, mutes and the Super Knob drive the part channels.
   useEffect(() => {
@@ -631,6 +638,14 @@ export function ModxPage({ active }: { active: boolean }) {
                   </span>
                   <span>{statusText}</span>
                 </div>
+              </div>
+            )}
+            {canRetryLoad(loading) && (
+              <div className="sim-retry">
+                <button type="button" className="rack-mini" onClick={retryLoad}>
+                  โหลดเสียงอีกครั้ง
+                </button>
+                <span className="rack-hint leading-snug">โหลดไฟล์เสียงตัวอย่างไม่สำเร็จ เสียงส่วนนั้นจะเงียบจนกว่าจะโหลดได้</span>
               </div>
             )}
           </div>
