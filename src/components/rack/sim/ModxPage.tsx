@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { packsHref } from "@/components/studio/packsLink";
-import { Fader } from "../Fader";
-import { Knob } from "../Knob";
 import { OctaveSwitch, RackKeys } from "../RackKeys";
 import {
   applySplitJob,
@@ -57,6 +55,8 @@ import { SimEngine } from "./engine";
 import { useMidiIn } from "./useMidiIn";
 import { HowToPlay } from "./HowToPlay";
 import { MODX_HOW_TO } from "./howto";
+import { connectLabel, MODX_LABELS } from "./a11y";
+import { SimFader, SimKnob } from "./SimControls";
 
 /** Page controls a keyboard control can move: the Super Knob, the SCENE buttons, Knobs 1–8 and part faders 1–8. */
 type LearnTarget = "super" | "scene" | `part${number}` | `knob${number}`;
@@ -394,7 +394,8 @@ export function ModxPage({ active }: { active: boolean }) {
                 const k = assigns[n];
                 return (
                   <div key={n} className="sim-assign-knob" onPointerDown={() => setKnobFocus(n)} onFocus={() => setKnobFocus(n)}>
-                    <Knob
+                    <SimKnob
+                      name={MODX_LABELS.assignKnob(n + 1, k.name)}
                       label={`Knob ${n + 1} ${k.name}`}
                       hint={k.targets.length ? `${Math.round((assignValues[n] ?? k.start) * 100)}` : "—"}
                       value={assignValues[n] ?? k.start}
@@ -416,7 +417,7 @@ export function ModxPage({ active }: { active: boolean }) {
           <div className="rack-panel col-span-6 items-center md:col-span-2">
             <p className="rack-title self-stretch">SUPER KNOB</p>
             <div className="sim-superknob">
-              <Knob label="SUPER" hint={`${Math.round(knob * 100)}`} value={knob} onChange={setKnob} />
+              <SimKnob name={MODX_LABELS.superKnob} label="SUPER" hint={`${Math.round(knob * 100)}`} value={knob} onChange={setKnob} />
             </div>
             <div className="flex items-center gap-1">
               {learnButton("super", "Super Knob")}
@@ -471,7 +472,7 @@ export function ModxPage({ active }: { active: boolean }) {
                             type="button"
                             className={`sim-range-cell sim-split-btn ${splitJob.groups[i]?.includes(g) ? "is-sel" : ""}`}
                             aria-pressed={splitJob.groups[i]?.includes(g) ?? false}
-                            aria-label={`PART ${i + 1} Group ${name}`}
+                            aria-label={`PART ${i + 1} เข้า Group ${name}`}
                             disabled={g > splitJob.count}
                             onClick={() => setSplitJob((j) => j && pressSplitGroup(j, i, g, shift))}
                           >
@@ -498,7 +499,7 @@ export function ModxPage({ active }: { active: boolean }) {
                       type="button"
                       className="rack-mini"
                       aria-pressed={splitJob.count === n}
-                      aria-label={`Split Points ${n}`}
+                      aria-label={`จำนวน Split Points ${n}`}
                       onClick={() => {
                         setSplitJob((j) => j && setSplitCount(j, n));
                         setSplitIndex((i) => Math.min(i, n - 1));
@@ -509,35 +510,36 @@ export function ModxPage({ active }: { active: boolean }) {
                   ))}
                   <span className="rack-hint ml-1">Split Point</span>
                   {splitJob.points.slice(0, splitJob.count).map((note, i) => (
-                    <button key={i} type="button" className="rack-mini px-1.5" aria-pressed={splitIndex === i} aria-label={`Split Point ${i + 1} ${noteName(note)}`} onClick={() => setSplitIndex(i)}>
+                    <button key={i} type="button" className="rack-mini px-1.5" aria-pressed={splitIndex === i} aria-label={`เลือก Split Point ${i + 1} (${noteName(note)})`} onClick={() => setSplitIndex(i)}>
                       {noteName(note)}
                     </button>
                   ))}
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <Knob
+                  <SimKnob
+                    name={MODX_LABELS.splitData}
                     label="DATA"
                     hint={noteName(splitJob.points[splitIndex])}
                     value={pointToKnob(splitJob.points[splitIndex])}
                     onChange={(k) => setSplitJob((j) => j && setSplitPoint(j, splitIndex, pointFromKnob(k)))}
                   />
-                  <button type="button" className="rack-mini" onClick={() => setSplitJob((j) => j && setSplitPoint(j, splitIndex, j.points[splitIndex] - 1))}>
+                  <button type="button" className="rack-mini" aria-label={MODX_LABELS.dec} onClick={() => setSplitJob((j) => j && setSplitPoint(j, splitIndex, j.points[splitIndex] - 1))}>
                     DEC
                   </button>
-                  <button type="button" className="rack-mini" onClick={() => setSplitJob((j) => j && setSplitPoint(j, splitIndex, j.points[splitIndex] + 1))}>
+                  <button type="button" className="rack-mini" aria-label={MODX_LABELS.inc} onClick={() => setSplitJob((j) => j && setSplitPoint(j, splitIndex, j.points[splitIndex] + 1))}>
                     INC
                   </button>
-                  <button type="button" className="rack-mini" aria-pressed={keyEntry} onClick={() => setKeyEntry((v) => !v)}>
+                  <button type="button" className="rack-mini" aria-label={MODX_LABELS.keyboardEntry} aria-pressed={keyEntry} onClick={() => setKeyEntry((v) => !v)}>
                     KEYBOARD
                   </button>
-                  <button type="button" className={`rack-mini ${shift ? "sim-shift-on" : ""}`} aria-pressed={shift} onClick={() => setShift((v) => !v)}>
+                  <button type="button" className={`rack-mini ${shift ? "sim-shift-on" : ""}`} aria-label={MODX_LABELS.shift} aria-pressed={shift} onClick={() => setShift((v) => !v)}>
                     SHIFT
                   </button>
                   <span className="ml-auto flex gap-1.5">
-                    <button type="button" className="rack-mini" onClick={() => closeSplitJob(true)}>
+                    <button type="button" className="rack-mini" aria-label={MODX_LABELS.splitExit} onClick={() => closeSplitJob(true)}>
                       EXIT
                     </button>
-                    <button type="button" className="rack-mini" onClick={() => closeSplitJob(true)}>
+                    <button type="button" className="rack-mini" aria-label={MODX_LABELS.splitDone} onClick={() => closeSplitJob(true)}>
                       Done
                     </button>
                   </span>
@@ -581,29 +583,30 @@ export function ModxPage({ active }: { active: boolean }) {
                   </ol>
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <Knob
+                  <SimKnob
+                    name={MODX_LABELS.rangeData}
                     label="DATA"
                     hint={rangeText(rangeField, rangeValue)}
                     value={rangeToKnob(rangeField, rangeValue)}
                     onChange={(k) => setRanges((r) => setRangeField(r, selected, rangeField, rangeFromKnob(rangeField, k)))}
                   />
-                  <button type="button" className="rack-mini" onClick={() => setRanges((r) => stepRangeField(r, selected, rangeField, -1))}>
+                  <button type="button" className="rack-mini" aria-label={MODX_LABELS.dec} onClick={() => setRanges((r) => stepRangeField(r, selected, rangeField, -1))}>
                     DEC
                   </button>
-                  <button type="button" className="rack-mini" onClick={() => setRanges((r) => stepRangeField(r, selected, rangeField, 1))}>
+                  <button type="button" className="rack-mini" aria-label={MODX_LABELS.inc} onClick={() => setRanges((r) => stepRangeField(r, selected, rangeField, 1))}>
                     INC
                   </button>
                   {rangeView === "note" && (
-                    <button type="button" className="rack-mini" aria-pressed={keyEntry} onClick={() => setKeyEntry((v) => !v)}>
+                    <button type="button" className="rack-mini" aria-label={MODX_LABELS.keyboardEntry} aria-pressed={keyEntry} onClick={() => setKeyEntry((v) => !v)}>
                       KEYBOARD
                     </button>
                   )}
                   {(Object.keys(RANGE_VIEWS) as RangeView[]).map((v) => (
-                    <button key={v} type="button" className="rack-mini" aria-pressed={rangeView === v} onClick={() => chooseRangeView(v)}>
+                    <button key={v} type="button" className="rack-mini" aria-label={MODX_LABELS.rangeView(RANGE_VIEWS[v].label)} aria-pressed={rangeView === v} onClick={() => chooseRangeView(v)}>
                       {RANGE_VIEWS[v].label}
                     </button>
                   ))}
-                  <button type="button" className="rack-mini ml-auto" onClick={() => setRangeView(null)}>
+                  <button type="button" className="rack-mini ml-auto" aria-label={MODX_LABELS.rangeExit} onClick={() => setRangeView(null)}>
                     EXIT
                   </button>
                 </div>
@@ -679,7 +682,8 @@ export function ModxPage({ active }: { active: boolean }) {
                 const exists = i < perf.parts.length;
                 return (
                   <div key={i} className={`sim-strip ${exists ? "" : "is-empty"}`}>
-                    <Fader
+                    <SimFader
+                      name={MODX_LABELS.partFader(i + 1)}
                       label={`${i + 1}`}
                       hint={exists ? `${Math.round((levels[i] ?? 0) * 100)}` : "—"}
                       value={exists ? (levels[i] ?? 0) : 0}
@@ -691,7 +695,7 @@ export function ModxPage({ active }: { active: boolean }) {
                       disabled={!exists}
                       aria-pressed={selected === i}
                       onClick={() => setSelected(i)}
-                      aria-label={`PART ${i + 1}${mutes[i] ? " (MUTE)" : ""}`}
+                      aria-label={`เลือก PART ${i + 1}${mutes[i] ? " (MUTE)" : ""}`}
                     >
                       {i + 1}
                     </button>
@@ -706,13 +710,13 @@ export function ModxPage({ active }: { active: boolean }) {
             <p className="rack-title">SCENE</p>
             <div className="grid grid-cols-4 gap-1" role="group" aria-label="Scene">
               {scenes.map((_, i) => (
-                <button key={i} type="button" className="rack-preset" aria-pressed={scene === i} onClick={() => recallScene(i)}>
+                <button key={i} type="button" className="rack-preset" aria-label={MODX_LABELS.scene(i + 1, shift)} aria-pressed={scene === i} onClick={() => recallScene(i)}>
                   {i + 1}
                 </button>
               ))}
             </div>
             <div className="mt-auto flex flex-wrap items-center gap-1.5">
-              <button type="button" className="rack-preset shrink-0" aria-pressed={shift} onClick={() => setShift((v) => !v)}>
+              <button type="button" className="rack-preset shrink-0" aria-label={MODX_LABELS.shift} aria-pressed={shift} onClick={() => setShift((v) => !v)}>
                 SHIFT
               </button>
               <button
@@ -747,7 +751,7 @@ export function ModxPage({ active }: { active: boolean }) {
                 +
               </button>
             </div>
-            <button type="button" className="rack-preset h-auto py-2 text-left leading-snug" onClick={() => void midi.connect()} aria-pressed={midi.state === "on"}>
+            <button type="button" className="rack-preset h-auto py-2 text-left leading-snug" onClick={() => void midi.connect()} aria-pressed={midi.state === "on"} aria-label={connectLabel(MIDI_TEXT[midi.state])}>
               {MIDI_TEXT[midi.state]}
               {midi.state === "on" && midi.names.length > 0 && <span className="block font-normal opacity-80">{midi.names.join(", ")}</span>}
             </button>
@@ -761,6 +765,7 @@ export function ModxPage({ active }: { active: boolean }) {
               disabled={midi.state !== "on"}
               title={midi.state === "on" ? undefined : "ต่อคีย์บอร์ด USB ก่อน"}
               onClick={() => setLearn(toggleReadyMap(learnRef.current, READY_MAP))}
+              aria-label={MODX_LABELS.readyMap}
             >
               ใช้เลข CC ตามเอกสาร Yamaha
             </button>

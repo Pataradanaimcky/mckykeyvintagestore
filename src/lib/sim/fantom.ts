@@ -179,11 +179,11 @@ export function padFace(state: PadState, pad: number, zoneCount: number, sceneNa
   }
   if (state.mode === "SYSTEM") {
     const name = sceneNames[pad];
-    return { label: String(n), enabled: name !== undefined, pressed: pad === sceneIndex, aria: name !== undefined ? `Pad ${n}: Scene ${name}` : `Pad ${n} (ว่าง)` };
+    return { label: String(n), enabled: name !== undefined, pressed: pad === sceneIndex, aria: name !== undefined ? `Pad ${n}: เรียก Scene ${name}` : `Pad ${n} (ว่าง)` };
   }
   const exists = pad < zoneCount;
   const word = state.mode === "ZONE MUTE" ? "MUTE" : "SOLO";
-  return { label: String(n), enabled: exists, pressed: exists && (state.mode === "ZONE MUTE" ? !!state.mutes[pad] : state.solo === pad), aria: exists ? `Pad ${n}: ${word} ZONE ${n}` : `Pad ${n} (Scene นี้ไม่มี ZONE ${n})` };
+  return { label: String(n), enabled: exists, pressed: exists && (state.mode === "ZONE MUTE" ? !!state.mutes[pad] : state.solo === pad), aria: exists ? `Pad ${n}: เปิดหรือปิด ${word} ของ ZONE ${n}` : `Pad ${n} (Scene นี้ไม่มี ZONE ${n})` };
 }
 
 /** What a keyboard knob or slider can be learnt to on the page: a zone's slider (LEVEL) or knob (PAN). */

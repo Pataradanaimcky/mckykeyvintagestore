@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { packsHref } from "@/components/studio/packsLink";
-import { Fader } from "../Fader";
-import { Knob } from "../Knob";
 import { RackKeys } from "../RackKeys";
 import {
   applyZoneControl,
@@ -53,6 +51,8 @@ import { canRetryLoad } from "@/lib/sim/sampler";
 import { SimEngine } from "./engine";
 import { useMidiIn } from "./useMidiIn";
 import { HowToPlay } from "./HowToPlay";
+import { connectLabel, FANTOM_LABELS } from "./a11y";
+import { SimFader, SimKnob } from "./SimControls";
 import { FANTOM_HOW_TO } from "./howto";
 
 const MIDI_TEXT = {
@@ -385,7 +385,7 @@ export function FantomPage({ active }: { active: boolean }) {
                 +
               </button>
             </div>
-            <button type="button" className="rack-preset h-auto py-2 text-left leading-snug" onClick={() => void midi.connect()} aria-pressed={midi.state === "on"}>
+            <button type="button" className="rack-preset h-auto py-2 text-left leading-snug" onClick={() => void midi.connect()} aria-pressed={midi.state === "on"} aria-label={connectLabel(MIDI_TEXT[midi.state])}>
               {MIDI_TEXT[midi.state]}
               {midi.state === "on" && midi.names.length > 0 && <span className="block font-normal opacity-80">{midi.names.join(", ")}</span>}
             </button>
@@ -433,7 +433,7 @@ export function FantomPage({ active }: { active: boolean }) {
               <span className="rack-hint shrink-0">{learnHint}</span>
             </div>
             <div className="mt-auto flex items-center justify-between gap-2">
-              <button type="button" className={`rack-preset ${splitArmed ? "sim-shift-on" : ""}`} aria-pressed={split.key !== null} onClick={pressSplit}>
+              <button type="button" className={`rack-preset ${splitArmed ? "sim-shift-on" : ""}`} aria-pressed={split.key !== null} aria-label={FANTOM_LABELS.split(split.key !== null ? "on" : splitArmed ? "armed" : "off")} onClick={pressSplit}>
                 SPLIT
               </button>
               <span className="rack-hint leading-snug">{splitArmed ? "กดคีย์เพื่อตั้งจุดแบ่ง" : "SPLIT + คีย์ = ZONE 1 บน / ZONE 4 ล่าง"}</span>
@@ -450,7 +450,7 @@ export function FantomPage({ active }: { active: boolean }) {
             </div>
             <div className="sim-knob-mode" role="group" aria-label="หน้าที่ปุ่มหมุน">
               {(["PAN/LEVEL", "CTRL"] as const).map((m) => (
-                <button key={m} type="button" className="rack-mini px-1.5 text-[0.55rem]" aria-pressed={knobMode === m} onClick={() => setKnobMode(m)}>
+                <button key={m} type="button" className="rack-mini px-1.5 text-[0.55rem]" aria-label={FANTOM_LABELS.knobMode(m)} aria-pressed={knobMode === m} onClick={() => setKnobMode(m)}>
                   {m}
                 </button>
               ))}
@@ -473,16 +473,18 @@ export function FantomPage({ active }: { active: boolean }) {
                 return (
                   <div key={i} className={`sim-strip sim-zone ${exists || ctrl ? "" : "is-empty"}`}>
                     {ctrl ? (
-                      <Knob label={job} hint={ctrlText(job, k)} value={k[job]} onChange={(v) => setCtrls((c) => setCtrl(c, currentZone, i, v))} />
+                      <SimKnob name={FANTOM_LABELS.ctrlKnob(job, currentZone + 1)} label={job} hint={ctrlText(job, k)} value={k[job]} onChange={(v) => setCtrls((c) => setCtrl(c, currentZone, i, v))} />
                     ) : (
-                      <Knob
+                      <SimKnob
+                        name={FANTOM_LABELS.panKnob(i + 1)}
                         label={`${i + 1}`}
                         hint={exists ? panText(pans[i] ?? 0.5) : "—"}
                         value={exists ? (pans[i] ?? 0.5) : 0.5}
                         onChange={(v) => exists && setPans((p) => p.map((x, z) => (z === i ? v : x)))}
                       />
                     )}
-                    <Fader
+                    <SimFader
+                      name={FANTOM_LABELS.levelFader(i + 1)}
                       label={`${i + 1}`}
                       hint={exists ? `${Math.round((levels[i] ?? 0) * 100)}` : "—"}
                       value={exists ? (levels[i] ?? 0) : 0}
@@ -499,7 +501,7 @@ export function FantomPage({ active }: { active: boolean }) {
                           setZoneSelectArmed(false);
                         } else setOn((o) => toggleZone(o, i));
                       }}
-                      aria-label={`ZONE INT/EXT ${i + 1}${on[i] ? " (ทำงาน)" : ""}${i === currentZone ? " (ZONE ปัจจุบัน)" : ""}`}
+                      aria-label={`ZONE INT/EXT ${i + 1} ${on[i] ? "ทำงาน" : "ไม่ทำงาน"}${i === currentZone ? " (ZONE ปัจจุบัน)" : ""}`}
                     >
                       {i + 1}
                     </button>
@@ -514,7 +516,7 @@ export function FantomPage({ active }: { active: boolean }) {
             <div className="flex items-center justify-between gap-2">
               <p className="rack-title">PAD</p>
               <span className="rack-hint min-w-0 flex-1 truncate text-right">{padHint(pads)}</span>
-              <button type="button" className={`rack-mini shrink-0 px-1.5 text-[0.55rem] ${pads.choosing ? "sim-shift-on" : ""}`} aria-pressed={pads.choosing} onClick={() => setPads(pressPadMode)}>
+              <button type="button" className={`rack-mini shrink-0 px-1.5 text-[0.55rem] ${pads.choosing ? "sim-shift-on" : ""}`} aria-pressed={pads.choosing} aria-label={FANTOM_LABELS.padMode} onClick={() => setPads(pressPadMode)}>
                 PAD MODE
               </button>
             </div>
