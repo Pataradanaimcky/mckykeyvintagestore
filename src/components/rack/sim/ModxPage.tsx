@@ -55,6 +55,8 @@ import { bendCents, emptyLearn, handleCc, hasReadyMap, toggleLearn, toggleReadyM
 import { canRetryLoad } from "@/lib/sim/sampler";
 import { SimEngine } from "./engine";
 import { useMidiIn } from "./useMidiIn";
+import { HowToPlay } from "./HowToPlay";
+import { MODX_HOW_TO } from "./howto";
 
 /** Page controls a keyboard control can move: the Super Knob, the SCENE buttons, Knobs 1–8 and part faders 1–8. */
 type LearnTarget = "super" | "scene" | `part${number}` | `knob${number}`;
@@ -788,6 +790,8 @@ export function ModxPage({ active }: { active: boolean }) {
           </div>
         </div>
       </div>
+
+      <HowToPlay sections={MODX_HOW_TO} />
 
       <p className="text-sm text-muted">
         <b className="text-ink">จำลองการทำงานแบบ MODX M · ไม่ใช่เสียงจริงของเครื่อง</b> เสียงทั้งหมดเป็นของร้าน: ส่วน AWM2 ใช้แซมเปิลเปิด FluidR3_GM

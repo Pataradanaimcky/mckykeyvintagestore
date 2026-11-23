@@ -52,6 +52,8 @@ import { emptyLearn, forget, handleCc, toggleLearn, type LearnState, bendCents }
 import { canRetryLoad } from "@/lib/sim/sampler";
 import { SimEngine } from "./engine";
 import { useMidiIn } from "./useMidiIn";
+import { HowToPlay } from "./HowToPlay";
+import { FANTOM_HOW_TO } from "./howto";
 
 const MIDI_TEXT = {
   off: "ต่อคีย์บอร์ด USB",
@@ -559,6 +561,8 @@ export function FantomPage({ active }: { active: boolean }) {
           </div>
         </div>
       </div>
+
+      <HowToPlay sections={FANTOM_HOW_TO} />
 
       <p className="text-sm text-muted">
         <b className="text-ink">จำลองการทำงานแบบ FANTOM-0 · ไม่ใช่เสียงจริงของเครื่อง</b> เสียงทั้งหมดเป็นของร้าน: partial แบบ PCM ใช้แซมเปิลเปิด
