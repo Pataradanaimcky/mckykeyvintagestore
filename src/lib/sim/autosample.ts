@@ -267,3 +267,112 @@ export function buildSfz(m: Manifest): string {
   }
   return lines.join("\n") + "\n";
 }
+
+/* ---------- A1b: loop point in the sustain (zero crossings plus best match) ---------- */
+
+export type LoopOptions = {
+  /** Shortest loop in samples (default 0.1 s at the rate given to `defaultLoopOptions`). */
+  minLength: number;
+  /** Samples compared on each side of the two loop points. */
+  window: number;
+  /** Worst match accepted (0 = identical, 1 = unrelated); above it no loop is offered. */
+  maxScore: number;
+  /** Most loop-end points tried (spread over the last quarter of the region). */
+  maxEnds: number;
+  /** Most loop-start points tried for each end. */
+  maxStarts: number;
+};
+
+/** Store-chosen defaults: loops of at least 0.1 s, 5 ms compared on each side, a close match only. */
+export function defaultLoopOptions(sampleRate: number): LoopOptions {
+  return {
+    minLength: Math.max(2, Math.round(0.1 * sampleRate)),
+    window: Math.max(8, Math.round(0.005 * sampleRate)),
+    maxScore: 0.05,
+    maxEnds: 48,
+    maxStarts: 400,
+  };
+}
+
+/** Channels summed to one, so a loop fits every channel at the same points. */
+function mixDown(channels: readonly Float32Array[]): Float32Array {
+  const len = channels.length ? Math.min(...channels.map((c) => c.length)) : 0;
+  const out = new Float32Array(len);
+  for (const ch of channels) for (let i = 0; i < len; i++) out[i] += ch[i];
+  return out;
+}
+
+/** Indices i in [from, to) where the signal goes from below zero to zero or above (rising zero crossings). */
+export function risingZeroCrossings(x: Float32Array, from = 1, to = x.length): number[] {
+  const out: number[] = [];
+  for (let i = Math.max(1, from); i < Math.min(x.length, to); i++) if (x[i - 1] < 0 && x[i] >= 0) out.push(i);
+  return out;
+}
+
+/** Every k-th item so at most `max` are kept (the first and last always). */
+function thin<T>(a: readonly T[], max: number): T[] {
+  if (a.length <= max) return [...a];
+  if (max <= 1) return [a[a.length - 1]];
+  const out: T[] = [];
+  for (let k = 0; k < max; k++) out.push(a[Math.round((k * (a.length - 1)) / (max - 1))]);
+  return out;
+}
+
+/**
+ * How well a jump from sample `end` back to sample `start` hides: the samples around `end` against
+ * those around `start`, as squared difference over their energy (0 = identical, 1 ≈ unrelated).
+ */
+export function loopScore(x: Float32Array, start: number, end: number, window: number): number {
+  let diff = 0;
+  let energy = 0;
+  for (let k = -window; k < window; k++) {
+    const a = x[end + k];
+    const b = x[start + k];
+    diff += (a - b) * (a - b);
+    energy += a * a + b * b;
+  }
+  return energy > 0 ? diff / energy : 1;
+}
+
+export type FoundLoop = { start: number; end: number; score: number };
+
+/**
+ * Finds a loop inside the sustain, between sample indices `from` and `to` (for example from the end
+ * of the attack to note off): both points on rising zero crossings, the end in the last quarter of
+ * the region so most of the sound plays before the loop, and the pair whose surroundings match best.
+ * Points are sample indices: play to `end` (not included), then continue at `start`.
+ * Returns null when the region is too short or silent, or no pair matches well enough (noise,
+ * strong vibrato); the sample is then played once. The input is not changed.
+ */
+export function findLoop(
+  channels: readonly Float32Array[],
+  from: number,
+  to: number,
+  opts: LoopOptions,
+): FoundLoop | null {
+  const x = mixDown(channels);
+  const w = Math.max(1, Math.floor(opts.window));
+  const lo = Math.max(w + 1, Math.floor(from));
+  const hi = Math.min(x.length - w, Math.floor(to));
+  if (hi - lo < opts.minLength) return null;
+  const crossings = risingZeroCrossings(x, lo, hi + 1);
+  if (crossings.length < 2) return null;
+  const endZone = hi - Math.floor((hi - lo) / 4);
+  const ends = thin(crossings.filter((i) => i >= endZone), opts.maxEnds);
+  let best: FoundLoop | null = null;
+  for (const end of ends) {
+    const starts = thin(crossings.filter((i) => i <= end - opts.minLength), opts.maxStarts);
+    for (const start of starts) {
+      const score = loopScore(x, start, end, w);
+      if (!best || score < best.score || (score === best.score && end - start > best.end - best.start)) {
+        best = { start, end, score };
+      }
+    }
+  }
+  return best && best.score <= opts.maxScore ? best : null;
+}
+
+/** Loop points in seconds for the manifest (`loopStart`, `loopEnd`), as the store's voice reads them. */
+export function loopSeconds(loop: Pick<FoundLoop, "start" | "end">, sampleRate: number): { loopStart: number; loopEnd: number } {
+  return { loopStart: loop.start / sampleRate, loopEnd: loop.end / sampleRate };
+}
