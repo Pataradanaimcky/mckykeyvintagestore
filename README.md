@@ -47,6 +47,7 @@ src/
     compatibility/            Which keyboards each line works on, and install steps
     faq/                      Questions and answers
     studio/                   Sound organizer: order DX7 cartridges, MODX M Live Sets, FANTOM-0 scenes (see docs/STUDIO.md)
+    sampler/                  Auto-sampler: records the visitor's own keyboard note by note over USB, saves a zip locally (docs/SIMULATOR.md A1)
     login/, account/          Sign in with a social account; my orders
     api/auth/                 Sign-in endpoints the platforms call back to
     cart/                     Cart page and the add/remove actions
