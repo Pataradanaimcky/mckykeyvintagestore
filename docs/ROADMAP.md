@@ -16,7 +16,8 @@ Sell the owner's sound packs. The free tools (playable synths, sound organizer) 
 ## Next
 
 Simulator agent, in this order:
-1. Simulator agent: S15, first-load check: in Chromium at 390px with a slow-network profile (e.g. "Slow 4G"), measure how long each simulator page shows LOADING and how many files/bytes it fetches before the first note; write the numbers in docs/SIMULATOR.md (if the sample host is blocked in the run, list the files and use stand-in sizes, and say so); if any sample loads before the visitor opens that page, load it only when the page is opened; src/components/rack/sim only, sound unchanged.
+1. Simulator agent (owner request 2026-11-24, first priority): auto-sampler A1 in docs/SIMULATOR.md, the `/sampler` page that plays notes on the owner's MODX M / FANTOM-0 over USB, records them and saves a set the simulators can play. Small steps: pure logic and tests first, then the page, then A2 (play your own recordings in the simulators). A3 waits for the owner's recordings.
+1b. Simulator agent: S15, first-load check: in Chromium at 390px with a slow-network profile (e.g. "Slow 4G"), measure how long each simulator page shows LOADING and how many files/bytes it fetches before the first note; write the numbers in docs/SIMULATOR.md (if the sample host is blocked in the run, list the files and use stand-in sizes, and say so); if any sample loads before the visitor opens that page, load it only when the page is opened; src/components/rack/sim only, sound unchanged.
 2. Simulator agent: S16, if S15 shows LOADING lasts more than about 3 seconds: show what is loading on the display (e.g. a part count "2/4") so a phone visitor knows it is working; no new dependency, sound unchanged.
 3. Simulator agent: S4c, S5l, then S8g/S8i only on a run where the Yamaha or Roland Owner's Manual / Quick Guide actually opens; if no manual opens and 1–2 are done, make no commit rather than adding new store-made controls.
 

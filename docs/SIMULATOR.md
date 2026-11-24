@@ -24,6 +24,23 @@ Owner request, 2026-11-16: the site has no MODX M or FANTOM simulator; he wants 
 - **Writing to the keyboard's memory:** not part of the simulator. Only if the maker documents it, behind a clear confirmation that is off by default and says it is untested on a real keyboard (same rule as /studio).
 - Everything is labelled "ยังไม่ได้ทดสอบกับเครื่องจริง" until the owner tries it on his keyboards (Waiting on the owner).
 
+## Owner request 2026-11-24: real MODX M sound through the store's own auto-sampler
+
+The owner wants the simulators to sound like the real keyboards. The real sounds exist only inside the keyboard (Performance and Library files hold settings, not waveforms), and taking Yamaha's or Roland's waveforms from firmware or from copies on the internet is out (not ours to give, AGENTS.md). The way in is recording: a keyboard owner records his own keyboard, note by note. The owner uses the paid SampleRobot; the free open-source SampleScanner (MIT) needs Python 2.7 and was last updated in 2022. So the store builds its own auto-sampler in the browser.
+
+**A1 Auto-sampler page `/sampler` ("อัดเสียงจากคีย์บอร์ด"), client only, Chrome/Edge:**
+- Web MIDI out to the chosen output and channel: note on/off with a set velocity, all-notes-off on stop. General MIDI channel messages only, no SysEx, nothing that changes the keyboard's memory. Optional Bank Select + Program Change only when the visitor types the numbers (documented messages, see the CC and S9 facts).
+- Audio in with `getUserMedia({ audio: { deviceId, echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 2 } })` and a device picker (`enumerateDevices`). Whether MODX M and FANTOM-0 send audio over USB, and on which channels: confirm from the manuals and write it here with sources; until then the page says "use the keyboard's USB audio or a line-in".
+- Settings with safe defaults: lowest and highest note (default C1–C6, Yamaha names), step (default every 3 semitones), velocity layers (default 1, velocity 100), hold time (3 s), release tail (2 s), gap. A test note first to set the input level, with a clipping warning.
+- Processing, as pure tested logic in `src/lib/sim/autosample.ts`: latency and onset detection by threshold, trim, one gain for the whole set so notes keep their relative level, fade-out, an optional loop point in the sustain (zero crossings plus best match), 16-bit or 24-bit WAV encoding.
+- Output, saved on the visitor's computer, never uploaded: a zip with the WAV files, a `manifest.json` in exactly the format the store's sample voice loads (roots, files, gain, loop points; see `src/lib/sim/sampler.ts` and `samplePart.ts`), and an `.sfz` file so the set also works in other samplers. A small MIT, BSD, ISC or Apache-2.0 zip library (for example fflate, MIT) is allowed for this; record it in README credits.
+- Stop at any time (all notes off, nothing half-written). A progress display "note 7/21".
+- Tests: pure logic in tests/, the page with a mocked `navigator.requestMIDIAccess` and a fake audio input (an oscillator through `MediaStreamAudioDestinationNode`), desktop and 390px screenshots.
+
+**A2 Play your own recordings in the simulators:** on the MODX M and FANTOM-0 pages, "โหลดชุดเสียงที่อัดเอง" opens a zip from A1 (or its folder) and uses it in place of the selected part's sample, in the browser only, nothing uploaded. Same sample voice, so Super Knob, Scenes, split and USB playing work as before.
+
+**A3 Store banks from the owner's recordings:** when the owner sends sets made with A1 (or SampleRobot exports converted to the same manifest), put them under `public/samples/<pack-slug>/<sound>/` and use them in the store's Performances instead of FluidR3_GM for those parts, playable only, no download link. The owner states that a lawyer he consulted approved this (2026-11-24). Never add sets from anyone else, and never sets from the internet.
+
 ## Building blocks already in the repo
 
 - `src/components/rack/poly/voices.ts` (`PolyVoices`): analog-style polysynth, chorus, filter. Basis for the AN-X-like and VA partials.
