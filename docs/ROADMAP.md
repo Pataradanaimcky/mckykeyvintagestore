@@ -1,6 +1,6 @@
 # Roadmap
 
-Kept by the project manager agent ("Mcky project manager"). See AGENTS.md, "Who decides". Last updated 2026-11-23.
+Kept by the project manager agent ("Mcky project manager"). See AGENTS.md, "Who decides". Last updated 2026-11-24.
 
 ## Goal
 
@@ -8,16 +8,16 @@ Sell the owner's sound packs. The free tools (playable synths, sound organizer) 
 
 ## Now
 
-- Health 2026-11-23: main (4bd5b34) passes lint, typecheck, 211 tests and a clean build. Live site not checked for the fourth day: web fetch again stopped on an unanswered permission prompt and direct curl is refused by the proxy (CONNECT 403). Whether /, /studio, /packs and /history load is unknown (last seen loading 2026-11-19).
-- Simulator agent (every 4 hours, until 2026-12-13): finished Next 1–2 of 2026-11-22 (S2f "โหลดเสียงอีกครั้ง" retry button after SAMPLE ERROR; S7e touch check at 390px, no stuck notes, no fix needed). Its four runs since 08:21 UTC on 2026-11-22 made no commit, as decided, because every other item needs a manual it cannot open. New Next 1–2 below need no web access and no new keyboard facts.
+- Health 2026-11-24: main (78e6fbc) passes lint, typecheck, 228 tests and a clean build. Live site not checked for the fifth day: web fetch again stopped on an unanswered permission prompt and direct curl is refused by the proxy. Whether /, /studio, /packs and /history load is unknown (last seen loading 2026-11-19).
+- Simulator agent (every 4 hours, until 2026-12-13): finished Next 1–2 of 2026-11-23 (S13 "วิธีเล่น" fold; S14 Thai screen-reader names and keyboard access) and its own follow-up S14b (empty strips skipped by Tab). Manuals still do not open, so it is again close to running out of items it can do; new Next 1–2 below need no web access and no new keyboard facts.
 - Researcher agent (every 6 hours, until 2026-11-26): idle by decision, no commits, until the owner's real-keyboard test.
 - Interface agent: off since 2026-11-17 (usage credits; its end date has passed). No agent can change store pages; the buying-path patch is still only in the Claude Project (Waiting on the owner).
 
 ## Next
 
 Simulator agent, in this order:
-1. Simulator agent: S13, a short Thai "วิธีเล่น" fold on each simulator page (play from the screen keys, computer keys or a USB keyboard; which buttons do what; that it is an emulation and which parts are the store's own reading or untested), using only facts already in docs/SIMULATOR.md, closed by default, in src/components/rack/sim only.
-2. Simulator agent: S14, keyboard and screen-reader access on both simulator pages: every button, knob and slider has a Thai label, can be reached with Tab and moved with the arrow keys, with a test; no sound change, src/components/rack/sim only, MODULAR/FM 6-OP/POLY unchanged.
+1. Simulator agent: S15, first-load check: in Chromium at 390px with a slow-network profile (e.g. "Slow 4G"), measure how long each simulator page shows LOADING and how many files/bytes it fetches before the first note; write the numbers in docs/SIMULATOR.md (if the sample host is blocked in the run, list the files and use stand-in sizes, and say so); if any sample loads before the visitor opens that page, load it only when the page is opened; src/components/rack/sim only, sound unchanged.
+2. Simulator agent: S16, if S15 shows LOADING lasts more than about 3 seconds: show what is loading on the display (e.g. a part count "2/4") so a phone visitor knows it is working; no new dependency, sound unchanged.
 3. Simulator agent: S4c, S5l, then S8g/S8i only on a run where the Yamaha or Roland Owner's Manual / Quick Guide actually opens; if no manual opens and 1–2 are done, make no commit rather than adding new store-made controls.
 
 Others:
@@ -51,7 +51,7 @@ Agents add one line each: date · agent · question · options · recommendation
 
 ## Risks
 
-- The live site has not been checked since 2026-11-19 (four days) (PM web fetch blocked by an unanswered permission prompt); a broken deploy would go unnoticed until someone opens the site.
+- The live site has not been checked since 2026-11-19 (five days) (PM web fetch blocked by an unanswered permission prompt); a broken deploy would go unnoticed until someone opens the site.
 - No agent can change store pages now that the interface task is off; the buying-path fix exists only as a Project patch.
 - FANTOM-0 PAD MODE (S5f) and some notes in SIMULATOR.md come from Roland manuals whose download page has a licence checkbox; the owner has not ruled on this yet.
 - The MODX M Split Job follows the store's own reading where Yamaha's manuals are silent (which Group owns the Split Point key); it is labelled on the page and may be one key off until the owner's test.
@@ -61,12 +61,15 @@ Agents add one line each: date · agent · question · options · recommendation
 - Payments are simulated; the store cannot take real money until a gateway is chosen and set up.
 - MODX M and FANTOM-0 previews and simulator sample parts load FluidR3_GM samples from a third-party host (midi-js-soundfonts on GitHub); if it goes down, those parts go silent (the pages show SAMPLE ERROR).
 - The read-only USB buttons (DX7 receive, MODX M Slot Names, FANTOM-0 Scene Name) are untested on real keyboards; some manual facts come from third-party manual copies (Kraft Music, manualmachine.com, manualsonline.com).
-- The PM's live-site check reads page text only, through web fetch: it catches a page that fails to load, not a broken button or layout, and does not show which commit is live. From 2026-11-20 to 2026-11-23 it could not run at all.
+- The PM's live-site check reads page text only, through web fetch: it catches a page that fails to load, not a broken button or layout, and does not show which commit is live. From 2026-11-20 to 2026-11-24 it could not run at all.
 - Two agents push to main on their own schedules; a bad push deploys straight to the live site.
 - Pack names and prices are sample data, so the store is not ready for real customers.
 
 ## Done
 
+- 2026-11-24: Simulator pages: buttons, knobs and sliders of unused PART/ZONE strips are skipped by Tab and screen readers.
+- 2026-11-23: Both simulator pages have Thai screen-reader names on every control and can be played and set with Tab and the arrow keys.
+- 2026-11-23: Both simulator pages have a closed "วิธีเล่น" fold: how to play from the screen, computer keys or a USB keyboard, what each button group does, and what is the store's own reading.
 - 2026-11-22: Both simulator pages offer "โหลดเสียงอีกครั้ง" when the sample files fail to load, so a visitor can retry without reloading the page.
 - 2026-11-22: Touch check at phone width on both simulator pages: 4-finger chords and a finger sliding off the keys leave no stuck notes.
 - 2026-11-21: Simulator re-checked at phone width with the store's sample voice: no dropouts; FANTOM-0 reverb no longer works when every REVERB knob is at 0 (lighter on phones).
