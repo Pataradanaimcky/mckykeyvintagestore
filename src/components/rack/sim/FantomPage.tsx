@@ -477,6 +477,7 @@ export function FantomPage({ active }: { active: boolean }) {
                     ) : (
                       <SimKnob
                         name={FANTOM_LABELS.panKnob(i + 1)}
+                        empty={!exists}
                         label={`${i + 1}`}
                         hint={exists ? panText(pans[i] ?? 0.5) : "—"}
                         value={exists ? (pans[i] ?? 0.5) : 0.5}
@@ -485,6 +486,7 @@ export function FantomPage({ active }: { active: boolean }) {
                     )}
                     <SimFader
                       name={FANTOM_LABELS.levelFader(i + 1)}
+                      empty={!exists}
                       label={`${i + 1}`}
                       hint={exists ? `${Math.round((levels[i] ?? 0) * 100)}` : "—"}
                       value={exists ? (levels[i] ?? 0) : 0}

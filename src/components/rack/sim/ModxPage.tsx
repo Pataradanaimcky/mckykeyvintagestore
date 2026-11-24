@@ -684,6 +684,7 @@ export function ModxPage({ active }: { active: boolean }) {
                   <div key={i} className={`sim-strip ${exists ? "" : "is-empty"}`}>
                     <SimFader
                       name={MODX_LABELS.partFader(i + 1)}
+                      empty={!exists}
                       label={`${i + 1}`}
                       hint={exists ? `${Math.round((levels[i] ?? 0) * 100)}` : "—"}
                       value={exists ? (levels[i] ?? 0) : 0}

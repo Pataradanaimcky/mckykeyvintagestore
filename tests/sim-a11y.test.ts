@@ -83,3 +83,16 @@ test("the wrappers give each knob and slider a named group", () => {
   const src = read("SimControls.tsx");
   assert.equal(src.match(/role="group" aria-label=\{name\}/g)?.length, 2);
 });
+
+test("S14b: knobs and sliders on unused PART/ZONE strips are inert (no Tab stop)", () => {
+  const controls = read("SimControls.tsx");
+  assert.equal([...controls.matchAll(/inert=\{empty\}/g)].length, 2);
+  const strips: Record<string, RegExp[]> = {
+    "ModxPage.tsx": [/<SimFader\s+name=\{MODX_LABELS\.partFader\(i \+ 1\)\}\s+empty=\{!exists\}/],
+    "FantomPage.tsx": [
+      /<SimKnob\s+name=\{FANTOM_LABELS\.panKnob\(i \+ 1\)\}\s+empty=\{!exists\}/,
+      /<SimFader\s+name=\{FANTOM_LABELS\.levelFader\(i \+ 1\)\}\s+empty=\{!exists\}/,
+    ],
+  };
+  for (const [page, res] of Object.entries(strips)) for (const re of res) assert.match(read(page), re, `${page} ${re}`);
+});
