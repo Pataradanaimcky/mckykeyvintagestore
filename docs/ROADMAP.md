@@ -1,6 +1,6 @@
 # Roadmap
 
-Kept by the project manager agent ("Mcky project manager"). See AGENTS.md, "Who decides". Last updated 2026-11-24.
+Kept by the project manager agent ("Mcky project manager"). See AGENTS.md, "Who decides". Last updated 2026-11-25.
 
 ## Goal
 
@@ -8,27 +8,27 @@ Sell the owner's sound packs. The free tools (playable synths, sound organizer) 
 
 ## Now
 
-- Health 2026-11-24: main (78e6fbc) passes lint, typecheck, 228 tests and a clean build. Live site not checked for the fifth day: web fetch again stopped on an unanswered permission prompt and direct curl is refused by the proxy. Whether /, /studio, /packs and /history load is unknown (last seen loading 2026-11-19).
-- Simulator agent (every 4 hours, until 2026-12-13): finished Next 1–2 of 2026-11-23 (S13 "วิธีเล่น" fold; S14 Thai screen-reader names and keyboard access) and its own follow-up S14b (empty strips skipped by Tab). Manuals still do not open, so it is again close to running out of items it can do; new Next 1–2 below need no web access and no new keyboard facts.
-- Researcher agent (every 6 hours, until 2026-11-26): idle by decision, no commits, until the owner's real-keyboard test.
-- Interface agent: off since 2026-11-17 (usage credits; its end date has passed). No agent can change store pages; the buying-path patch is still only in the Claude Project (Waiting on the owner).
+- Health 2026-11-25: main (3345916) passes lint, typecheck, 272 tests and a clean build. Live site checked again (first time since 2026-11-19): /, /studio, /packs, /history and the new /sampler all load (page text only).
+- Simulator agent (every 4 hours, until 2026-12-13): on the owner's auto-sampler request of 2026-11-24 it shipped A1a–A1d (the `/sampler` page is live but not linked yet) and A2a–A2b (the sample voice can play a recorded set, not on any page yet). On track, small steps, no new dependency (own zip writer). Next is A2c, which makes recordings playable in the simulators.
+- Researcher agent (every 6 hours, ends 2026-11-26): idle by decision, no commits, until the owner's real-keyboard test. Its last run will ask the owner whether to continue.
+- Interface agent: off since 2026-11-17 (usage credits). No agent can change store pages; the buying-path patch is still only in the Claude Project (Waiting on the owner).
 
 ## Next
 
 Simulator agent, in this order:
-1. Simulator agent (owner request 2026-11-24, first priority): auto-sampler A1 in docs/SIMULATOR.md, the `/sampler` page that plays notes on the owner's MODX M / FANTOM-0 over USB, records them and saves a set the simulators can play. Small steps: pure logic and tests first, then the page, then A2 (play your own recordings in the simulators). A3 waits for the owner's recordings.
-1b. Simulator agent: S15, first-load check: in Chromium at 390px with a slow-network profile (e.g. "Slow 4G"), measure how long each simulator page shows LOADING and how many files/bytes it fetches before the first note; write the numbers in docs/SIMULATOR.md (if the sample host is blocked in the run, list the files and use stand-in sizes, and say so); if any sample loads before the visitor opens that page, load it only when the page is opened; src/components/rack/sim only, sound unchanged.
-2. Simulator agent: S16, if S15 shows LOADING lasts more than about 3 seconds: show what is loading on the display (e.g. a part count "2/4") so a phone visitor knows it is working; no new dependency, sound unchanged.
-3. Simulator agent: S4c, S5l, then S8g/S8i only on a run where the Yamaha or Roland Owner's Manual / Quick Guide actually opens; if no manual opens and 1–2 are done, make no commit rather than adding new store-made controls.
+1. Simulator agent: A2c in docs/SIMULATOR.md: "โหลดชุดเสียงที่อัดเอง" / "ใช้เสียงเดิม" on the MODX M and FANTOM-0 pages for the selected sample part or zone, the set's name on the display, and links between /sampler and both simulator pages (A1g); checked at 1280 and 390 px. MODX M first if it does not fit in one run.
+2. Simulator agent: S15, first-load check: in Chromium at 390px with a slow-network profile (e.g. "Slow 4G"), measure how long each simulator page shows LOADING and how many files/bytes it fetches before the first note; write the numbers in docs/SIMULATOR.md; if any sample loads before the visitor opens that page, load it only when the page is opened; src/components/rack/sim only, sound unchanged.
+3. Simulator agent: S16 only if S15 shows LOADING lasts more than about 3 seconds (loading progress on the display). Manual items (A1e, S4c, S5l, S8g/S8i) only on a run where the manual actually opens; no commit on a run with nothing listed it can do.
 
 Others:
-4. Owner: try both simulators with his MODX M and FANTOM-0 over USB in Chrome, using "ทดสอบกับเครื่องจริง" in docs/SIMULATOR.md (about 10 minutes). Step 10 settles the Split Point question (S1d).
-5. Owner: 10-minute real-keyboard test of the /studio read-only buttons ("ทดสอบกับเครื่องจริง" in docs/STUDIO.md). It unblocks the researcher's remaining items (1a, 1d, 3d, 4f, 4h, 4o, 5b, 5e, 5h, 5k) and STUDIO.md 6.
-6. Needs a new task or the interface agent (owner's choice, Waiting on the owner): put the saved 2026-11-14 buying-path patch on main, then link pack pages to the matching simulator page (SIMULATOR.md S6, store part). The simulator and researcher agents do not touch store pages.
-7. Simulator agent, after the owner's USB test: S1d (Split Job corrections), S9 (pick a Performance on the real keyboard, documented messages only).
-8. Simulator agent, after the owner answers on Roland's manuals: S0b, S5b, S5e, S5g, S5h, S8d, S10.
-9. Simulator agent, later: S3c when its manual facts are read; S8e (any new dependency goes to the PM first).
-10. Researcher agent, later: STUDIO.md item 6 (other keyboards' sound lists), only after the owner's real-keyboard test.
+4. Owner: after A2c, record a short test set of one MODX M sound on /sampler (USB to the computer, Chrome, defaults) and play it back in the simulator; tells us whether USB audio works (A1e) and is the first step to store banks (A3).
+5. Owner: try both simulators with his MODX M and FANTOM-0 over USB in Chrome, using "ทดสอบกับเครื่องจริง" in docs/SIMULATOR.md (about 10 minutes). Step 10 settles the Split Point question (S1d).
+6. Owner: 10-minute real-keyboard test of the /studio read-only buttons ("ทดสอบกับเครื่องจริง" in docs/STUDIO.md). It unblocks the researcher's remaining items (1a, 1d, 3d, 4f, 4h, 4o, 5b, 5e, 5h, 5k) and STUDIO.md 6.
+7. Needs a new task or the interface agent (owner's choice, Waiting on the owner): put the saved 2026-11-14 buying-path patch on main, then link pack pages to the matching simulator page (SIMULATOR.md S6, store part). The simulator and researcher agents do not touch store pages.
+8. Simulator agent, after the owner's USB test: S1d (Split Job corrections), S9 (pick a Performance on the real keyboard, documented messages only).
+9. Simulator agent, after the owner answers on Roland's manuals: S0b, S5b, S5e, S5g, S5h, S8d, S10.
+10. Simulator agent, later: S3c when its manual facts are read; S8e (any new dependency goes to the PM first).
+11. Researcher agent, later: STUDIO.md item 6 (other keyboards' sound lists), only after the owner's real-keyboard test.
 
 ## Questions for the PM
 
@@ -36,7 +36,6 @@ Agents add one line each: date · agent · question · options · recommendation
 
 ## Waiting on the owner
 
-- Web access for the scheduled tasks (accounts/settings), new 2026-11-21: web fetch in the scheduled runs stops on a permission prompt nobody is there to answer, so the PM cannot check the live site and the simulator agent cannot open manuals. PM recommends: the owner allows web fetch for these scheduled tasks if his app offers that setting, and opens the live site once to confirm it loads. Other option: leave it; agents keep working from facts already in the docs.
 - Roland manual terms (legal), new 2026-11-19: Roland's manuals page puts a licence checkbox before the FANTOM-0 Reference Manual, Parameter Guide and MIDI Implementation. The simulator agent found the first two as direct PDFs on static.roland.com and read them (S0b, PAD MODE, shipped as S5f). PM recommends: the owner reads the terms on Roland's page and says whether agents may use these manuals. Other options: allow it without reading; or stop and remove PAD MODE. Until then agents do not read them, and PAD MODE stays on the site.
 - Store-page work after the interface task stopped (accounts and money), changed 2026-11-18: the task was turned off on 2026-11-17 because its model needed usage credits, and its end date has passed. PM recommends: one store-pages task (on the same model as the other tasks, so no extra credits), with this repo added with write access, for one week: apply the saved buying-path patch first, then link pack pages to the simulators. Alternatives: apply the patch himself; or leave the store pages as they are for now.
 - Contact details for the store (accounts): a LINE OA or email buyers can write to (src/config/site.ts). PM recommends an email made only for the store. Asked 2026-11-14, no answer yet.
@@ -48,26 +47,29 @@ Agents add one line each: date · agent · question · options · recommendation
 - Real pack names, prices and counts: the owner replaces the sample data himself (owner decision; agents do not ask).
 - Own photos of his own keyboards for pack covers (optional).
 - Real-keyboard test of the read-only USB buttons (Next 4) and of both simulators (Next 3), if he has the keyboards.
+- Owner's own recordings for store banks (A3): sets made with /sampler (or SampleRobot exports in the same manifest), when he has them.
 - Simulator versions of the store's packs (later, docs/SIMULATOR.md S4–S5): which store sounds may be rebuilt as simulator presets.
 
 ## Risks
 
-- The live site has not been checked since 2026-11-19 (five days) (PM web fetch blocked by an unanswered permission prompt); a broken deploy would go unnoticed until someone opens the site.
 - No agent can change store pages now that the interface task is off; the buying-path fix exists only as a Project patch.
 - FANTOM-0 PAD MODE (S5f) and some notes in SIMULATOR.md come from Roland manuals whose download page has a licence checkbox; the owner has not ruled on this yet.
 - The MODX M Split Job follows the store's own reading where Yamaha's manuals are silent (which Group owns the Split Point key); it is labelled on the page and may be one key off until the owner's test.
 - The simulator pages are checked only in desktop Chromium at phone width, not on real phones (SIMULATOR.md S7c).
 - The sample parts now play through the store's own voice (S2b, S2c), checked only with a stand-in file, not by ear with the real samples or on real phones; smplr stays as the fallback if the voice cannot load.
 - The simulators' USB input, CC learn and pitch bend are tested only with a mocked Web MIDI, not on a real MODX M or FANTOM-0.
+- /sampler is tested only with a mocked Web MIDI and a fake audio input; whether MODX M and FANTOM-0 send audio over USB is not confirmed from the manuals (A1e). Recordings are big: a full set may be too heavy for phones (the page warns above 120 MB).
 - Payments are simulated; the store cannot take real money until a gateway is chosen and set up.
 - MODX M and FANTOM-0 previews and simulator sample parts load FluidR3_GM samples from a third-party host (midi-js-soundfonts on GitHub); if it goes down, those parts go silent (the pages show SAMPLE ERROR).
 - The read-only USB buttons (DX7 receive, MODX M Slot Names, FANTOM-0 Scene Name) are untested on real keyboards; some manual facts come from third-party manual copies (Kraft Music, manualmachine.com, manualsonline.com).
-- The PM's live-site check reads page text only, through web fetch: it catches a page that fails to load, not a broken button or layout, and does not show which commit is live. From 2026-11-20 to 2026-11-24 it could not run at all.
+- The PM's live-site check reads page text only, through web fetch: it catches a page that fails to load, not a broken button or layout, and does not show which commit is live. It could not run from 2026-11-20 to 2026-11-24 and worked again on 2026-11-25.
 - Two agents push to main on their own schedules; a bad push deploys straight to the live site.
 - Pack names and prices are sample data, so the store is not ready for real customers.
 
 ## Done
 
+- 2026-11-25: The store's sample voice can play a set recorded with /sampler (velocity layers, held loops, bend); not on a page yet.
+- 2026-11-24: New page /sampler ("อัดเสียงจากคีย์บอร์ด"): plays notes on a USB keyboard, records them and saves a zip (WAVs, manifest, .sfz) on the visitor's computer, nothing uploaded; not linked yet.
 - 2026-11-24: Simulator pages: buttons, knobs and sliders of unused PART/ZONE strips are skipped by Tab and screen readers.
 - 2026-11-23: Both simulator pages have Thai screen-reader names on every control and can be played and set with Tab and the arrow keys.
 - 2026-11-23: Both simulator pages have a closed "วิธีเล่น" fold: how to play from the screen, computer keys or a USB keyboard, what each button group does, and what is the store's own reading.
