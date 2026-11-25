@@ -261,6 +261,16 @@ export function zoneChannels(scene: FantomScene): number[][] {
   return map;
 }
 
+/**
+ * A2d (docs/SIMULATOR.md): the channel a visitor's own set (recorded with /sampler) plays on for a zone:
+ * the zone's first PCM partial, or null when the zone has no sounding PCM partial (VA only, or past the
+ * phone limit). Store's own choice: one set per zone; the zone's other partials keep playing.
+ */
+export function zoneSetChannel(scene: FantomScene, zone: number): number | null {
+  const i = partialChannels(scene).findIndex((c) => c.zone === zone && c.partial.type === "PCM");
+  return i < 0 ? null : i;
+}
+
 /** Channel level: the zone's slider times the partial's level, silent when the zone is off. */
 export function channelLevel(ch: PartialChannel, levels: readonly number[], on: readonly boolean[]): number {
   return on[ch.zone] ? (levels[ch.zone] ?? 0) * ch.partial.level : 0;

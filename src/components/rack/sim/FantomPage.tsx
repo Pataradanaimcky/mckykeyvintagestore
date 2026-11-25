@@ -27,6 +27,7 @@ import {
   panText,
   partialChannels,
   partialText,
+  zoneSetChannel,
   pcmAttackS,
   pcmReleaseS,
   pickCurrentZone,
@@ -48,7 +49,9 @@ import {
 } from "@/lib/sim/fantom";
 import { emptyLearn, forget, handleCc, toggleLearn, type LearnState, bendCents } from "@/lib/sim/midi";
 import { canRetryLoad } from "@/lib/sim/sampler";
+import { setDisplayName, type OpenedSet } from "@/lib/sim/userset";
 import { SimEngine } from "./engine";
+import { UserSetLoader } from "./UserSetLoader";
 import { useMidiIn } from "./useMidiIn";
 import { HowToPlay } from "./HowToPlay";
 import { connectLabel, FANTOM_LABELS } from "./a11y";
@@ -102,6 +105,8 @@ export function FantomPage({ active }: { active: boolean }) {
   const [screenView, setScreenView] = useState<ReadonlyMap<number, number>>(new Map());
   const [held, setHeld] = useState<ReadonlySet<number>>(new Set());
   const [loading, setLoading] = useState<"idle" | "loading" | "ready" | "failed">("idle");
+  // A2d: a set the visitor recorded with /sampler, playing on one zone's first PCM partial (dropped when the sounds reload).
+  const [userSet, setUserSet] = useState<{ zone: number; channel: number; name: string } | null>(null);
   // CC learn: which zone control the LEARN button is for, and the CCs learnt so far (kept across Scenes).
   const [learnFor, setLearnFor] = useState<FantomLearnTarget>("level1");
   const [learn, setLearnView] = useState<LearnState<FantomLearnTarget>>(() => emptyLearn());
@@ -137,7 +142,21 @@ export function FantomPage({ active }: { active: boolean }) {
   // S2f: after SAMPLE ERROR, load the same Scene's sounds again without reloading the page.
   const retryLoad = () => {
     loadedFor.current = -1;
+    setUserSet(null);
     ensure();
+  };
+
+  const setChannel = zoneSetChannel(scene, currentZone);
+  const openUserSet = async (set: OpenedSet) => {
+    const zone = currentZone;
+    const channel = zoneSetChannel(scene, zone);
+    if (channel === null) throw new Error(`ZONE ${zone + 1} ไม่มี partial แบบ PCM`);
+    await ensure().useSet(channel, set);
+    setUserSet({ zone, channel, name: set.manifest.name });
+  };
+  const resetUserSet = () => {
+    if (userSet) void engine.current?.useSet(userSet.channel, null).catch(() => {});
+    setUserSet(null);
   };
 
   // Sliders, knobs, ZONE INT/EXT and the pads' MUTE / SOLO drive every partial channel of their zone.
@@ -179,6 +198,7 @@ export function FantomPage({ active }: { active: boolean }) {
     setCtrls(ctrlsForScene(s));
     setCurrentZone(0);
     setZoneSelectArmed(false);
+    setUserSet(null);
     if (engine.current) loadedFor.current = -1;
   };
 
@@ -338,7 +358,7 @@ export function FantomPage({ active }: { active: boolean }) {
                   return (
                     <li key={i} className={`sim-part ${audible[i] ? "" : "is-mute"}`}>
                       <span>{i + 1}</span>
-                      <span className="truncate">{z.tone.name}</span>
+                      <span className="truncate">{userSet?.zone === i ? `USER ${setDisplayName(userSet.name)}` : z.tone.name}</span>
                       <span>{partialText(z.tone)}</span>
                       <span className="hidden sm:inline">
                         {noteName(r.low)}–{noteName(r.high)}
@@ -357,6 +377,13 @@ export function FantomPage({ active }: { active: boolean }) {
                 <span>{statusText}</span>
               </div>
             </div>
+            <UserSetLoader
+              target={`ZONE ${currentZone + 1}`}
+              canLoad={setChannel !== null}
+              loadedName={userSet?.zone === currentZone ? userSet.name : null}
+              onOpen={openUserSet}
+              onReset={resetUserSet}
+            />
             {canRetryLoad(loading) && (
               <div className="sim-retry">
                 <button type="button" className="rack-mini" onClick={retryLoad}>
