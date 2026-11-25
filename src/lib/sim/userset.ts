@@ -5,7 +5,7 @@
  * All limits are the store's own choices; no keyboard facts used.
  */
 import { checkManifest, type Manifest, type ManifestSample } from "./autosample.ts";
-import { pickRecording, checkLoop, type SamplePick } from "./sampler.ts";
+import { pickRecording, checkLoop, playbackRate, smplrMatchedPeak, type SamplePick } from "./sampler.ts";
 import { readZip, SET_MANIFEST } from "./zip.ts";
 
 /** Largest zip or folder the pages open (the store's limit; A1 sets of 256 long stereo notes stay under it). */
@@ -167,4 +167,49 @@ export function setSummary(set: OpenedSet): string {
   if (set.layers.length > 1) line += ` · ${set.layers.length} ชั้น velocity`;
   if (set.decodedBytes > PHONE_WARN_BYTES) line += " · อาจหนักเกินไปสำหรับมือถือ";
   return line;
+}
+
+/* ---- A2b: what the store's sample voice plays for an opened set ---- */
+
+/** One note of an opened set, ready for the audio code: which WAV, its rate, its peak gain and its loop. */
+export type SetNote = {
+  file: string;
+  root: number;
+  rate: number;
+  peak: number;
+  /** Loop in seconds of the recording, played while the key is held; null plays the recording once. */
+  loop: { start: number; end: number } | null;
+};
+
+/**
+ * Peak gain of a set note. A set keeps the levels it was recorded at (one gain for the whole set,
+ * A1a), so a soft velocity layer is already softer on its own: the note plays at the store pages'
+ * full level (`smplrMatchedPeak(127)`) at the top of its layer and follows the same velocity² curve
+ * below it, never above full level. A one-layer set (1–127) plays exactly like `smplrMatchedPeak`.
+ */
+export function setNotePeak(velocity: number, layer: Pick<SetLayer, "hiVel">): number {
+  const v = Math.min(127, Math.max(1, Math.round(velocity)));
+  const ratio = Math.min(1, v / Math.max(1, layer.hiVel));
+  return smplrMatchedPeak(127) * ratio * ratio;
+}
+
+/** Everything the voice needs for `note` at `velocity` with the bend at `cents`; null when the set is empty or the note is outside 0..127. */
+export function planSetNote(note: number, velocity: number, layers: readonly SetLayer[], cents = 0): SetNote | null {
+  const layer = layerFor(velocity, layers);
+  if (!layer) return null;
+  const pick = pickRecording(note, layer.roots);
+  if (!pick) return null;
+  const s = layer.byRoot.get(pick.root)!;
+  const loop = s.loopStart !== undefined && s.loopEnd !== undefined ? { start: s.loopStart, end: s.loopEnd } : null;
+  return { file: s.file, root: pick.root, rate: playbackRate(note, pick.root, cents), peak: setNotePeak(velocity, layer), loop };
+}
+
+/**
+ * A fresh copy of a WAV's bytes for `decodeAudioData`, which takes the buffer it is given away, so
+ * the opened set stays whole (e.g. to open it again on the other simulator page).
+ */
+export function decodeCopy(bytes: Uint8Array): ArrayBuffer {
+  const out = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(out).set(bytes);
+  return out;
 }
