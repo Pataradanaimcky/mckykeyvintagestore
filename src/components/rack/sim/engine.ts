@@ -2,7 +2,9 @@ import { createChorus, PolyVoices } from "../poly/voices";
 import type { AnSettings, Performance } from "@/lib/sim/modx";
 import { joinReverbSend, SIM_LIMITER, softClipCurve } from "@/lib/sim/output";
 import { brightCutoff } from "@/lib/sim/sampler";
+import type { OpenedSet } from "@/lib/sim/userset";
 import { SamplePart, type SampleVoice } from "./samplePart";
+import { UserSetPart } from "./userSetPart";
 
 interface PartChannel {
   gain: GainNode;
@@ -10,6 +12,8 @@ interface PartChannel {
   an?: { voices: PolyVoices; settings: AnSettings };
   /** AWM2 / PCM parts: the store's own sample voice (both pages), or smplr when it cannot load. */
   awm?: Promise<SampleVoice>;
+  /** A2c: the part's own sample voice, kept while a set the visitor opened plays in its place. */
+  ownAwm?: Promise<SampleVoice>;
   /** AWM2 / PCM parts: low-pass before the part gain, open (pass-through at Nyquist) unless Knob 3 BRIGHT closes it (S2d). */
   tone?: BiquadFilterNode;
   /** FM-X parts: one AudioWorklet node (public/worklets/fmx-poly.js); null when the browser has no AudioWorklet. */
@@ -193,6 +197,31 @@ export class SimEngine {
     });
     const results = await Promise.allSettled(this.parts.map((p) => p.awm ?? p.fm ?? Promise.resolve(null)));
     return results.every((r) => r.status === "fulfilled");
+  }
+
+  /**
+   * A2c (docs/SIMULATOR.md): plays a set the visitor opened (recorded with /sampler) in place of an
+   * AWM2 / PCM part's sample, through the same tone filter, level and pan; `null` goes back to the
+   * part's own sample. Throws a Thai message when the part has no sample or a WAV will not decode.
+   * Loading another Performance or Scene (`load`) drops the set, as the part's sounds are rebuilt.
+   */
+  async useSet(part: number, set: OpenedSet | null): Promise<void> {
+    const ch = this.parts[part];
+    if (!ch?.tone || !ch.awm) throw new Error("ส่วนนี้ไม่ใช่เสียงแซมเปิล เลือกส่วน AWM2 / PCM ก่อน");
+    if (!set) {
+      if (!ch.ownAwm) return;
+      void ch.awm.then((v) => v.allOff()).catch(() => {});
+      ch.awm = ch.ownAwm;
+      ch.ownAwm = undefined;
+      return;
+    }
+    const voice = new UserSetPart(this.ctx, ch.tone);
+    await voice.load(set);
+    if (this.parts[part] !== ch) return; // another Performance was loaded meanwhile
+    if (this.bendCents) voice.bend(this.bendCents);
+    void ch.awm.then((v) => v.allOff()).catch(() => {});
+    ch.ownAwm ??= ch.awm;
+    ch.awm = Promise.resolve(voice);
   }
 
   setLevel(part: number, level: number) {

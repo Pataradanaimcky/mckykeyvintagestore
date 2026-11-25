@@ -51,7 +51,9 @@ import {
 } from "@/lib/sim/modx";
 import { bendCents, emptyLearn, handleCc, hasReadyMap, toggleLearn, toggleReadyMap, type LearnState } from "@/lib/sim/midi";
 import { canRetryLoad } from "@/lib/sim/sampler";
+import { setDisplayName, type OpenedSet } from "@/lib/sim/userset";
 import { SimEngine } from "./engine";
+import { UserSetLoader } from "./UserSetLoader";
 import { useMidiIn } from "./useMidiIn";
 import { HowToPlay } from "./HowToPlay";
 import { MODX_HOW_TO } from "./howto";
@@ -113,6 +115,8 @@ export function ModxPage({ active }: { active: boolean }) {
   const [octave, setOctave] = useState(0);
   const [held, setHeld] = useState<ReadonlySet<number>>(new Set());
   const [loading, setLoading] = useState<"idle" | "loading" | "ready" | "failed">("idle");
+  // A2c: a set the visitor recorded with /sampler, playing on one AWM2 part of this Performance (dropped when the sounds reload).
+  const [userSet, setUserSet] = useState<{ part: number; name: string } | null>(null);
   // Part limits the player set, and the view for setting them ([SHIFT] + [SPLIT], Operation Manual p. 19).
   const [ranges, setRanges] = useState<PartRange[]>(() => rangesOf(perf));
   const [rangeView, setRangeView] = useState<RangeView | null>(null);
@@ -158,6 +162,7 @@ export function ModxPage({ active }: { active: boolean }) {
   // S2f: after SAMPLE ERROR, load the same Performance's sounds again without reloading the page.
   const retryLoad = () => {
     loadedFor.current = -1;
+    setUserSet(null);
     ensure();
   };
 
@@ -189,7 +194,18 @@ export function ModxPage({ active }: { active: boolean }) {
     setRanges(rangesOf(p));
     setRangeFieldName(rangeView === "velocity" ? "velLow" : "low");
     setSplitJob(null);
+    setUserSet(null);
     if (engine.current) loadedFor.current = -1;
+  };
+
+  const openUserSet = async (set: OpenedSet) => {
+    const part = selected;
+    await ensure().useSet(part, set);
+    setUserSet({ part, name: set.manifest.name });
+  };
+  const resetUserSet = () => {
+    if (userSet) void engine.current?.useSet(userSet.part, null).catch(() => {});
+    setUserSet(null);
   };
 
   // Load the new Performance's sounds once the engine exists.
@@ -628,7 +644,7 @@ export function ModxPage({ active }: { active: boolean }) {
                   {shown.parts.map((p, i) => (
                     <li key={i} className={`sim-part ${i === selected ? "is-sel" : ""} ${mutes[i] ? "is-mute" : ""}`}>
                       <span>{i + 1}</span>
-                      <span className="truncate">{p.name}</span>
+                      <span className="truncate">{userSet?.part === i ? `USER ${setDisplayName(userSet.name)}` : p.name}</span>
                       <span>{p.engine}</span>
                       <span className="hidden sm:inline">
                         {noteName(p.low)}–{noteName(p.high)}
@@ -644,6 +660,15 @@ export function ModxPage({ active }: { active: boolean }) {
                   <span>{statusText}</span>
                 </div>
               </div>
+            )}
+            {!splitJob && !rangeView && (
+              <UserSetLoader
+                target={`PART ${selected + 1}`}
+                canLoad={part?.engine === "AWM2" && !!part.gm}
+                loadedName={userSet?.part === selected ? userSet.name : null}
+                onOpen={openUserSet}
+                onReset={resetUserSet}
+              />
             )}
             {canRetryLoad(loading) && (
               <div className="sim-retry">

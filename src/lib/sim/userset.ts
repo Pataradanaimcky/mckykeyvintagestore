@@ -213,3 +213,26 @@ export function decodeCopy(bytes: Uint8Array): ArrayBuffer {
   new Uint8Array(out).set(bytes);
   return out;
 }
+
+/* ---- A2c: what the visitor picked on a simulator page ---- */
+
+/** One file from the page's file picker: its name, its path inside a picked folder (or "") and its bytes. */
+export type PickedFile = { name: string; path: string; bytes: Uint8Array };
+
+/**
+ * Opens what the visitor picked with "โหลดชุดเสียงที่อัดเอง": one `.zip` saved by /sampler, or the files
+ * of a folder (its paths, so `flattenNames` drops the common top folder). Thai errors as above.
+ */
+export function openPickedSet(files: readonly PickedFile[]): OpenedSet {
+  if (files.length === 0) throw new Error("ยังไม่ได้เลือกไฟล์");
+  if (files.length === 1 && /\.zip$/i.test(files[0].name)) return openSampleSetZip(files[0].bytes);
+  if (files.some((f) => /\.zip$/i.test(f.name))) throw new Error("เลือก zip ได้ทีละไฟล์ หรือเลือกทั้งโฟลเดอร์ที่แตก zip แล้ว");
+  return openSampleSetFiles(new Map(files.map((f) => [f.path || f.name, f.bytes])));
+}
+
+/** The set's name for the 1-line display, at most `max` characters (an ellipsis when cut). */
+export function setDisplayName(name: string, max = 16): string {
+  const clean = name.replace(/\s+/g, " ").trim() || "USER SET";
+  const chars = [...clean];
+  return chars.length <= max ? clean : `${chars.slice(0, max - 1).join("")}…`;
+}
