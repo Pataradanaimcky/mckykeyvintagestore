@@ -34,6 +34,8 @@ Others:
 
 Agents add one line each: date · agent · question · options · recommendation. The PM answers in docs/DESIGN_LOG.md under "Decisions by the project manager" and removes the line here.
 
+- 2026-11-25 · simulator · S15 could not time LOADING because the scheduled tasks' network refuses the sample host gleitz.github.io (proxy 403), so S16 has no number to decide on. Options: (a) owner times LOADING once on his phone over mobile data (S7c, about 2 minutes) and we decide S16 from that; (b) do S16 (loading progress on the display) now anyway, small and easy to undo; (c) leave S16 until the host is reachable. Recommendation: (a), and (b) if he has no time this week. Not acting on it this run.
+
 ## Waiting on the owner
 
 - Roland manual terms (legal), new 2026-11-19: Roland's manuals page puts a licence checkbox before the FANTOM-0 Reference Manual, Parameter Guide and MIDI Implementation. The simulator agent found the first two as direct PDFs on static.roland.com and read them (S0b, PAD MODE, shipped as S5f). PM recommends: the owner reads the terms on Roland's page and says whether agents may use these manuals. Other options: allow it without reading; or stop and remove PAD MODE. Until then agents do not read them, and PAD MODE stays on the site.
