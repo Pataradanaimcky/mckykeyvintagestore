@@ -51,6 +51,7 @@ import {
 } from "@/lib/sim/modx";
 import { bendCents, emptyLearn, handleCc, hasReadyMap, toggleLearn, toggleReadyMap, type LearnState } from "@/lib/sim/midi";
 import { canRetryLoad } from "@/lib/sim/sampler";
+import { loadingText } from "@/lib/sim/progress";
 import { setDisplayName, type OpenedSet } from "@/lib/sim/userset";
 import { SimEngine } from "./engine";
 import { UserSetLoader } from "./UserSetLoader";
@@ -115,6 +116,8 @@ export function ModxPage({ active }: { active: boolean }) {
   const [octave, setOctave] = useState(0);
   const [held, setHeld] = useState<ReadonlySet<number>>(new Set());
   const [loading, setLoading] = useState<"idle" | "loading" | "ready" | "failed">("idle");
+  // S16: sounds ready out of sounds loading, shown as "LOADING 1/3".
+  const [progress, setProgress] = useState<[number, number]>([0, 0]);
   // A2c: a set the visitor recorded with /sampler, playing on one AWM2 part of this Performance (dropped when the sounds reload).
   const [userSet, setUserSet] = useState<{ part: number; name: string } | null>(null);
   // Part limits the player set, and the view for setting them ([SHIFT] + [SPLIT], Operation Manual p. 19).
@@ -152,7 +155,11 @@ export function ModxPage({ active }: { active: boolean }) {
     if (loadedFor.current !== perfIndex) {
       loadedFor.current = perfIndex;
       setLoading("loading");
-      void e.load(PERFORMANCES[perfIndex]).then((ok) => {
+      setProgress([0, 0]);
+      const onProgress = (done: number, total: number) => {
+        if (loadedFor.current === perfIndex) setProgress([done, total]);
+      };
+      void e.load(PERFORMANCES[perfIndex], undefined, false, "own", onProgress).then((ok) => {
         if (loadedFor.current === perfIndex) setLoading(ok ? "ready" : "failed");
       });
     }
@@ -378,7 +385,7 @@ export function ModxPage({ active }: { active: boolean }) {
   const rangeValue = ranges[selected]?.[rangeField] ?? 0;
   const readyOn = hasReadyMap(learn, READY_MAP);
   const statusText =
-    learn.learning ? "MOVE A CONTROL…" : loading === "loading" ? "LOADING…" : loading === "failed" ? "SAMPLE ERROR" : loading === "ready" ? "READY" : "TOUCH A KEY";
+    learn.learning ? "MOVE A CONTROL…" : loading === "loading" ? loadingText(...progress) : loading === "failed" ? "SAMPLE ERROR" : loading === "ready" ? "READY" : "TOUCH A KEY";
 
   return (
     <section aria-label="MODX M แบบจำลอง" className="flex flex-col gap-3">

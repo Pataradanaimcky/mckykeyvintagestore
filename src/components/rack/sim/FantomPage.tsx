@@ -48,6 +48,7 @@ import {
   type ZoneCtrl,
 } from "@/lib/sim/fantom";
 import { emptyLearn, forget, handleCc, toggleLearn, type LearnState, bendCents } from "@/lib/sim/midi";
+import { loadingText } from "@/lib/sim/progress";
 import { canRetryLoad } from "@/lib/sim/sampler";
 import { setDisplayName, type OpenedSet } from "@/lib/sim/userset";
 import { SimEngine } from "./engine";
@@ -105,6 +106,8 @@ export function FantomPage({ active }: { active: boolean }) {
   const [screenView, setScreenView] = useState<ReadonlyMap<number, number>>(new Map());
   const [held, setHeld] = useState<ReadonlySet<number>>(new Set());
   const [loading, setLoading] = useState<"idle" | "loading" | "ready" | "failed">("idle");
+  // S16: sounds ready out of sounds loading, shown as "LOADING 1/3".
+  const [progress, setProgress] = useState<[number, number]>([0, 0]);
   // A2d: a set the visitor recorded with /sampler, playing on one zone's first PCM partial (dropped when the sounds reload).
   const [userSet, setUserSet] = useState<{ zone: number; channel: number; name: string } | null>(null);
   // CC learn: which zone control the LEARN button is for, and the CCs learnt so far (kept across Scenes).
@@ -131,8 +134,13 @@ export function FantomPage({ active }: { active: boolean }) {
     if (loadedFor.current !== sceneIndex) {
       loadedFor.current = sceneIndex;
       setLoading("loading");
+      setProgress([0, 0]);
+      const onProgress = (done: number, total: number) => {
+        if (loadedFor.current === sceneIndex) setProgress([done, total]);
+      };
       const s = FANTOM_SCENES[sceneIndex];
-      void e.load(asPerformance(s), partialChannels(s).map((c) => s.zones[c.zone].pan), true).then((ok) => {
+      const pans = partialChannels(s).map((c) => s.zones[c.zone].pan);
+      void e.load(asPerformance(s), pans, true, "own", onProgress).then((ok) => {
         if (loadedFor.current === sceneIndex) setLoading(ok ? "ready" : "failed");
       });
     }
@@ -331,7 +339,7 @@ export function FantomPage({ active }: { active: boolean }) {
     : splitArmed
     ? "PRESS A KEY…"
     : loading === "loading"
-      ? "LOADING…"
+      ? loadingText(...progress)
       : loading === "failed"
         ? "SAMPLE ERROR"
         : loading === "ready"

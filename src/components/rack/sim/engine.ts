@@ -2,6 +2,7 @@ import { createChorus, PolyVoices } from "../poly/voices";
 import type { AnSettings, Performance } from "@/lib/sim/modx";
 import { joinReverbSend, SIM_LIMITER, softClipCurve } from "@/lib/sim/output";
 import { brightCutoff } from "@/lib/sim/sampler";
+import { settleWithProgress } from "@/lib/sim/progress";
 import type { OpenedSet } from "@/lib/sim/userset";
 import { SamplePart, type SampleVoice } from "./samplePart";
 import { UserSetPart } from "./userSetPart";
@@ -115,8 +116,16 @@ export class SimEngine {
    * `pans` (0..1 per part) adds a pan control to each channel; without it the channels are as before.
    * `voice` picks the sample player: "own" (the store's SamplePart, both pages since S2c, smplr if it cannot
    * load) or "smplr" (smplr only).
+   * `onProgress(done, total)` (S16) is told 0/total at the start and again as each sample part or FM-X
+   * engine finishes loading (or fails); it does not change what loads or how it sounds.
    */
-  async load(perf: Performance, pans?: readonly number[], fx = false, voice: "own" | "smplr" = "own"): Promise<boolean> {
+  async load(
+    perf: Performance,
+    pans?: readonly number[],
+    fx = false,
+    voice: "own" | "smplr" = "own",
+    onProgress?: (done: number, total: number) => void,
+  ): Promise<boolean> {
     this.allOff();
     for (const p of this.parts)
       setTimeout(() => {
@@ -195,7 +204,12 @@ export class SimEngine {
       }
       return ch;
     });
-    const results = await Promise.allSettled(this.parts.map((p) => p.awm ?? p.fm ?? Promise.resolve(null)));
+    const pending: Promise<unknown>[] = [];
+    for (const p of this.parts) {
+      const w = p.awm ?? p.fm;
+      if (w) pending.push(w);
+    }
+    const results = await settleWithProgress(pending, onProgress);
     return results.every((r) => r.status === "fulfilled");
   }
 
