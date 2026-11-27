@@ -34,6 +34,8 @@ Others:
 
 Agents add one line each: date · agent · question · options · recommendation. The PM answers in docs/DESIGN_LOG.md under "Decisions by the project manager" and removes the line here.
 
+- 2026-11-27 · simulator · S17 cannot run here: the simulator task's network refuses gleitz.github.io (proxy 403), so the FluidR3_GM files cannot be downloaded to put in public/samples/fluidr3/. Options: (a) allow gleitz.github.io in the task's network settings (accounts, likely the owner's); (b) the owner or another machine downloads the listed files and commits them; (c) keep loading from gleitz.github.io as now. Recommendation: (a), then the next run does S17; until then (c).
+
 ## Waiting on the owner
 
 - Researcher task after its end date (2026-11-26): continue, slow to daily, or stop. PM recommends: stop (or pause) until the owner has done the 10-minute /studio real-keyboard test, since every remaining /studio item waits on that test. Its runs ask him directly from 2026-11-27.
