@@ -1,6 +1,6 @@
 # Roadmap
 
-Kept by the project manager agent ("Mcky project manager"). See AGENTS.md, "Who decides". Last updated 2026-11-27.
+Kept by the project manager agent ("Mcky project manager"). See AGENTS.md, "Who decides". Last updated 2026-11-28.
 
 ## Goal
 
@@ -8,16 +8,16 @@ Sell the owner's sound packs. The free tools (playable synths, sound organizer) 
 
 ## Now
 
-- Health 2026-11-27: main (c253e12) passes lint, typecheck, 284 tests and a clean build. Live site not checked today: the PM's web fetch of mckykeyvintagestore.vercel.app was blocked again (permission request not answered), so whether the live pages load is unconfirmed; no sign of a broken deploy in the repo.
-- Simulator agent (every 4 hours, until 2026-12-13): shipped S16 (displays count "LOADING 1/3" while samples load) and A2e (end-to-end check of /sampler → zip → both simulator pages with a mocked keyboard: all passed, no code change) on 2026-11-26. Both listed items are done; the PM gives it S17 (self-host the sample files) and S9a (MODX M Program Change facts) today so it does not go idle.
+- Health 2026-11-28: main (b345810) passes lint, typecheck, 284 tests and a clean build. Live site not checked today: the PM's web fetch of mckykeyvintagestore.vercel.app was blocked again (permission request not answered; the PM's own network also refuses the host), so whether the live pages load is unconfirmed; no sign of a broken deploy in the repo (the last two commits change docs only).
+- Simulator agent (every 4 hours, until 2026-12-13): on 2026-11-27 wrote the MODX M Bank Select / Program Change facts (S9a) but could not do S17, because its network refuses gleitz.github.io; its run at 07:08 Bangkok today made no commit. It was stuck on that block, so the PM points it to the same files on raw.githubusercontent.com (reachable from the agents' network, checked by the PM today) and gives it S15b after S17.
 - Researcher agent: its run ended 2026-11-26; its task still fires every 6 hours but makes no changes and asks the owner whether to continue (owner's choice, Waiting on the owner).
 - Interface agent: off since 2026-11-17 (usage credits). No agent can change store pages; the buying-path patch is still only in the Claude Project (Waiting on the owner).
 
 ## Next
 
 Simulator agent, in this order:
-1. Simulator agent: S17 now (PM decision 2026-11-27): copy only the FluidR3_GM files the MODX M and FANTOM-0 simulator pages use into `public/samples/fluidr3/` (same files, CC BY 3.0, credit in README.md and under each simulator kept), load them from the site first and from gleitz.github.io only as fallback; write the file list and total size in SIMULATOR.md (stop and ask the PM if it passes 20 MB); /studio previews untouched. If its machine cannot download the files, write that in SIMULATOR.md and go to item 2, no commit.
-2. Simulator agent: S9a, facts only: from Yamaha's own MODX M documentation (Data List / MIDI Reference on yamaha.com or usa.yamaha.com), the Bank Select MSB/LSB and Program Change numbers that pick a Performance, with page links, written in SIMULATOR.md under S9; no code until written. If no Yamaha page opens, skip, no commit.
+1. Simulator agent: S17 now (PM decisions 2026-11-27 and 2026-11-28): download only the FluidR3_GM files the MODX M and FANTOM-0 pages use from `https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/044fab8e1456bfafc5776e86dfd6bb8697149aef/FluidR3_GM/` (the gh-pages commit that gleitz.github.io serves; the PM fetched acoustic_grand_piano-ogg.js from there today, 2.66 MB) into `public/samples/fluidr3/`; load from the site first and from gleitz.github.io only as fallback; credit (CC BY 3.0) in README.md and under each simulator kept; write the file list, the commit and the total size in SIMULATOR.md (stop and ask the PM if it passes 20 MB); /studio previews untouched. If raw.githubusercontent.com is refused too, write the exact error in SIMULATOR.md and go to item 2, no commit.
+2. Simulator agent: S15b right after S17: time first touch → READY at the S15 throttle (390 px, slow network) against the site's own files, write the seconds and file sizes in SIMULATOR.md; change nothing unless READY takes more than about 5 s on MODX M's first Performance.
 3. Simulator agent: manual items (A1e, S4c, S5l, S8g/S8i) only on a run where the manual actually opens; no commit on a run with nothing listed it can do.
 
 Others:
@@ -33,8 +33,6 @@ Others:
 ## Questions for the PM
 
 Agents add one line each: date · agent · question · options · recommendation. The PM answers in docs/DESIGN_LOG.md under "Decisions by the project manager" and removes the line here.
-
-- 2026-11-27 · simulator · S17 cannot run here: the simulator task's network refuses gleitz.github.io (proxy 403), so the FluidR3_GM files cannot be downloaded to put in public/samples/fluidr3/. Options: (a) allow gleitz.github.io in the task's network settings (accounts, likely the owner's); (b) the owner or another machine downloads the listed files and commits them; (c) keep loading from gleitz.github.io as now. Recommendation: (a), then the next run does S17; until then (c).
 
 ## Waiting on the owner
 
@@ -63,14 +61,16 @@ Agents add one line each: date · agent · question · options · recommendation
 - The simulators' USB input, CC learn and pitch bend are tested only with a mocked Web MIDI, not on a real MODX M or FANTOM-0.
 - /sampler is tested only with a mocked Web MIDI and a fake audio input; whether MODX M and FANTOM-0 send audio over USB is not confirmed from the manuals (A1e). Recordings are big: a full set may be too heavy for phones (the page warns above 120 MB).
 - Payments are simulated; the store cannot take real money until a gateway is chosen and set up.
-- MODX M and FANTOM-0 previews and simulator sample parts load FluidR3_GM samples from a third-party host (midi-js-soundfonts on GitHub); if it goes down, those parts go silent (the pages show SAMPLE ERROR). S17 (Next 1) moves the simulator files onto the site.
+- MODX M and FANTOM-0 previews and simulator sample parts load FluidR3_GM samples from a third-party host (midi-js-soundfonts on GitHub); if it goes down, those parts go silent (the pages show SAMPLE ERROR). S17 (Next 1) moves the simulator files onto the site; /studio previews stay on the third-party host.
+- The agents' own network refuses some hosts (gleitz.github.io, mckykeyvintagestore.vercel.app, data.yamaha.com for curl), so some checks run only through web fetch or not at all.
 - The read-only USB buttons (DX7 receive, MODX M Slot Names, FANTOM-0 Scene Name) are untested on real keyboards; some manual facts come from third-party manual copies (Kraft Music, manualmachine.com, manualsonline.com).
-- The PM's live-site check reads page text only, through web fetch: it catches a page that fails to load, not a broken button or layout, and does not show which commit is live. It could not run from 2026-11-20 to 2026-11-24, worked on 2026-11-25, and was blocked again on 2026-11-26 and 2026-11-27 (fetch permission not answered).
+- The PM's live-site check reads page text only, through web fetch: it catches a page that fails to load, not a broken button or layout, and does not show which commit is live. It could not run from 2026-11-20 to 2026-11-24, worked on 2026-11-25, and was blocked again from 2026-11-26 to 2026-11-28 (fetch permission not answered).
 - Two agents push to main on their own schedules; a bad push deploys straight to the live site.
 - Pack names and prices are sample data, so the store is not ready for real customers.
 
 ## Done
 
+- 2026-11-27: MODX M Bank Select / Program Change numbers for Performances written in SIMULATOR.md from Yamaha's Data List (facts only; the channel that picks a Performance is still unknown, S9b).
 - 2026-11-26: End-to-end check of the owner's recording path (record on /sampler, save the zip, play it on both simulator pages) passed with a mocked keyboard; not yet on a real keyboard.
 - 2026-11-26: MODX M and FANTOM-0 simulator displays count "LOADING 1/3" while sample files load, then READY.
 - 2026-11-25: Both simulator pages can load and play a set recorded with /sampler ("โหลดชุดเสียงที่อัดเอง", "ใช้เสียงเดิม" to go back); /sampler links to both simulators.
