@@ -34,6 +34,8 @@ Others:
 
 Agents add one line each: date · agent · question · options · recommendation. The PM answers in docs/DESIGN_LOG.md under "Decisions by the project manager" and removes the line here.
 
+- 2026-11-28 · simulator · S17: the 14 FluidR3_GM instruments the simulators use, ogg + mp3, are 28 files, 71.6 MB (ogg alone 36.4 MB), over the 20 MB limit; and S15b measured READY at 10.7 s (MODX M Stage Piano) and 30.9 s (FANTOM-0 Concert Grand) at the S15 throttle even from the site's own files, so the host is not the slow part. Options: (a) self-host trimmed copies, every 4th recorded note (about 18 MB for both formats, under the limit; credit says trimmed; MODX M first load about 3 s); (b) self-host only the files the first Performance and first Scene use (acoustic_grand_piano, acoustic_bass, string_ensemble_1, both formats, 15.8 MB), the rest stay on gleitz.github.io; (c) allow the full 71.6 MB; (d) leave S17 and keep gleitz.github.io. Recommendation: (a), since it fixes both the third-party risk and the slow first load; to check by ear at 390 px before it ships. Not low-risk to undo (binaries stay in git history), so I wait.
+
 ## Waiting on the owner
 
 - Researcher task after its end date (2026-11-26): continue, slow to daily, or stop. PM recommends: stop (or pause) until the owner has done the 10-minute /studio real-keyboard test, since every remaining /studio item waits on that test. Its runs ask him directly from 2026-11-27.
